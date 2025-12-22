@@ -21,7 +21,7 @@ interface AlertsPhaseProps {
   onAddAIContext?: (itemName: string) => void;
 }
 
-type Severity = 'Info' | 'Advisory' | 'Watch' | 'Warning';
+type Severity = 'Info' | 'Advisory' | 'Watch' | 'Warning' | 'Stand Down Safety';
 
 interface AlertItem {
   id: string;
@@ -45,6 +45,20 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingAlertId, setEditingAlertId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'active' | 'historical' | 'sent'>('active');
+  const [selectedIncidents, setSelectedIncidents] = useState<string[]>([]);
+  const [isIncidentPopoverOpen, setIsIncidentPopoverOpen] = useState(false);
+  
+  // State for acknowledgement notification
+  const [acknowledgedTimestamp, setAcknowledgedTimestamp] = useState<string | null>(data.acknowledgedTimestamp || null);
+  
+  // State for safety check form notification
+  const [safetyFormSubmitted, setSafetyFormSubmitted] = useState(data.safetyFormSubmitted || false);
+  const [safetyFormData, setSafetyFormData] = useState({
+    isSafe: data.safetyFormData?.isSafe || '',
+    comments: data.safetyFormData?.comments || '',
+    submittedAt: data.safetyFormData?.submittedAt || null
+  });
 
   const [alerts, setAlerts] = useState<AlertItem[]>(
     data.alerts || [
@@ -88,6 +102,29 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
       }
     ]
   );
+
+  // Available incidents for filtering
+  const incidents = [
+    'Grid Outage Alpha - Oahu Substation Failure',
+    'Solar Array Integration - Maui County',
+    'Typhoon Olivia Grid Hardening Response',
+    'Battery Storage System Beta - Big Island',
+    'Transmission Line Repair - Kauai Emergency',
+    'Wind Farm Emergency Shutdown - Molokai'
+  ];
+
+  // Handler for incident selection
+  const toggleIncident = (incident: string) => {
+    setSelectedIncidents(prev => 
+      prev.includes(incident) 
+        ? prev.filter(i => i !== incident)
+        : [...prev, incident]
+    );
+  };
+
+  const clearIncidentFilter = () => {
+    setSelectedIncidents([]);
+  };
 
   const [formData, setFormData] = useState<AlertItem>({
     id: '',
@@ -307,6 +344,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
       case 'Warning': return '#EF4444';
       case 'Watch': return '#F59E0B';
       case 'Advisory': return '#3B82F6';
+      case 'Stand Down Safety': return '#DC2626';
       default: return '#6e757c';
     }
   };
@@ -317,7 +355,9 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
       <div className="sticky top-0 z-10 bg-[#222529] rounded-lg border border-[#6e757c] relative">
         <div className="flex items-center justify-between px-[13px] py-3 w-full border-b-2 border-border rounded-t-lg rounded-b-none">
           <div className="flex items-center gap-4">
-            <p className="caption text-nowrap text-white whitespace-pre">Alerts</p>
+            <div className="relative">
+              <p className="caption text-nowrap text-white whitespace-pre">Notifications</p>
+            </div>
             <div className="relative h-[26px] w-[195px]">
               <input
                 type="text"
@@ -348,13 +388,409 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 </g>
               </svg>
             </div>
-            <p className="caption text-nowrap text-white ml-[21px]">Add Alert</p>
+            <p className="caption text-nowrap text-white ml-[21px]">Add Notification</p>
           </button>
         </div>
       </div>
 
+      {/* Active/Historical/Sent Toggle */}
+      <div className="mb-4 flex w-fit border border-border bg-[#1a1d21] rounded-md overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setViewMode('active')}
+          className={`px-2 text-xs font-medium transition-colors ${
+            viewMode === 'active'
+              ? 'bg-[#01669f] text-white'
+              : 'bg-transparent text-foreground hover:bg-muted/50'
+          }`}
+          style={{ paddingTop: '2px', paddingBottom: '2px' }}
+        >
+          Active
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode('historical')}
+          className={`px-2 text-xs font-medium transition-colors border-l border-border ${
+            viewMode === 'historical'
+              ? 'bg-[#01669f] text-white'
+              : 'bg-transparent text-foreground hover:bg-muted/50'
+          }`}
+          style={{ paddingTop: '2px', paddingBottom: '2px' }}
+        >
+          Historical
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode('sent')}
+          className={`px-2 text-xs font-medium transition-colors border-l border-border ${
+            viewMode === 'sent'
+              ? 'bg-[#01669f] text-white'
+              : 'bg-transparent text-foreground hover:bg-muted/50'
+          }`}
+          style={{ paddingTop: '2px', paddingBottom: '2px' }}
+        >
+          Sent
+        </button>
+      </div>
+
+      {/* Incident Filter */}
+      <div className="mb-4 px-4 py-3 bg-[#222529] rounded-lg border border-[#6e757c]">
+        <div className="flex items-center gap-2">
+          <span className="caption text-white whitespace-nowrap">Incident:</span>
+          <Popover open={isIncidentPopoverOpen} onOpenChange={setIsIncidentPopoverOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className="w-[300px] h-[24px] bg-transparent border border-[#6e757c] rounded-[4px] px-2 caption text-white focus:outline-none focus:border-accent cursor-pointer flex items-center justify-between"
+                style={{ 
+                  fontFamily: "'Open Sans', sans-serif",
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '18px'
+                }}
+              >
+                {selectedIncidents.length === 0 
+                  ? 'All Incidents' 
+                  : selectedIncidents.length === 1 
+                  ? selectedIncidents[0]
+                  : `${selectedIncidents.length} incidents selected`}
+                <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[300px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+              <Command className="bg-[#222529]">
+                <CommandInput 
+                  placeholder="Search incident..." 
+                  className="h-9 caption text-white"
+                  style={{ 
+                    fontFamily: "'Open Sans', sans-serif",
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    lineHeight: '18px'
+                  }}
+                />
+                <CommandList>
+                  <CommandEmpty className="caption text-white/70 p-2">No incident found.</CommandEmpty>
+                  <CommandGroup>
+                    {incidents.map((incident) => (
+                      <CommandItem
+                        key={incident}
+                        value={incident}
+                        onSelect={() => toggleIncident(incident)}
+                        className="caption text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
+                        style={{ 
+                          fontFamily: "'Open Sans', sans-serif",
+                          fontSize: '12px',
+                          fontWeight: 400,
+                          lineHeight: '18px'
+                        }}
+                      >
+                        <Checkbox
+                          checked={selectedIncidents.includes(incident)}
+                          className="mr-2 h-3 w-3 border-white data-[state=checked]:bg-accent data-[state=checked]:border-accent"
+                        />
+                        {incident}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          {selectedIncidents.length > 0 && (
+            <button
+              onClick={clearIncidentFilter}
+              className="p-1 hover:bg-muted/30 rounded transition-colors"
+              title="Clear filter"
+            >
+              <X className="w-3 h-3 text-white" />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Alerts List - similar card layout to Resources */}
-      <div className="space-y-4">
+      {viewMode === 'active' && (
+        <div className="space-y-4">
+        
+        {/* Safety Check Form Notification */}
+        <div
+          className="border border-border rounded-lg overflow-hidden"
+          style={{ background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+        >
+          <div className={`p-3 ${expandedAlerts.has('safety-check-form') ? 'border-b border-border' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div
+                className="flex items-start gap-2 flex-1 cursor-pointer"
+                onClick={() => {
+                  if (!safetyFormSubmitted) {
+                    const id = 'safety-check-form';
+                    setExpandedAlerts(prev => {
+                      const next = new Set(prev);
+                      if (next.has(id)) next.delete(id); else next.add(id);
+                      return next;
+                    });
+                  }
+                }}
+              >
+                {expandedAlerts.has('safety-check-form') ? (
+                  <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <span className="caption text-white">Safety Check - Personnel Status Report</span>
+                  {!expandedAlerts.has('safety-check-form') && (
+                    <div className="space-y-2 mt-1">
+                      <div className="flex items-center gap-3">
+                        <span className="caption text-white">System</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-red-500" />
+                          <span className="caption text-red-500">Action Required</span>
+                        </div>
+                        <span className="caption text-white">{formatMilitaryTimeUTC(new Date().toISOString())}</span>
+                      </div>
+                      {!safetyFormSubmitted ? (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedAlerts(prev => new Set(prev).add('safety-check-form'));
+                          }}
+                          className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
+                          style={{ paddingTop: '4px', paddingBottom: '4px' }}
+                        >
+                          Complete Form
+                        </Button>
+                      ) : (
+                        <p className="caption text-white">
+                          Status submitted at {formatDateDisplay(safetyFormData.submittedAt)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {expandedAlerts.has('safety-check-form') && (
+            <div className="p-4 space-y-4 bg-card/50">
+              {!safetyFormSubmitted ? (
+                <>
+                  <div>
+                    <label className="text-white mb-1 block">Description</label>
+                    <p className="caption text-white">
+                      Please complete this safety status form to confirm your current condition and location.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-white mb-2 block">Are you safe?</label>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setSafetyFormData({ ...safetyFormData, isSafe: 'yes' })}
+                          className={`px-4 py-2 rounded border transition-colors ${
+                            safetyFormData.isSafe === 'yes'
+                              ? 'bg-green-500/20 border-green-500 text-green-500'
+                              : 'border-border text-white hover:bg-muted/20'
+                          }`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          onClick={() => setSafetyFormData({ ...safetyFormData, isSafe: 'no' })}
+                          className={`px-4 py-2 rounded border transition-colors ${
+                            safetyFormData.isSafe === 'no'
+                              ? 'bg-red-500/20 border-red-500 text-red-500'
+                              : 'border-border text-white hover:bg-muted/20'
+                          }`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-white mb-2 block">Do you have any comments?</label>
+                      <Textarea
+                        value={safetyFormData.comments}
+                        onChange={(e) => setSafetyFormData({ ...safetyFormData, comments: e.target.value })}
+                        placeholder="Enter any additional comments or information..."
+                        rows={4}
+                        className="bg-input-background border-border resize-none text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      onClick={() => {
+                        if (safetyFormData.isSafe) {
+                          const submittedData = {
+                            ...safetyFormData,
+                            submittedAt: new Date().toISOString()
+                          };
+                          setSafetyFormData(submittedData);
+                          setSafetyFormSubmitted(true);
+                          onDataChange({ 
+                            ...data, 
+                            safetyFormSubmitted: true,
+                            safetyFormData: submittedData
+                          });
+                          // Auto-collapse after submission
+                          setExpandedAlerts(prev => {
+                            const next = new Set(prev);
+                            next.delete('safety-check-form');
+                            return next;
+                          });
+                        }
+                      }}
+                      disabled={!safetyFormData.isSafe}
+                      className="bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Submit
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-white mb-1 block">Form Submitted</label>
+                    <p className="caption text-white">
+                      Thank you for completing the safety status form.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-white mb-1 block">Status</label>
+                      <p className="caption text-white capitalize">{safetyFormData.isSafe === 'yes' ? 'Safe' : 'Unsafe'}</p>
+                    </div>
+                    <div>
+                      <label className="text-white mb-1 block">Submitted</label>
+                      <p className="caption text-white">{formatDateDisplay(safetyFormData.submittedAt)}</p>
+                    </div>
+                  </div>
+
+                  {safetyFormData.comments && (
+                    <div>
+                      <label className="text-white mb-1 block">Comments</label>
+                      <p className="caption text-white">{safetyFormData.comments}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Acknowledgement Receipt Notification */}
+        <div
+          className="border border-border rounded-lg overflow-hidden"
+          style={{ background: 'linear-gradient(90deg, rgba(2, 163, 254, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+        >
+          <div className={`p-3 ${expandedAlerts.has('acknowledgement-receipt') ? 'border-b border-border' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div
+                className="flex items-start gap-2 flex-1 cursor-pointer"
+                onClick={() => {
+                  const id = 'acknowledgement-receipt';
+                  setExpandedAlerts(prev => {
+                    const next = new Set(prev);
+                    if (next.has(id)) next.delete(id); else next.add(id);
+                    return next;
+                  });
+                }}
+              >
+                {expandedAlerts.has('acknowledgement-receipt') ? (
+                  <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <span className="caption text-white">Acknowledgement Required - Incident Briefing Review</span>
+                  {!expandedAlerts.has('acknowledgement-receipt') && (
+                    <div className="space-y-2 mt-1">
+                      <div className="flex items-center gap-3">
+                        <span className="caption text-white">System</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-red-500" />
+                          <span className="caption text-red-500">Action Required</span>
+                        </div>
+                        <span className="caption text-white">{formatMilitaryTimeUTC(new Date().toISOString())}</span>
+                      </div>
+                      {!acknowledgedTimestamp ? (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const timestamp = new Date().toISOString();
+                            setAcknowledgedTimestamp(timestamp);
+                            onDataChange({ ...data, acknowledgedTimestamp: timestamp });
+                          }}
+                          className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
+                          style={{ paddingTop: '4px', paddingBottom: '4px' }}
+                        >
+                          Acknowledge Receipt
+                        </Button>
+                      ) : (
+                        <p className="caption text-white">
+                          User acknowledged at {formatDateDisplay(acknowledgedTimestamp)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {expandedAlerts.has('acknowledgement-receipt') && (
+            <div className="p-4 space-y-4 bg-card/50">
+              <div>
+                <label className="text-white mb-1 block">Description</label>
+                <p className="caption text-white">
+                  Please acknowledge receipt of the incident briefing documentation and confirm your review of all operational procedures.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-white mb-1 block">Severity</label>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
+                    <span className="caption text-white">Info</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-white mb-1 block">Status</label>
+                  <p className="caption text-white">{acknowledgedTimestamp ? 'Acknowledged' : 'Pending'}</p>
+                </div>
+              </div>
+
+              {!acknowledgedTimestamp ? (
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    onClick={() => {
+                      const timestamp = new Date().toISOString();
+                      setAcknowledgedTimestamp(timestamp);
+                      onDataChange({ ...data, acknowledgedTimestamp: timestamp });
+                    }}
+                    className="bg-primary hover:bg-primary/90 text-white"
+                  >
+                    Acknowledge Receipt
+                  </Button>
+                </div>
+              ) : (
+                <div className="pt-2">
+                  <p className="caption text-white">
+                    User acknowledged at {formatDateDisplay(acknowledgedTimestamp)}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
         {filtered.map((a) => {
           const isExpanded = expandedAlerts.has(a.id);
           return (
@@ -507,12 +943,319 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           );
         })}
       </div>
+      )}
+
+      {/* Sent Notifications View */}
+      {viewMode === 'sent' && (
+        <div className="space-y-4">
+          {/* Safety Assessment Notification */}
+          <div
+            className="border border-border rounded-lg overflow-hidden"
+            style={{ background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+          >
+            <div className={`p-3 ${expandedAlerts.has('sent-safety-assessment') ? 'border-b border-border' : ''}`}>
+              <div className="flex items-start justify-between">
+                <div
+                  className="flex items-start gap-2 flex-1 cursor-pointer"
+                  onClick={() => {
+                    const id = 'sent-safety-assessment';
+                    setExpandedAlerts(prev => {
+                      const next = new Set(prev);
+                      if (next.has(id)) next.delete(id); else next.add(id);
+                      return next;
+                    });
+                  }}
+                >
+                  {expandedAlerts.has('sent-safety-assessment') ? (
+                    <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <span className="caption text-white font-semibold">Safety Assessment - Personnel Status Check</span>
+                    {!expandedAlerts.has('sent-safety-assessment') && (
+                      <div className="space-y-2 mt-1">
+                        <div className="flex items-center gap-3">
+                          <span className="caption text-white">Sent: {formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-1">
+                            <span className="caption text-white font-semibold">42</span>
+                            <span className="caption text-white">read</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="caption text-white font-semibold">38</span>
+                            <span className="caption text-white">acknowledged</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="caption text-white font-semibold">35</span>
+                            <span className="caption text-white">submitted</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {expandedAlerts.has('sent-safety-assessment') && (
+              <div className="p-4 space-y-4 bg-card/50">
+                <div>
+                  <label className="text-white mb-1 block">Message</label>
+                  <p className="caption text-white">
+                    Please complete this safety status form to confirm your current condition and location.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-white mb-1 block">Read</label>
+                    <p className="caption text-white text-lg font-semibold">42 / 45</p>
+                    <p className="caption text-white text-xs">93% read rate</p>
+                  </div>
+                  <div>
+                    <label className="text-white mb-1 block">Acknowledged</label>
+                    <p className="caption text-white text-lg font-semibold">38 / 45</p>
+                    <p className="caption text-white text-xs">84% acknowledged</p>
+                  </div>
+                  <div>
+                    <label className="text-white mb-1 block">Submitted</label>
+                    <p className="caption text-white text-lg font-semibold">35 / 45</p>
+                    <p className="caption text-white text-xs">78% submitted</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-white mb-2 block">Form Submissions Summary</label>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4 p-3 bg-background rounded border border-border">
+                      <div>
+                        <p className="caption text-white mb-1">Safe</p>
+                        <p className="caption text-white text-lg font-semibold">32 responses</p>
+                      </div>
+                      <div>
+                        <p className="caption text-white mb-1">Unsafe</p>
+                        <p className="caption text-white text-lg font-semibold">3 responses</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <p className="caption text-white mb-2">Recent Comments:</p>
+                      <div className="space-y-2">
+                        <div className="p-2 bg-background rounded border border-border">
+                          <p className="caption text-white text-xs">
+                            "All clear at Station 3. Equipment secured and personnel accounted for."
+                          </p>
+                          <p className="caption text-white text-xs mt-1">- J. Martinez</p>
+                        </div>
+                        <div className="p-2 bg-background rounded border border-border">
+                          <p className="caption text-white text-xs">
+                            "Minor equipment damage in storage area, no injuries. Photos attached."
+                          </p>
+                          <p className="caption text-white text-xs mt-1">- S. Johnson</p>
+                        </div>
+                        <div className="p-2 bg-background rounded border border-border">
+                          <p className="caption text-white text-xs">
+                            "Evacuated to safe zone. All team members present and safe."
+                          </p>
+                          <p className="caption text-white text-xs mt-1">- M. Rodriguez</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Incident Briefing Acknowledgement */}
+          <div
+            className="border border-border rounded-lg overflow-hidden"
+            style={{ background: 'linear-gradient(90deg, rgba(2, 163, 254, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+          >
+            <div className={`p-3 ${expandedAlerts.has('sent-incident-briefing') ? 'border-b border-border' : ''}`}>
+              <div className="flex items-start justify-between">
+                <div
+                  className="flex items-start gap-2 flex-1 cursor-pointer"
+                  onClick={() => {
+                    const id = 'sent-incident-briefing';
+                    setExpandedAlerts(prev => {
+                      const next = new Set(prev);
+                      if (next.has(id)) next.delete(id); else next.add(id);
+                      return next;
+                    });
+                  }}
+                >
+                  {expandedAlerts.has('sent-incident-briefing') ? (
+                    <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <span className="caption text-white font-semibold">Incident Briefing - ICS-201 Review Required</span>
+                    {!expandedAlerts.has('sent-incident-briefing') && (
+                      <div className="space-y-2 mt-1">
+                        <div className="flex items-center gap-3">
+                          <span className="caption text-white">Sent: {formatMilitaryTimeUTC(new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString())}</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-1">
+                            <span className="caption text-white font-semibold">28</span>
+                            <span className="caption text-white">read</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="caption text-white font-semibold">25</span>
+                            <span className="caption text-white">acknowledged</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {expandedAlerts.has('sent-incident-briefing') && (
+              <div className="p-4 space-y-4 bg-card/50">
+                <div>
+                  <label className="text-white mb-1 block">Message</label>
+                  <p className="caption text-white">
+                    Please review and acknowledge receipt of the ICS-201 Incident Briefing documentation.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-white mb-1 block">Read</label>
+                    <p className="caption text-white text-lg font-semibold">28 / 30</p>
+                    <p className="caption text-white text-xs">93% read rate</p>
+                  </div>
+                  <div>
+                    <label className="text-white mb-1 block">Acknowledged</label>
+                    <p className="caption text-white text-lg font-semibold">25 / 30</p>
+                    <p className="caption text-white text-xs">83% acknowledged</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-white mb-2 block">Acknowledgement Timeline</label>
+                  <div className="space-y-2">
+                    <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
+                      <span className="caption text-white text-xs">First acknowledgement</span>
+                      <span className="caption text-white text-xs">2 minutes after sent</span>
+                    </div>
+                    <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
+                      <span className="caption text-white text-xs">Last acknowledgement</span>
+                      <span className="caption text-white text-xs">45 minutes after sent</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Emergency Stand Down */}
+          <div
+            className="border border-border rounded-lg overflow-hidden"
+            style={{ background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+          >
+            <div className={`p-3 ${expandedAlerts.has('sent-emergency-standdown') ? 'border-b border-border' : ''}`}>
+              <div className="flex items-start justify-between">
+                <div
+                  className="flex items-start gap-2 flex-1 cursor-pointer"
+                  onClick={() => {
+                    const id = 'sent-emergency-standdown';
+                    setExpandedAlerts(prev => {
+                      const next = new Set(prev);
+                      if (next.has(id)) next.delete(id); else next.add(id);
+                      return next;
+                    });
+                  }}
+                >
+                  {expandedAlerts.has('sent-emergency-standdown') ? (
+                    <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <span className="caption text-white font-semibold">Emergency Stand Down - Immediate Action Required</span>
+                    {!expandedAlerts.has('sent-emergency-standdown') && (
+                      <div className="space-y-2 mt-1">
+                        <div className="flex items-center gap-3">
+                          <span className="caption text-white">Sent: {formatMilitaryTimeUTC(new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString())}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-red-500" />
+                            <span className="caption text-red-500">Stand Down Safety</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-1">
+                            <span className="caption text-white font-semibold">45</span>
+                            <span className="caption text-white">read</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="caption text-white font-semibold">45</span>
+                            <span className="caption text-white">acknowledged</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {expandedAlerts.has('sent-emergency-standdown') && (
+              <div className="p-4 space-y-4 bg-card/50">
+                <div>
+                  <label className="text-white mb-1 block">Message</label>
+                  <p className="caption text-white">
+                    IMMEDIATE STAND DOWN. All personnel cease current operations and report to designated safe areas. This is not a drill.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-white mb-1 block">Read</label>
+                    <p className="caption text-white text-lg font-semibold">45 / 45</p>
+                    <p className="caption text-green-500 text-xs">100% read rate</p>
+                  </div>
+                  <div>
+                    <label className="text-white mb-1 block">Acknowledged</label>
+                    <p className="caption text-white text-lg font-semibold">45 / 45</p>
+                    <p className="caption text-green-500 text-xs">100% acknowledged</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-white mb-2 block">Response Speed</label>
+                  <div className="space-y-2">
+                    <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
+                      <span className="caption text-white text-xs">Average acknowledgement time</span>
+                      <span className="caption text-green-500 text-xs font-semibold">47 seconds</span>
+                    </div>
+                    <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
+                      <span className="caption text-white text-xs">Fastest acknowledgement</span>
+                      <span className="caption text-white text-xs">12 seconds</span>
+                    </div>
+                    <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
+                      <span className="caption text-white text-xs">Slowest acknowledgement</span>
+                      <span className="caption text-white text-xs">3 minutes 15 seconds</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Alert Side Panel */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent side="right" className="w-full sm:max-w-[640px] bg-card overflow-y-auto px-6">
           <SheetHeader>
-            <SheetTitle>{editingAlertId ? 'Edit Alert' : 'Schedule Alert'}</SheetTitle>
+            <SheetTitle>{editingAlertId ? 'Edit Notification' : 'Schedule Notification'}</SheetTitle>
           </SheetHeader>
 
           <div className="mt-6 space-y-6 pb-6">
@@ -588,7 +1331,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 </label>
               </div>
               
-              <Label className="text-foreground">Alert Message <span className="text-destructive">*</span></Label>
+              <Label className="text-foreground">Notification Message <span className="text-destructive">*</span></Label>
               
               {/* Show tabs when channels are selected */}
               {formData.channels && formData.channels.length > 0 && (
@@ -620,7 +1363,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   <Textarea 
                     value={formData.title} 
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
-                    placeholder="Enter alert message (will be sent to all selected channels)..."
+                    placeholder="Enter notification message (will be sent to all selected channels)..."
                     rows={3}
                     className="bg-input-background border-border resize-none" 
                   />
@@ -645,6 +1388,33 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   Please select at least one communication channel above to compose your message.
                 </p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-foreground">Upload Files</Label>
+              <div className="border-2 border-dashed border-border rounded-lg p-6 bg-input-background hover:bg-muted/10 transition-colors cursor-pointer">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <svg 
+                    className="w-12 h-12 text-muted-foreground mb-3" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" 
+                    />
+                  </svg>
+                  <p className="text-sm text-foreground mb-1">
+                    <span className="font-semibold text-accent">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    PDF, DOC, DOCX, XLS, XLSX, PNG, JPG (max. 10MB)
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -832,8 +1602,17 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   <SelectItem value="Advisory">Advisory</SelectItem>
                   <SelectItem value="Watch">Watch</SelectItem>
                   <SelectItem value="Warning">Warning</SelectItem>
+                  <SelectItem value="Stand Down Safety">Stand Down Safety</SelectItem>
                 </SelectContent>
               </Select>
+              
+              {formData.severity === 'Stand Down Safety' && (
+                <div className="mt-3 p-3 border border-border rounded bg-input-background">
+                  <p className="text-sm text-white font-bold">
+                    A Stand Down Safety notification will be sent immediately to recipients via all communication channels available.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

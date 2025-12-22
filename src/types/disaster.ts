@@ -33,8 +33,8 @@ export const PLANNING_P_PHASES: Omit<DisasterPhase, 'completed' | 'data'>[] = [
 export const OPERATIONAL_PERIOD_PHASES: Omit<DisasterPhase, 'completed' | 'data'>[] = [
   {
     id: 'alerts',
-    name: 'Alerts',
-    shortName: 'Alerts',
+    name: 'Notifications',
+    shortName: 'Notifications',
     description: 'Notifications, advisories, and operational alerts'
   },
   {
@@ -51,8 +51,8 @@ export const OPERATIONAL_PERIOD_PHASES: Omit<DisasterPhase, 'completed' | 'data'
   },
   {
     id: 'incident-roster',
-    name: 'Regions',
-    shortName: 'Regions',
+    name: 'AORs',
+    shortName: 'AORs',
     description: 'Personnel assignments and organizational structure'
   },
   {

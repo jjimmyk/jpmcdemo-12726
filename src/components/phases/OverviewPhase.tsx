@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { ChevronDown, ChevronRight, Edit2, Trash2, RefreshCw, Check } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Trash2, RefreshCw, Check, Download } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
@@ -54,6 +54,44 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
   const [filterModeDraft, setFilterModeDraft] = useState<'region' | 'incident'>('region');
   const [selectedRegionDraft, setSelectedRegionDraft] = useState<string>('gulf-coast');
   const [selectedIncidentDraft, setSelectedIncidentDraft] = useState<string>('oil-spill-alpha');
+  const [sitrepViewMode, setSitrepViewMode] = useState<'latest' | 'historical' | 'drafts'>('latest');
+  
+  // Historical SITREPs state
+  const [historicalSitreps] = useState([
+    {
+      id: 'hist-1',
+      content: 'Operational Period 3 Summary: Hurricane Delta downgraded to Category 2, moving NNE at 18 knots. All vessels accounted for in designated safe harbors. Port Condition ZULU remains in effect for Gulf Coast ports.\n\nDamage Assessment: Minor pier damage at Station Galveston. All units operational. Power restored to 85% of affected areas.\n\nCurrent Operations: SAR helicopter crews on standby. Marine safety zones enforced within 50nm of eye wall.',
+      approvedDate: '12/18/2025 09:15',
+      approvedBy: 'CAPT Anderson',
+      operationalPeriod: 'OP-3'
+    },
+    {
+      id: 'hist-2',
+      content: 'Operational Period 2 Summary: Hurricane Delta intensified to Category 3, sustained winds 115 knots. Port Condition ZULU set for all Gulf Coast ports. All commercial traffic suspended.\n\nEvacuations: 450 personnel evacuated from offshore platforms. 23 vessels assisted to safe harbor. Zero casualties reported.\n\nPreparedness: All stations secured. Emergency generators online. Fuel reserves at 100%.',
+      approvedDate: '12/17/2025 16:30',
+      approvedBy: 'CAPT Anderson',
+      operationalPeriod: 'OP-2'
+    },
+    {
+      id: 'hist-3',
+      content: 'Operational Period 1 Summary: Hurricane Delta forming 400nm SE of Louisiana coast. Current track forecast landfall in 72-96 hours. Port Condition YANKEE set as precautionary measure.\n\nInitial Actions: All cutters returning to homeport. Aircraft secured in hangars. Personnel recall initiated. Supply chain activation for emergency provisions.\n\nCoordination: Joint calls established with State EOC and FEMA Region 6.',
+      approvedDate: '12/16/2025 14:00',
+      approvedBy: 'CAPT Rodriguez',
+      operationalPeriod: 'OP-1'
+    }
+  ]);
+  
+  // Draft SITREPs state
+  const [draftSitreps] = useState([
+    {
+      id: 'draft-1',
+      content: 'Current situation: Sector Honolulu monitoring Tropical Storm Olivia, currently 850nm ENE of Oahu moving WSW at 12 knots. Maximum sustained winds 50 knots, central pressure 995mb.\n\nOperational Status: Port Condition YANKEE set for all Hawaiian ports effective 1400L. All recreational vessels ordered to seek safe harbor. Commercial shipping continues with restrictions.\n\nResources: USCG Cutter WALNUT pre-positioned at Sand Island. MH-65 helicopter on standby at Air Station Barbers Point. Search and rescue assets staged.',
+      submittedDate: '12/19/2025 14:30',
+      status: 'Pending Review'
+    }
+  ]);
+  const [isAddingDraft, setIsAddingDraft] = useState(false);
+  const [newDraftContent, setNewDraftContent] = useState('');
 
   // Region options
   const regions = [
@@ -67,11 +105,11 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
 
   // Incident options
   const incidents = [
-    { id: 'oil-spill-alpha', name: 'Oil Spill Alpha - Gulf Coast Pipeline' },
-    { id: 'oil-spill-beta', name: 'Oil Spill Beta - Santa Barbara Platform' },
-    { id: 'hurricane-delta', name: 'Hurricane Delta Response' },
-    { id: 'wildfire-gamma', name: 'Wildfire Gamma - California' },
-    { id: 'flood-epsilon', name: 'Flood Epsilon - Mississippi Basin' }
+    { id: 'grid-outage-alpha', name: 'Grid Outage Alpha - Oahu Substation Failure' },
+    { id: 'renewable-integration', name: 'Solar Array Integration - Maui County' },
+    { id: 'typhoon-resilience', name: 'Typhoon Olivia Grid Hardening Response' },
+    { id: 'battery-storage-beta', name: 'Battery Storage System Beta - Big Island' },
+    { id: 'transmission-repair', name: 'Transmission Line Repair - Kauai Emergency' }
   ];
 
   // Function to generate data based on region and incident
@@ -490,7 +528,7 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                   lineHeight: '18px'
                 }}
               >
-                Region
+                AOR
               </button>
               <button
                 onClick={() => filterEditMode && setFilterModeDraft('incident')}
@@ -526,7 +564,7 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="caption text-white whitespace-nowrap">
-              {(filterEditMode ? filterModeDraft : filterMode) === 'region' ? 'Region:' : 'Incident:'}
+              {(filterEditMode ? filterModeDraft : filterMode) === 'region' ? 'AOR:' : 'Incident:'}
             </span>
             {(filterEditMode ? filterModeDraft : filterMode) === 'region' ? (
               <Popover open={filterEditMode && regionPopoverOpen} onOpenChange={(open) => filterEditMode && setRegionPopoverOpen(open)}>
@@ -677,6 +715,25 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
               </Button>
             </div>
           )}
+
+          {/* Export All Reports Button - Only visible when not in edit mode */}
+          {!filterEditMode && (
+            <button
+              onClick={() => {
+                console.log('Exporting all reports for:', filterMode === 'region' 
+                  ? regions.find(r => r.id === selectedRegion)?.name 
+                  : incidents.find(i => i.id === selectedIncident)?.name);
+              }}
+              className="bg-[#01669f] h-[22.75px] rounded-[4px] px-3 hover:bg-[#01669f]/90 transition-colors flex items-center justify-center gap-2"
+            >
+              <Download className="w-3 h-3 text-white" />
+              <span className="caption text-white">
+                Export All Reports for {filterMode === 'region' 
+                  ? regions.find(r => r.id === selectedRegion)?.name 
+                  : incidents.find(i => i.id === selectedIncident)?.name}
+              </span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -684,66 +741,293 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
       <div className="mb-6">
         <div className="border border-border rounded-lg overflow-hidden bg-card/30">
           <div className="p-4 space-y-3">
-            {/* Header with Edit icon and Last Updated */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <Label className="text-white text-sm font-semibold">
-                  SITREP for {filterMode === 'region' 
-                    ? regions.find(r => r.id === selectedRegion)?.name 
-                    : incidents.find(i => i.id === selectedIncident)?.name}
-                </Label>
-                {!sitrepEditMode && filterMode === 'region' && selectedRegion === 'sector-new-york' && (
-                  <button
-                    onClick={startEditSitrep}
-                    className="p-1 hover:bg-muted/30 rounded transition-colors"
-                    title="Edit SITREP"
-                  >
-                    <Edit2 className="w-4 h-4 text-white" />
-                  </button>
-                )}
+            {/* SITREP View Mode Toggle */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center bg-[#14171a] rounded-[4px] border border-[#6e757c] overflow-hidden">
+                <button
+                  onClick={() => setSitrepViewMode('latest')}
+                  className={`caption px-3 py-1 transition-colors ${
+                    sitrepViewMode === 'latest'
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-white hover:bg-[#222529]'
+                  }`}
+                  style={{ 
+                    fontFamily: "'Open Sans', sans-serif",
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    lineHeight: '18px'
+                  }}
+                >
+                  Latest
+                </button>
+                <button
+                  onClick={() => setSitrepViewMode('historical')}
+                  className={`caption px-3 py-1 transition-colors ${
+                    sitrepViewMode === 'historical'
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-white hover:bg-[#222529]'
+                  }`}
+                  style={{ 
+                    fontFamily: "'Open Sans', sans-serif",
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    lineHeight: '18px'
+                  }}
+                >
+                  Historical
+                </button>
+                <button
+                  onClick={() => setSitrepViewMode('drafts')}
+                  className={`caption px-3 py-1 transition-colors ${
+                    sitrepViewMode === 'drafts'
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-white hover:bg-[#222529]'
+                  }`}
+                  style={{ 
+                    fontFamily: "'Open Sans', sans-serif",
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    lineHeight: '18px'
+                  }}
+                >
+                  My Drafts
+                </button>
               </div>
-              {sitrepLastUpdated && (
-                <span className="caption text-white/70 block">
-                  Last updated {sitrepLastUpdated} by {sitrepLastUpdatedBy}
-                </span>
-              )}
             </div>
 
-            {/* Content - View or Edit mode */}
-            {sitrepEditMode ? (
+            {sitrepViewMode === 'latest' ? (
               <>
-                <Textarea
-                  value={sitrepDraft}
-                  onChange={(e) => setSitrepDraft(e.target.value)}
-                  placeholder="Enter situation report..."
-                  className="bg-input-background border-border min-h-[120px] resize-none"
-                />
-                <div className="flex gap-3">
-                  <Button
-                    onClick={saveSitrep}
-                    className="bg-primary hover:bg-primary/90 px-6 py-0.5 h-auto text-sm"
-                  >
-                    {filterMode === 'region' && selectedRegion === 'sector-new-york' 
-                      ? 'Submit to East District' 
-                      : 'Save'}
-                  </Button>
-                  <Button
-                    onClick={cancelEditSitrep}
-                    variant="outline"
-                    className="border-border px-6 py-0.5 h-auto text-sm"
-                  >
-                    Cancel
-                  </Button>
+                {/* Header with Edit icon and Last Updated */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white text-sm font-semibold">
+                      SITREP for {filterMode === 'region' 
+                        ? regions.find(r => r.id === selectedRegion)?.name 
+                        : incidents.find(i => i.id === selectedIncident)?.name}
+                    </Label>
+                    {!sitrepEditMode && filterMode === 'region' && selectedRegion === 'sector-new-york' && (
+                      <button
+                        onClick={startEditSitrep}
+                        className="p-1 hover:bg-muted/30 rounded transition-colors"
+                        title="Edit SITREP"
+                      >
+                        <Edit2 className="w-4 h-4 text-white" />
+                      </button>
+                    )}
+                  </div>
+                  {sitrepLastUpdated && (
+                    <span className="caption text-white/70 block">
+                      Last updated {sitrepLastUpdated} by {sitrepLastUpdatedBy}
+                    </span>
+                  )}
+                </div>
+
+                {/* Content - View or Edit mode */}
+                {sitrepEditMode ? (
+                  <>
+                    <Textarea
+                      value={sitrepDraft}
+                      onChange={(e) => setSitrepDraft(e.target.value)}
+                      placeholder="Enter situation report..."
+                      className="bg-input-background border-border min-h-[120px] resize-none"
+                    />
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={saveSitrep}
+                        className="bg-primary hover:bg-primary/90 px-6 py-0.5 h-auto text-sm"
+                      >
+                        {filterMode === 'region' && selectedRegion === 'sector-new-york' 
+                          ? 'Submit to East District' 
+                          : 'Save'}
+                      </Button>
+                      <Button
+                        onClick={cancelEditSitrep}
+                        variant="outline"
+                        className="border-border px-6 py-0.5 h-auto text-sm"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-input-background border border-border rounded p-3 min-h-[120px]">
+                    <p className="caption text-white whitespace-pre-wrap">
+                      {filterMode === 'region' && selectedRegion === 'sector-new-york' 
+                        ? (sitrepContent || 'No SITREP entered yet. Click Edit to add one.')
+                        : 'SITREP editing is only available for Sector Honolulu.'}
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : sitrepViewMode === 'historical' ? (
+              <>
+                {/* Historical SITREPs View */}
+                <div className="space-y-3">
+                  <Label className="text-white text-sm font-semibold">
+                    Previous SITREPs
+                  </Label>
+
+                  {/* Historical SITREPs List */}
+                  {historicalSitreps.length > 0 ? (
+                    <div className="space-y-3">
+                      {historicalSitreps.map((sitrep) => (
+                        <div key={sitrep.id} className="border border-border rounded-lg overflow-hidden bg-background/30">
+                          <div className="p-3 space-y-2">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                  <span className="caption text-white font-semibold">{sitrep.operationalPeriod}</span>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                                    <span className="caption text-green-500 text-xs">Approved</span>
+                                  </div>
+                                </div>
+                                <span className="caption text-white/70 text-xs block">
+                                  Approved: {sitrep.approvedDate} by {sitrep.approvedBy}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="bg-input-background border border-border rounded p-3">
+                              <p className="caption text-white whitespace-pre-wrap">
+                                {sitrep.content}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-input-background border border-border rounded p-3 min-h-[120px] flex items-center justify-center">
+                      <p className="caption text-white/70">
+                        No historical SITREPs available.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
-              <div className="bg-input-background border border-border rounded p-3 min-h-[120px]">
-                <p className="caption text-white whitespace-pre-wrap">
-                  {filterMode === 'region' && selectedRegion === 'sector-new-york' 
-                    ? (sitrepContent || 'No SITREP entered yet. Click Edit to add one.')
-                    : 'SITREP editing is only available for Sector New York.'}
-                </p>
-              </div>
+              <>
+                {/* My Drafts View */}
+                <div className="space-y-3">
+                  {/* Header with Add Draft button */}
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white text-sm font-semibold">
+                      My Draft SITREPs
+                    </Label>
+                    <button
+                      onClick={() => setIsAddingDraft(true)}
+                      className="bg-[#01669f] h-[22.75px] rounded-[4px] px-3 hover:bg-[#01669f]/90 transition-colors flex items-center justify-center gap-1"
+                    >
+                      <span className="text-white text-xs">+</span>
+                      <span className="caption text-white">Add Draft</span>
+                    </button>
+                  </div>
+
+                  {/* Add Draft Form */}
+                  {isAddingDraft && (
+                    <div className="space-y-3 p-3 bg-background/50 border border-border rounded">
+                      {/* Header with Generate Button */}
+                      <div className="flex items-center justify-between">
+                        <Label className="text-white text-sm">New Draft SITREP</Label>
+                        <button
+                          onClick={() => {
+                            // Generate AI draft content (placeholder for now)
+                            console.log('Generate draft clicked');
+                          }}
+                          className="bg-white hover:bg-gray-100 text-black border border-white h-[28px] rounded-[4px] px-4 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <svg 
+                            className="w-4 h-4" 
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor"
+                          >
+                            <path 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              strokeWidth={2} 
+                              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" 
+                            />
+                          </svg>
+                          <span className="text-xs font-medium">Generate</span>
+                        </button>
+                      </div>
+
+                      <Textarea
+                        value={newDraftContent}
+                        onChange={(e) => setNewDraftContent(e.target.value)}
+                        placeholder="Enter draft situation report..."
+                        className="bg-input-background border-border min-h-[120px] resize-none"
+                      />
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={() => {
+                            // Save draft logic would go here
+                            setIsAddingDraft(false);
+                            setNewDraftContent('');
+                          }}
+                          className="bg-primary hover:bg-primary/90 px-6 py-0.5 h-auto text-sm"
+                        >
+                          Save Draft
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setIsAddingDraft(false);
+                            setNewDraftContent('');
+                          }}
+                          variant="outline"
+                          className="border-border px-6 py-0.5 h-auto text-sm"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Draft SITREPs List */}
+                  {draftSitreps.length > 0 ? (
+                    <div className="space-y-3">
+                      {draftSitreps.map((draft) => (
+                        <div key={draft.id} className="border border-border rounded-lg overflow-hidden bg-background/30">
+                          <div className="p-3 space-y-2">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                  <span className="caption text-white font-semibold">Draft SITREP</span>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-amber-500" />
+                                    <span className="caption text-amber-500 text-xs">{draft.status}</span>
+                                  </div>
+                                </div>
+                                <span className="caption text-white/70 text-xs block">
+                                  Submitted: {draft.submittedDate}
+                                </span>
+                              </div>
+                              <button
+                                className="p-1 hover:bg-muted/30 rounded transition-colors"
+                                title="Edit Draft"
+                              >
+                                <Edit2 className="w-4 h-4 text-white" />
+                              </button>
+                            </div>
+                            <div className="bg-input-background border border-border rounded p-3">
+                              <p className="caption text-white whitespace-pre-wrap">
+                                {draft.content}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-input-background border border-border rounded p-3 min-h-[120px] flex items-center justify-center">
+                      <p className="caption text-white/70">
+                        No draft SITREPs. Click "+ Add Draft" to create one.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -856,14 +1140,14 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                                 <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                               )}
                               <div className="flex-1">
-                                <span className="caption text-white">Gulf Coast Pipeline Spill — Plaquemines Parish, LA</span>
+                                <span className="caption text-white">Oahu Substation Fire — Kapolei Power Grid</span>
                                 {!expandedChildIncidents.has('child-incident-1') && (
                                   <div className="flex items-center gap-3 mt-1">
                                     <div className="flex items-center gap-2">
                                       <div className="w-2 h-2 rounded-full bg-red-500" />
                                       <span className="caption text-red-500">Critical</span>
                                     </div>
-                                    <span className="caption text-white/70">Active Response</span>
+                                    <span className="caption text-white/70">Emergency Restoration</span>
                                   </div>
                                 )}
                               </div>
@@ -875,7 +1159,7 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Incident Type</label>
-                                  <p className="caption text-white">Oil Spill</p>
+                                  <p className="caption text-white">Grid Infrastructure Failure</p>
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Severity</label>
@@ -886,11 +1170,11 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Status</label>
-                                  <p className="caption text-white">Active Response</p>
+                                  <p className="caption text-white">Emergency Restoration</p>
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Incident Commander</label>
-                                  <p className="caption text-white">CDR Sarah Mitchell, USCG</p>
+                                  <p className="caption text-white">Sarah Nakamura, HECO</p>
                                 </div>
                               </div>
                             </div>
@@ -913,14 +1197,14 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                                 <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                               )}
                               <div className="flex-1">
-                                <span className="caption text-white">Delaware River Tanker Spill — Philadelphia, PA</span>
+                                <span className="caption text-white">Maui Wind Farm Turbine Failure — Kahului Energy Complex</span>
                                 {!expandedChildIncidents.has('child-incident-2') && (
                                   <div className="flex items-center gap-3 mt-1">
                                     <div className="flex items-center gap-2">
                                       <div className="w-2 h-2 rounded-full bg-orange-500" />
                                       <span className="caption text-orange-500">Major</span>
                                     </div>
-                                    <span className="caption text-white/70">Containment Operations</span>
+                                    <span className="caption text-white/70">Repair Operations</span>
                                   </div>
                                 )}
                               </div>
@@ -932,7 +1216,7 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Incident Type</label>
-                                  <p className="caption text-white">Oil Spill</p>
+                                  <p className="caption text-white">Renewable Energy Infrastructure</p>
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Severity</label>
@@ -943,11 +1227,11 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Status</label>
-                                  <p className="caption text-white">Containment Operations</p>
+                                  <p className="caption text-white">Repair Operations</p>
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Incident Commander</label>
-                                  <p className="caption text-white">CAPT James Rodriguez, USCG</p>
+                                  <p className="caption text-white">David Tanaka, MECO</p>
                                 </div>
                               </div>
                             </div>

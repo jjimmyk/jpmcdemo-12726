@@ -80,6 +80,7 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
   const [editingMember, setEditingMember] = useState<{ memberId: string; positionId: string } | null>(null);
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
   const [expandedSectors, setExpandedSectors] = useState<Set<string>>(new Set());
+  const [expandedAssets, setExpandedAssets] = useState<Set<string>>(new Set());
   const [selectedArea, setSelectedArea] = useState<'all' | 'atlantic' | 'pacific'>('all');
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [selectedSector, setSelectedSector] = useState<string | null>(null);
@@ -253,6 +254,31 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
         status: statuses[statusIndex],
         location: statusIndex === 1 ? 'At sea' : 'Station',
         personnel: unitType.abbr.includes('H') ? 4 : unitType.type.includes('Team') ? 8 : 5
+      };
+    });
+  };
+
+  // Helper function to generate assets for a SubUnit
+  const generateAssetsForSubUnit = (unitId: string, unitName: string): any[] => {
+    const assetTypes = [
+      { type: 'Navigation Equipment', name: 'GPS System' },
+      { type: 'Communication Equipment', name: 'Radio System' },
+      { type: 'Safety Equipment', name: 'Life Rafts' },
+      { type: 'Emergency Equipment', name: 'First Aid Kit' },
+      { type: 'Operational Equipment', name: 'Binoculars' }
+    ];
+    
+    const conditions = ['Operational', 'Needs Maintenance', 'In Repair', 'Operational'];
+    
+    return Array.from({ length: 4 }, (_, i) => {
+      const assetType = assetTypes[i % assetTypes.length];
+      return {
+        id: `${unitId}-asset-${i + 1}`,
+        name: `${assetType.name} ${i + 1}`,
+        type: assetType.type,
+        condition: conditions[i % conditions.length],
+        serialNumber: `SN-${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
+        lastInspection: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
       };
     });
   };
@@ -709,7 +735,7 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
           {/* First Row: Title and Search/Add */}
           <div className="flex items-center justify-between px-[13px] py-3">
             {/* Title */}
-            <p className="caption text-nowrap text-white whitespace-pre">Regions</p>
+            <p className="caption text-nowrap text-white whitespace-pre">AORs</p>
             {/* Search + Add Member (search immediately left of button) */}
             <div className="flex items-center gap-4">
             <div className="relative h-[26px] w-[195px]">
@@ -741,7 +767,7 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                   </g>
                 </svg>
               </div>
-              <p className="caption text-nowrap text-white ml-[21px]">Add Region</p>
+              <p className="caption text-nowrap text-white ml-[21px]">Add AOR</p>
             </button>
           </div>
           </div>
@@ -845,6 +871,187 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
       <div className="space-y-4">
         {filteredDistricts.map((district) => {
           const isExpanded = expandedMembers.has(district.id);
+          
+          // Special case: If this is a sector-level view (showing SubUnits), skip the parent container
+          // and render the SubUnits directly as top-level items
+          if (district.id.startsWith('sector-')) {
+            return (
+              <div key={district.id} className="space-y-2">
+                {district.assignedMembers?.map((sector) => {
+                  const sectorId = `${district.id}:${sector.id}`;
+                  const isSectorExpanded = expandedSectors.has(sectorId);
+                  return (
+                    <div
+                      key={sectorId}
+                      className="border border-border/50 rounded-lg overflow-hidden"
+                      style={{ backgroundColor: 'rgba(139, 123, 168, 0.15)' }}
+                    >
+                      {/* SubUnit Header */}
+                      <div className={`p-3 ${isSectorExpanded ? 'border-b border-border/50' : ''}`}>
+                        <div className="flex items-start justify-between">
+                          <div
+                            className="flex items-start gap-2 cursor-pointer flex-1"
+                            onClick={() => {
+                              toggleSector(sectorId);
+                              if (onAddAIContext) {
+                                onAddAIContext(sector.name);
+                              }
+                            }}
+                          >
+                            {isSectorExpanded ? (
+                              <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                            )}
+                            <span className="caption text-white">{sector.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={(e) => { 
+                                e.stopPropagation();
+                                // Zoom to unit location
+                                if (onZoomToLocation) {
+                                  const coords = getUnitCoordinates(selectedSector || '', sector.id);
+                                  onZoomToLocation(coords.center, coords.scale);
+                                }
+                              }}
+                              className="p-1 hover:bg-muted/30 rounded transition-colors"
+                              title="Zoom to unit location"
+                            >
+                              <Map className="w-3 h-3 text-white" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); }}
+                              className="p-1 hover:bg-muted/30 rounded transition-colors"
+                            >
+                              <Edit2 className="w-3 h-3 text-white" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); }}
+                              className="p-1 hover:bg-muted/30 rounded transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3 text-white" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* SubUnit Details (Expanded) */}
+                      {isSectorExpanded && (
+                        <div className="p-3 space-y-3 bg-card/20">
+                          {/* SubUnit-specific details */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-white mb-1 block text-xs">Unit Type</label>
+                              <p className="caption text-white text-sm">{sector.name.split(' — ')[1] || 'USCG Asset'}</p>
+                            </div>
+                            <div>
+                              <label className="text-white mb-1 block text-xs">Status</label>
+                              <p className="caption text-white text-sm">{sector.activationStatus || 'Active'}</p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-white mb-1 block text-xs">Contact</label>
+                              <p className="caption text-white text-sm">{sector.email || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <label className="text-white mb-1 block text-xs">Phone</label>
+                              <p className="caption text-white text-sm">{sector.phone || 'N/A'}</p>
+                            </div>
+                          </div>
+
+                          {/* Assets List */}
+                          <div>
+                            <label className="text-white mb-2 block text-xs">Assets ({generateAssetsForSubUnit(sector.id, sector.name).length})</label>
+                            <div className="space-y-2">
+                              {generateAssetsForSubUnit(sector.id, sector.name).map((asset) => {
+                                const assetId = `${sectorId}:${asset.id}`;
+                                const isAssetExpanded = expandedAssets.has(assetId);
+                                return (
+                                  <div
+                                    key={assetId}
+                                    className="border border-border/50 rounded-lg overflow-hidden"
+                                    style={{ backgroundColor: 'rgba(139, 123, 168, 0.15)' }}
+                                  >
+                                    {/* Asset Header */}
+                                    <div className={`p-3 ${isAssetExpanded ? 'border-b border-border/50' : ''}`}>
+                                      <div className="flex items-start justify-between">
+                                        <div
+                                          className="flex items-start gap-2 cursor-pointer flex-1"
+                                          onClick={() => {
+                                            setExpandedAssets(prev => {
+                                              const next = new Set(prev);
+                                              if (next.has(assetId)) next.delete(assetId);
+                                              else next.add(assetId);
+                                              return next;
+                                            });
+                                          }}
+                                        >
+                                          {isAssetExpanded ? (
+                                            <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                                          ) : (
+                                            <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                                          )}
+                                          <span className="caption text-white">{asset.name}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); }}
+                                            className="p-1 hover:bg-muted/30 rounded transition-colors"
+                                          >
+                                            <Edit2 className="w-3 h-3 text-white" />
+                                          </button>
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); }}
+                                            className="p-1 hover:bg-muted/30 rounded transition-colors"
+                                          >
+                                            <Trash2 className="w-3 h-3 text-white" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Asset Details (Expanded) */}
+                                    {isAssetExpanded && (
+                                      <div className="p-3 space-y-3 bg-card/20">
+                                        <div className="grid grid-cols-2 gap-3">
+                                          <div>
+                                            <label className="text-white mb-1 block text-xs">Type</label>
+                                            <p className="caption text-white text-sm">{asset.type}</p>
+                                          </div>
+                                          <div>
+                                            <label className="text-white mb-1 block text-xs">Condition</label>
+                                            <p className="caption text-white text-sm">{asset.condition}</p>
+                                          </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                          <div>
+                                            <label className="text-white mb-1 block text-xs">Serial Number</label>
+                                            <p className="caption text-white text-sm">{asset.serialNumber}</p>
+                                          </div>
+                                          <div>
+                                            <label className="text-white mb-1 block text-xs">Last Inspection</label>
+                                            <p className="caption text-white text-sm">{asset.lastInspection}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          }
+          
+          // Normal district rendering
           return (
             <div
               key={district.id}
@@ -922,10 +1129,10 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                     </div>
                   )}
                   
-                  {/* Nested Sectors/Units List */}
+                  {/* Nested Sectors/SubUnits List */}
                   <div>
                     <label className="text-white mb-2 block">
-                      {district.id.startsWith('sector-') ? 'Units' : 'Sectors'} ({district.assignedMembers?.length || 0})
+                      {district.id.startsWith('sector-') ? 'SubUnits' : 'Sectors'} ({district.assignedMembers?.length || 0})
                     </label>
                     <div className="space-y-2">
                       {district.assignedMembers?.map((sector) => {
@@ -994,10 +1201,10 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                               </div>
                             </div>
                             
-                            {/* Sector/Unit Details (Expanded) */}
+                            {/* Sector/SubUnit Details (Expanded) */}
                             {isSectorExpanded && (
                               <div className="p-3 space-y-3 bg-card/20">
-                                {/* Show Sector Units Button */}
+                                {/* Show Sector SubUnits Button */}
                                 {!district.id.startsWith('sector-') && (
                                   <div className="mb-3">
                                     <button
@@ -1008,7 +1215,7 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                                       }}
                                       className="bg-[#01669f] h-[22.75px] rounded-[4px] px-4 hover:bg-[#01669f]/90 transition-colors flex items-center justify-center"
                                     >
-                                      <p className="caption text-nowrap text-white">Show Sector Units</p>
+                                      <p className="caption text-nowrap text-white">Show Sector SubUnits</p>
                                     </button>
                                   </div>
                                 )}

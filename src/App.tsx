@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 // Removed unused Popover imports after eliminating orange dot overlays
 import { Input } from './components/ui/input';
 import { DisasterPhase, OperationalPeriod, OPERATIONAL_PERIOD_PHASES } from './types/disaster';
-import { RefreshCw, Clock, CheckCircle, Menu, HelpCircle, Search, FileText, Download, Map, ChevronUp, ChevronDown, MoreHorizontal, Send, X, Bot, User, AlertTriangle, Users, MapPin, Calendar, Box, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import { RefreshCw, Clock, CheckCircle, Menu, HelpCircle, Search, FileText, Download, Map, ChevronUp, ChevronDown, MoreHorizontal, Send, X, Bot, User, AlertTriangle, Users, MapPin, Calendar, Box, ChevronLeft, ChevronRight, Layers, ExternalLink, Paperclip } from 'lucide-react';
 import svgPaths from './imports/svg-4ab4ujrm1u';
 import exportSvgPaths from './imports/svg-o6fjxj41li';
 import imgCapsule from "figma:asset/371be526cb6c078a2a123792205d9842b99edd6d.png";
@@ -103,6 +103,8 @@ export default function App() {
   ]);
   const [chatInput, setChatInput] = useState('');
   const [aiContextItems, setAiContextItems] = useState<string[]>([]);
+  const [contextModalOpen, setContextModalOpen] = useState(false);
+  const [selectedContextItem, setSelectedContextItem] = useState<string | null>(null);
   const [incidentViewSet, setIncidentViewSet] = useState(false);
   const [dataLayerRegionFilter, setDataLayerRegionFilter] = useState<string[]>([]);
   const [dataLayerIncidentFilter, setDataLayerIncidentFilter] = useState<string[]>([]);
@@ -520,6 +522,11 @@ export default function App() {
                 currentPhaseId={currentPhaseId}
                 onPhaseSelect={setCurrentPhaseId}
                 operationalPeriodNumber={displayedPeriod.number}
+                notificationCount={(() => {
+                  const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
+                  const alertsData = alertsPhase?.data?.alerts || [];
+                  return alertsData.length + 1; // +1 for adversary vessel alert
+                })()}
               />
             </div>
             
@@ -701,14 +708,14 @@ export default function App() {
                 boxShadow: '0 0 20px rgba(147, 51, 234, 0.2), 0 0 40px rgba(147, 51, 234, 0.1)'
               }}
             >
-              <span>My Sector: New York</span>
+              <span>My Sector: Honolulu</span>
               <button
                 onClick={() => {
-                  setMapCenter('-74.0060,40.7128');
+                  setMapCenter('-157.8581,21.3099');
                   setMapScale('144447');
                 }}
                 className="hover:bg-purple-600/30 rounded p-1 transition-colors"
-                title="Zoom to New York City"
+                title="Zoom to Honolulu"
               >
                 <Map className="w-4 h-4" />
               </button>
@@ -854,13 +861,24 @@ export default function App() {
                 )}
                 {aiContextItems.length > 0 && (
                   <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-                    <div className="text-white">Context:</div>
+                    <div className="text-white text-sm">Context:</div>
                     {aiContextItems.map((item, idx) => (
                       <span
                         key={`${item}-${idx}`}
                         className="inline-flex items-center gap-1 rounded-full border border-accent px-2 py-1 text-accent bg-accent/10"
                       >
                         {item}
+                        <button
+                          className="ml-1 rounded hover:text-accent/80"
+                          onClick={() => {
+                            setSelectedContextItem(item);
+                            setContextModalOpen(true);
+                          }}
+                          aria-label="View aligned data"
+                          title="View aligned data"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                        </button>
                         <button
                           className="ml-1 rounded hover:text-destructive"
                           onClick={() => removeAIContext(item)}
@@ -884,6 +902,18 @@ export default function App() {
                       }
                     }}
                   />
+                  <Button
+                    onClick={() => {
+                      // File upload functionality placeholder
+                      console.log('File upload clicked');
+                    }}
+                    size="sm"
+                    variant="outline"
+                    className="border-border"
+                    title="Upload file"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </Button>
                   <Button
                     onClick={() => setIsSelectingOnMap((prev) => !prev)}
                     size="sm"
@@ -953,6 +983,11 @@ export default function App() {
                             currentPhaseId={currentPhaseId}
                             onPhaseSelect={setCurrentPhaseId}
                             operationalPeriodNumber={displayedPeriod.number}
+                            notificationCount={(() => {
+                              const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
+                              const alertsData = alertsPhase?.data?.alerts || [];
+                              return alertsData.length + 2; // +2 for safety check and acknowledgement notifications
+                            })()}
                           />
                         </div>
                         <Button
@@ -1058,6 +1093,17 @@ export default function App() {
                             >
                               {item}
                               <button
+                                className="ml-1 rounded hover:text-accent/80"
+                                onClick={() => {
+                                  setSelectedContextItem(item);
+                                  setContextModalOpen(true);
+                                }}
+                                aria-label="View aligned data"
+                                title="View aligned data"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </button>
+                              <button
                                 className="ml-1 rounded hover:text-destructive"
                                 onClick={() => removeAIContext(item)}
                                 aria-label="Remove context item"
@@ -1080,6 +1126,18 @@ export default function App() {
                             }
                           }}
                         />
+                  <Button
+                    onClick={() => {
+                      // File upload functionality placeholder
+                      console.log('File upload clicked');
+                    }}
+                    size="sm"
+                    variant="outline"
+                    className="border-border"
+                    title="Upload file"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </Button>
                   <Button
                     onClick={() => setIsSelectingOnMap((prev) => !prev)}
                     size="sm"
@@ -1139,6 +1197,11 @@ export default function App() {
                       currentPhaseId={currentPhaseId}
                       onPhaseSelect={setCurrentPhaseId}
                       operationalPeriodNumber={displayedPeriod.number}
+                      notificationCount={(() => {
+                        const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
+                        const alertsData = alertsPhase?.data?.alerts || [];
+                        return alertsData.length + 2; // +2 for safety check and acknowledgement notifications
+                      })()}
                     />
                     <div className="mr-20">
                       <Button
@@ -1229,7 +1292,7 @@ export default function App() {
                 )}
                 {aiContextItems.length > 0 && (
                   <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-                    <div className="text-white">Context:</div>
+                    <div className="text-white text-sm">Context:</div>
                     {aiContextItems.map((item, idx) => (
                       <span
                         key={`${item}-${idx}`}
@@ -1291,6 +1354,21 @@ export default function App() {
           )}
         </div>
       )}
+
+      {/* Context Item Modal */}
+      <Dialog open={contextModalOpen} onOpenChange={setContextModalOpen}>
+        <DialogContent className="bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">{selectedContextItem}</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Aligned Data
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-6 text-center text-foreground">
+            <p>Placeholder for aligned data</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

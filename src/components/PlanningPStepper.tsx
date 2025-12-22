@@ -8,9 +8,10 @@ interface PlanningPStepperProps {
   onPhaseSelect: (phaseId: string) => void;
   operationalPeriodNumber?: number;
   showHeader?: boolean;
+  notificationCount?: number;
 }
 
-export function PlanningPStepper({ phases, currentPhaseId, onPhaseSelect, operationalPeriodNumber = 0, showHeader = true }: PlanningPStepperProps) {
+export function PlanningPStepper({ phases, currentPhaseId, onPhaseSelect, operationalPeriodNumber = 0, showHeader = true, notificationCount = 0 }: PlanningPStepperProps) {
   
   return (
     <div className="px-6 bg-card border-b border-border">

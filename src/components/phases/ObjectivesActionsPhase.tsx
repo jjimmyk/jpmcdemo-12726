@@ -72,19 +72,19 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
   const initialObjectives = data.objectives || [
     {
       id: '1',
-      title: 'Gulf Coast Pipeline Spill — Plaquemines Parish, LA',
+      title: 'Oahu Substation Fire — Kapolei Power Grid',
       type: 'Operational',
       actions: [],
       childIncidents: [
         {
           id: '1a',
-          title: 'Bayou Dularge Contamination — Secondary Impact Zone',
+          title: 'Ewa Beach Distribution Network Outage — Secondary Impact',
           type: 'Operational',
           actions: []
         },
         {
           id: '1b',
-          title: 'Estuarine Wildlife Area Response — Barataria Bay',
+          title: 'West Oahu Residential Grid Restoration — Emergency Priority',
           type: 'Operational',
           actions: []
         }
@@ -92,25 +92,25 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     },
     {
       id: '2',
-      title: 'Santa Barbara Offshore Platform Leak — Santa Barbara, CA',
+      title: 'Maui Solar Array Inverter Failure — Kahului Energy Complex',
       type: 'Operational',
       actions: []
     },
     {
       id: '3',
-      title: 'Delaware River Tanker Spill — Philadelphia, PA',
+      title: 'Big Island Battery Storage Malfunction — Kona Grid',
       type: 'Operational',
       actions: [],
       childIncidents: [
         {
           id: '3a',
-          title: 'Port of Philadelphia Terminal Contamination',
+          title: 'Kailua-Kona Commercial Sector Power Fluctuation',
           type: 'Operational',
           actions: []
         },
         {
           id: '3b',
-          title: 'Delaware Estuary Shoreline Protection',
+          title: 'West Hawaii Renewable Integration Stabilization',
           type: 'Operational',
           actions: []
         }
@@ -118,19 +118,19 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     },
     {
       id: '4',
-      title: 'Straits of Mackinac Sheen — Mackinaw City, MI',
+      title: 'Kauai Transmission Line Damage — Hurricane Aftermath',
       type: 'Operational',
       actions: []
     },
     {
       id: '5',
-      title: 'Galveston Bay Barge Collision — Galveston, TX',
+      title: 'Honolulu Harbor Substation Flooding — Storm Surge Impact',
       type: 'Operational',
       actions: []
     },
     {
       id: '6',
-      title: 'Mobile Bay Pipeline Release — Mobile, AL',
+      title: 'Molokai Wind Farm Emergency Shutdown — Grid Stability',
       type: 'Operational',
       actions: []
     }
@@ -155,6 +155,10 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
   const [isAddIncidentModalOpen, setIsAddIncidentModalOpen] = useState(false);
   const [selectedIncidentTypes, setSelectedIncidentTypes] = useState<string[]>([]);
   const [isIncidentTypePopoverOpen, setIsIncidentTypePopoverOpen] = useState(false);
+  const [selectedAORs, setSelectedAORs] = useState<string[]>([]);
+  const [isAORPopoverOpen, setIsAORPopoverOpen] = useState(false);
+  const [selectedSeverities, setSelectedSeverities] = useState<string[]>([]);
+  const [isSeverityPopoverOpen, setIsSeverityPopoverOpen] = useState(false);
   
   type IncidentDetails = {
     description: string;
@@ -180,6 +184,24 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     'Other'
   ];
 
+  // Available AORs
+  const aors = [
+    'Gulf Coast Region',
+    'Southeast Region',
+    'Northeast Region',
+    'Pacific Northwest Region',
+    'Alaska Region'
+  ];
+
+  // Available severities
+  const severities = [
+    'Critical',
+    'Severe',
+    'Serious',
+    'Moderate',
+    'Minor'
+  ];
+
   // Get incident type based on objective title
   const getIncidentType = (objective: Objective): string => {
     const title = objective.title.toLowerCase();
@@ -194,19 +216,40 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     return 'Other';
   };
 
+  // Get AOR based on objective title
+  const getIncidentAOR = (objective: Objective): string => {
+    const title = objective.title.toLowerCase();
+    if (title.includes('gulf coast') || title.includes('louisiana') || title.includes('bayou')) {
+      return 'Gulf Coast Region';
+    }
+    if (title.includes('southeast') || title.includes('florida') || title.includes('delaware')) {
+      return 'Southeast Region';
+    }
+    if (title.includes('northeast') || title.includes('delaware river')) {
+      return 'Northeast Region';
+    }
+    if (title.includes('pacific') || title.includes('washington') || title.includes('oregon')) {
+      return 'Pacific Northwest Region';
+    }
+    if (title.includes('alaska')) {
+      return 'Alaska Region';
+    }
+    return 'Gulf Coast Region'; // Default
+  };
+
   // Get severity level for each incident
   const getIncidentSeverity = (id: string): 'Minor' | 'Moderate' | 'Serious' | 'Severe' | 'Critical' => {
     switch (id) {
-      case '1': return 'Serious'; // Gulf Coast Pipeline Spill
-      case '1a': return 'Moderate'; // Bayou Dularge Contamination (child)
-      case '1b': return 'Serious'; // Estuarine Wildlife Area Response (child)
-      case '2': return 'Moderate'; // Santa Barbara Offshore Platform Leak
-      case '3': return 'Moderate'; // Delaware River Tanker Spill
-      case '3a': return 'Moderate'; // Port Terminal Contamination (child)
-      case '3b': return 'Minor'; // Delaware Estuary Protection (child, preventive)
-      case '4': return 'Minor'; // Straits of Mackinac Sheen
-      case '5': return 'Severe'; // Galveston Bay Barge Collision
-      case '6': return 'Serious'; // Mobile Bay Pipeline Release
+      case '1': return 'Serious'; // Oahu Substation Fire
+      case '1a': return 'Moderate'; // Ewa Beach Distribution Network Outage (child)
+      case '1b': return 'Serious'; // West Oahu Residential Grid Restoration (child)
+      case '2': return 'Moderate'; // Maui Solar Array Inverter Failure
+      case '3': return 'Moderate'; // Big Island Battery Storage Malfunction
+      case '3a': return 'Moderate'; // Kailua-Kona Commercial Sector Power Fluctuation (child)
+      case '3b': return 'Minor'; // West Hawaii Renewable Integration Stabilization (child, preventive)
+      case '4': return 'Minor'; // Kauai Transmission Line Damage
+      case '5': return 'Severe'; // Honolulu Harbor Substation Flooding
+      case '6': return 'Serious'; // Molokai Wind Farm Emergency Shutdown
       default: return 'Moderate';
     }
   };
@@ -238,28 +281,28 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
   // Get map coordinates for each incident location
   const getIncidentCoordinates = (id: string): { center: string; scale: string } => {
     switch (id) {
-      case '1': // Plaquemines Parish, LA
-        return { center: '-89.6843,29.3547', scale: '144447.638572' };
-      case '1a': // Bayou Dularge, LA (child incident)
-        return { center: '-90.2351,29.3782', scale: '72223.819286' };
-      case '1b': // Barataria Bay, LA (child incident)
-        return { center: '-90.1289,29.4516', scale: '72223.819286' };
-      case '2': // Santa Barbara Channel, CA
-        return { center: '-119.6982,34.3933', scale: '144447.638572' };
-      case '3': // Philadelphia, PA
-        return { center: '-75.1652,39.9526', scale: '72223.819286' };
-      case '3a': // Port of Philadelphia Terminal 5 (child incident)
-        return { center: '-75.1448,39.9022', scale: '36111.909643' };
-      case '3b': // Delaware Estuary (child incident)
-        return { center: '-75.3894,39.7391', scale: '144447.638572' };
-      case '4': // Mackinaw City, MI
-        return { center: '-84.7272,45.7772', scale: '144447.638572' };
-      case '5': // Galveston, TX
-        return { center: '-94.7977,29.3013', scale: '144447.638572' };
-      case '6': // Mobile, AL
-        return { center: '-88.0399,30.6954', scale: '144447.638572' };
+      case '1': // Kapolei Power Grid, Oahu
+        return { center: '-158.0581,21.3354', scale: '144447.638572' };
+      case '1a': // Ewa Beach Distribution Network, Oahu (child incident)
+        return { center: '-158.0072,21.3156', scale: '72223.819286' };
+      case '1b': // West Oahu Residential Grid (child incident)
+        return { center: '-158.0400,21.3700', scale: '72223.819286' };
+      case '2': // Kahului Energy Complex, Maui
+        return { center: '-156.4729,20.8893', scale: '144447.638572' };
+      case '3': // Kona Grid, Big Island
+        return { center: '-155.9969,19.6400', scale: '72223.819286' };
+      case '3a': // Kailua-Kona Commercial Sector (child incident)
+        return { center: '-155.9969,19.6400', scale: '36111.909643' };
+      case '3b': // West Hawaii Renewable Integration (child incident)
+        return { center: '-155.9969,19.7297', scale: '144447.638572' };
+      case '4': // Kauai Transmission Line
+        return { center: '-159.3741,21.9812', scale: '144447.638572' };
+      case '5': // Honolulu Harbor Substation
+        return { center: '-157.8671,21.3045', scale: '144447.638572' };
+      case '6': // Molokai Wind Farm
+        return { center: '-157.0226,21.1444', scale: '144447.638572' };
       default:
-        return { center: '-74.006,40.7128', scale: '72223.819286' }; // Default to NYC
+        return { center: '-157.8581,21.3099', scale: '72223.819286' }; // Default to Honolulu
     }
   };
 
@@ -268,19 +311,19 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     // Map incident IDs to their incident filter values
     switch (id) {
       case '1':
-        return 'gulf-coast-pipeline';
+        return 'oahu-substation-fire';
       case '1a':
-        return 'bayou-dularge';
+        return 'ewa-beach-outage';
       case '1b':
-        return 'estuarine-wildlife';
+        return 'west-oahu-restoration';
       case '3':
-        return 'delaware-river-tanker';
+        return 'kona-battery-storage';
       case '3a':
-        return 'port-terminal';
+        return 'kailua-kona-power-quality';
       case '3b':
-        return 'delaware-estuary';
+        return 'west-hawaii-renewable';
       default:
-        return 'gulf-coast-pipeline';
+        return 'oahu-substation-fire';
     }
   };
 
@@ -288,135 +331,135 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     switch (id) {
       case '1':
         return {
-          description: 'Subsurface pipeline release impacting marshlands and adjacent waterways; containment booms deployed along bayou inlets.',
-          location: 'Plaquemines Parish, LA',
+          description: 'Substation transformer fire impacting West Oahu power grid; mobile substation deployment and emergency restoration operations underway.',
+          location: 'Kapolei, Oahu',
           status: 'Active',
           startTime: 'Today 06:40',
-          estimatedVolume: '~2,500 bbl (TBD)',
-          shorelineImpact: 'Low‑moderate marsh sheen; sensitive habitat protection in progress',
-          responsibleParty: 'Gulf Midstream Partners',
-          incidentCommander: 'USCG Sector NOLA (Unified)',
-          lastUpdate: 'Boom expansion and skimmer staging underway'
+          estimatedVolume: '~45 MW capacity affected',
+          shorelineImpact: 'N/A - Grid infrastructure incident',
+          responsibleParty: 'Hawaiian Electric Company (HECO)',
+          incidentCommander: 'HECO Emergency Operations',
+          lastUpdate: 'Mobile substation en route; backup generators deployed'
         };
       case '2':
         return {
-          description: 'Platform equipment failure with intermittent discharge; offshore sheen moving southwest with current.',
-          location: 'Santa Barbara Channel, CA',
+          description: 'Solar array inverter failure causing renewable generation loss; grid stability analysis and replacement operations in progress.',
+          location: 'Kahului, Maui',
           status: 'Active',
           startTime: 'Yesterday 22:15',
-          estimatedVolume: '~800 bbl (prelim.)',
-          shorelineImpact: 'Minimal; shoreline assessment teams deployed',
-          responsibleParty: 'Pacific Offshore Energy',
-          incidentCommander: 'USCG/MSRC (Unified)',
-          lastUpdate: 'Repair crew on platform; overflight scheduled 16:00'
+          estimatedVolume: '~12 MW solar capacity offline',
+          shorelineImpact: 'N/A - Renewable energy infrastructure',
+          responsibleParty: 'Maui Electric Company (MECO)',
+          incidentCommander: 'MECO Grid Operations',
+          lastUpdate: 'Replacement inverters arriving; demand response activated'
         };
       case '3':
         return {
-          description: 'Tanker manifold leak alongside berth; harbor booming complete with vacuum trucks on scene.',
-          location: 'Philadelphia, PA',
+          description: 'Battery storage system malfunction affecting grid frequency regulation; isolation procedures complete with backup systems engaged.',
+          location: 'Kona, Big Island',
           status: 'Active',
           startTime: 'Today 05:20',
-          estimatedVolume: '~350 bbl',
-          shorelineImpact: 'Contained within berth; no river shoreline impacts observed',
-          responsibleParty: 'RiverFuel Logistics',
-          incidentCommander: 'USCG Sector Delaware Bay',
-          lastUpdate: 'Product transfer halted; repair plan under review'
+          estimatedVolume: '~20 MWh storage capacity',
+          shorelineImpact: 'N/A - Energy storage facility',
+          responsibleParty: 'Hawaii Electric Light Company (HELCO)',
+          incidentCommander: 'HELCO System Operations',
+          lastUpdate: 'System isolated; alternative frequency regulation active'
         };
       case '4':
         return {
-          description: 'Reported surface sheen near Straits; source under investigation; precautionary booming at key inlets.',
-          location: 'Mackinaw City, MI',
+          description: 'Hurricane-damaged transmission lines requiring emergency repairs; aerial surveys and line crew deployment in progress.',
+          location: 'North Shore, Kauai',
           status: 'Monitoring',
           startTime: 'Today 07:10',
-          estimatedVolume: 'TBD (trace sheen)',
-          shorelineImpact: 'None confirmed; environmental monitoring ongoing',
-          responsibleParty: 'Unknown — under investigation',
-          incidentCommander: 'State/USCG (Unified)',
-          lastUpdate: 'Sampling initiated; overwater drone survey requested'
+          estimatedVolume: '~8 transmission towers damaged',
+          shorelineImpact: 'N/A - Transmission infrastructure',
+          responsibleParty: 'Kauai Island Utility Cooperative (KIUC)',
+          incidentCommander: 'KIUC Emergency Response',
+          lastUpdate: 'Damage assessment underway; temporary routing established'
         };
       case '5':
         return {
-          description: 'Barge collision released product in channel; current and tide driving sheen toward outer bay.',
-          location: 'Galveston, TX',
+          description: 'Storm surge flooding at harbor substation; emergency pumping and flood barrier deployment to protect critical equipment.',
+          location: 'Honolulu Harbor, Oahu',
           status: 'Active',
           startTime: 'Today 03:55',
-          estimatedVolume: '~1,200 bbl (est.)',
-          shorelineImpact: 'Potential for marsh impact with outgoing tide',
-          responsibleParty: 'Coastal Marine Transport',
-          incidentCommander: 'USCG Sector Houston‑Galveston',
-          lastUpdate: 'Secondary booming and skimmer ops scaling up'
+          estimatedVolume: '~3 feet water depth',
+          shorelineImpact: 'Coastal infrastructure vulnerability',
+          responsibleParty: 'Hawaiian Electric Company (HECO)',
+          incidentCommander: 'HECO Waterfront Operations',
+          lastUpdate: 'Pumping operations active; flood barriers being installed'
         };
       case '6':
         return {
-          description: 'Pipeline release near wetlands fringe; access constraints impacting heavy equipment placement.',
-          location: 'Mobile, AL',
+          description: 'Wind farm emergency shutdown impacting island generation; turbine control system resets and backup diesel activation in progress.',
+          location: 'Molokai',
           status: 'Active',
           startTime: 'Today 04:30',
-          estimatedVolume: '~600 bbl (prelim.)',
-          shorelineImpact: 'Localized wetland impact; wildlife teams engaged',
-          responsibleParty: 'Bay Shore Pipelines',
-          incidentCommander: 'USCG Sector Mobile (Unified)',
-          lastUpdate: 'Access matting and vacuum support in progress'
+          estimatedVolume: '~6 MW wind capacity offline',
+          shorelineImpact: 'N/A - Wind energy infrastructure',
+          responsibleParty: 'Maui Electric Company (MECO)',
+          incidentCommander: 'MECO Molokai Operations',
+          lastUpdate: 'Turbine restart sequence initiated; diesel backup online'
         };
       case '1a':
         return {
-          description: 'Secondary contamination zone downstream from primary spill site; product migration detected in shallow bayou channels requiring additional containment measures.',
-          location: 'Bayou Dularge, Plaquemines Parish, LA',
+          description: 'Secondary distribution network outage affecting Ewa Beach area; service restoration prioritized for critical facilities.',
+          location: 'Ewa Beach, Oahu',
           status: 'Active',
           startTime: 'Today 09:15',
-          estimatedVolume: '~400 bbl (migrated)',
-          shorelineImpact: 'Moderate; active protection of sensitive marsh areas',
-          responsibleParty: 'Gulf Midstream Partners (parent incident)',
-          incidentCommander: 'USCG Sector NOLA - Marine Branch',
-          lastUpdate: 'Additional boom deployment and skimming operations initiated'
+          estimatedVolume: '~15 MW distribution capacity',
+          shorelineImpact: 'N/A - Distribution network',
+          responsibleParty: 'Hawaiian Electric Company (parent incident)',
+          incidentCommander: 'HECO Distribution Operations',
+          lastUpdate: 'Emergency circuits activated; restoration in progress'
         };
       case '1b':
         return {
-          description: 'Oil sheen detected in estuarine wildlife refuge requiring specialized response protocols; nesting bird colonies at risk during active breeding season.',
-          location: 'Barataria Bay Wildlife Management Area, LA',
+          description: 'West Oahu residential grid restoration requiring coordinated switching operations; priority service restoration for hospitals and emergency services.',
+          location: 'West Oahu Region',
           status: 'Active',
           startTime: 'Today 11:30',
-          estimatedVolume: '~150 bbl (surface sheen)',
-          shorelineImpact: 'High sensitivity; wildlife hazing and nest protection underway',
-          responsibleParty: 'Gulf Midstream Partners (parent incident)',
-          incidentCommander: 'USCG/USFWS (Unified)',
-          lastUpdate: 'Wildlife specialists deployed; absorbent boom placement in progress'
+          estimatedVolume: '~25,000 customers affected',
+          shorelineImpact: 'N/A - Residential grid infrastructure',
+          responsibleParty: 'Hawaiian Electric Company (parent incident)',
+          incidentCommander: 'HECO Emergency Restoration',
+          lastUpdate: 'Critical facilities restored; residential restoration phased approach'
         };
       case '3a':
         return {
-          description: 'Product accumulation at terminal berth area; contaminated ballast water containment and recovery operations ongoing with specialized vacuum equipment.',
-          location: 'Port of Philadelphia Terminal 5, Philadelphia, PA',
+          description: 'Commercial sector power quality issues in Kailua-Kona; voltage stabilization and load balancing operations ongoing.',
+          location: 'Kailua-Kona, Big Island',
           status: 'Active',
           startTime: 'Today 07:45',
-          estimatedVolume: '~200 bbl (berth area)',
-          shorelineImpact: 'Contained within terminal; no open water release',
-          responsibleParty: 'RiverFuel Logistics (parent incident)',
-          incidentCommander: 'USCG Sector Delaware Bay - Waterways',
-          lastUpdate: 'Terminal operations suspended; recovery operations at 60% completion'
+          estimatedVolume: 'Power quality fluctuations',
+          shorelineImpact: 'N/A - Commercial grid segment',
+          responsibleParty: 'Hawaii Electric Light Company (parent incident)',
+          incidentCommander: 'HELCO Grid Stability Team',
+          lastUpdate: 'Voltage regulation equipment deployed; monitoring continuous'
         };
       case '3b':
         return {
-          description: 'Precautionary shoreline protection measures deployed along Delaware Estuary sensitive areas; monitoring stations established at critical wildlife habitats and water intakes.',
-          location: 'Delaware Estuary, Philadelphia to Wilmington, DE',
+          description: 'Renewable energy integration stabilization measures for West Hawaii grid; frequency and voltage control systems being optimized.',
+          location: 'West Hawaii, Big Island',
           status: 'Monitoring',
           startTime: 'Today 08:20',
-          estimatedVolume: 'Preventive (no confirmed release)',
-          shorelineImpact: 'Preventive measures; no current impact',
-          responsibleParty: 'RiverFuel Logistics (parent incident)',
-          incidentCommander: 'USCG Sector Delaware Bay - Prevention',
-          lastUpdate: 'Protective booming at water intakes; ongoing surveillance flights'
+          estimatedVolume: 'Preventive stabilization',
+          shorelineImpact: 'N/A - Grid integration systems',
+          responsibleParty: 'Hawaii Electric Light Company (parent incident)',
+          incidentCommander: 'HELCO Renewable Integration',
+          lastUpdate: 'Grid stabilization active; renewable output being modulated'
         };
       default:
         return {
-          description: 'Pipeline release near wetlands fringe; access constraints impacting heavy equipment placement.',
-          location: 'Mobile, AL',
+          description: 'Grid infrastructure incident requiring emergency response and restoration operations.',
+          location: 'Hawaii',
           status: 'Active',
           startTime: 'Today 04:30',
-          estimatedVolume: '~600 bbl (prelim.)',
-          shorelineImpact: 'Localized wetland impact; wildlife teams engaged',
-          responsibleParty: 'Bay Shore Pipelines',
-          incidentCommander: 'USCG Sector Mobile (Unified)',
-          lastUpdate: 'Access matting and vacuum support in progress'
+          estimatedVolume: 'TBD',
+          shorelineImpact: 'N/A - Grid infrastructure',
+          responsibleParty: 'Hawaiian Electric Companies',
+          incidentCommander: 'Emergency Operations Center',
+          lastUpdate: 'Response operations in progress'
         };
     }
   };
@@ -437,214 +480,214 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
 
   const getActionsForIncident = (incidentId: string): ActionItem[] => {
     switch (incidentId) {
-      case '1': // Gulf Coast Pipeline Spill
+      case '1': // Oahu Substation Fire
         return [
           {
-            title: 'Deploy additional boom at Bayou Dularge',
-            assignedTo: 'Operations - Marine Branch',
+            title: 'Deploy mobile substation to restore power',
+            assignedTo: 'Operations - Grid Response Team',
             priority: 'High',
             status: 'In Progress',
             dueDate: '11/16/2025 18:00',
-            location: 'Bayou Dularge, Plaquemines Parish',
-            description: 'Deploy 1,500 ft of additional containment boom along Bayou Dularge to reinforce existing protection measures. Coordinate with Marine Branch Division Alpha for vessel support.',
+            location: 'Kapolei Substation Site, Oahu',
+            description: 'Deploy mobile substation unit to restore power to Kapolei grid. Coordinate with HECO engineering for connection protocols and load balancing.',
             taskId: 'ICS-204-A-015',
             startedAt: '11/15/2025 14:30'
           },
           {
-            title: 'Conduct wildlife survey in Barataria Bay',
-            assignedTo: 'Environmental Unit',
+            title: 'Assess fire damage to transformer bank',
+            assignedTo: 'Engineering Unit',
             priority: 'High',
             status: 'Pending',
             dueDate: '11/16/2025 08:00',
-            location: 'Barataria Bay Wetlands',
-            description: 'Complete systematic wildlife survey of Barataria Bay critical habitat areas. Document any oiled wildlife observations and report to Wildlife Branch immediately.',
+            location: 'Kapolei Power Grid Infrastructure',
+            description: 'Complete comprehensive damage assessment of transformer bank and switching equipment. Document replacement requirements and timeline estimates.',
             taskId: 'ICS-215-E-022'
           },
           {
-            title: 'Mobilize Skimmer Vessel Bravo-2',
+            title: 'Mobilize backup power generators for critical facilities',
             assignedTo: 'Logistics Section',
             priority: 'Medium',
             status: 'In Progress',
             dueDate: '11/15/2025 22:00',
-            location: 'Venice Launch Complex',
-            description: 'Transport and prepare Skimmer Vessel Bravo-2 for operational deployment. Ensure full fuel capacity and verify all recovery equipment is operational.',
+            location: 'West Oahu Critical Infrastructure',
+            description: 'Transport and install backup generators at hospitals, water pumping stations, and emergency services facilities. Ensure fuel reserves are adequate.',
             taskId: 'ICS-204-L-008',
             startedAt: '11/15/2025 16:00'
           }
         ];
-      case '2': // Santa Barbara Offshore Platform Leak
+      case '2': // Maui Solar Array Inverter Failure
         return [
           {
-            title: 'Deploy repair crew to offshore platform',
-            assignedTo: 'Operations - Offshore Team',
+            title: 'Replace failed inverter units',
+            assignedTo: 'Operations - Renewable Energy Team',
             priority: 'High',
             status: 'In Progress',
             dueDate: '11/16/2025 12:00',
-            location: 'Platform Beta-7, Santa Barbara Channel',
-            description: 'Transport specialized repair team to offshore platform to address equipment failure. Ensure all safety protocols and weather clearances are in place.',
+            location: 'Kahului Solar Farm, Maui',
+            description: 'Transport and install replacement inverter units at solar array. Ensure all safety protocols and grid synchronization tests are completed.',
             taskId: 'ICS-204-O-031',
             startedAt: '11/15/2025 10:00'
           },
           {
-            title: 'Conduct aerial overflight survey',
-            assignedTo: 'Environmental Unit - SCAT',
+            title: 'Conduct grid stability analysis',
+            assignedTo: 'Engineering Unit - Grid Operations',
             priority: 'High',
             status: 'Pending',
             dueDate: '11/15/2025 16:00',
-            location: 'Santa Barbara Channel',
-            description: 'Execute aerial survey to track sheen movement and assess potential shoreline impact. Document extent and trajectory for response planning.',
+            location: 'Maui Energy Control Center',
+            description: 'Execute comprehensive grid stability analysis to assess impact of solar array outage. Develop load redistribution plan.',
             taskId: 'ICS-215-E-018'
           },
           {
-            title: 'Activate shoreline assessment teams',
-            assignedTo: 'Operations - SCAT Team 1',
+            title: 'Activate demand response program',
+            assignedTo: 'Operations - Load Management',
             priority: 'Medium',
             status: 'Completed',
             dueDate: '11/15/2025 14:00',
-            location: 'Santa Barbara Coastline',
-            description: 'Deploy SCAT teams to monitor potential shoreline oiling. Establish survey zones and reporting protocols.',
+            location: 'Maui County Service Area',
+            description: 'Activate voluntary demand response program to reduce peak load. Coordinate with commercial and industrial customers.',
             taskId: 'ICS-204-S-012',
             startedAt: '11/15/2025 08:00',
             completedAt: '11/15/2025 13:45'
           }
         ];
-      case '3': // Delaware River Tanker Spill
+      case '3': // Big Island Battery Storage Malfunction
         return [
           {
-            title: 'Complete harbor containment booming',
-            assignedTo: 'Operations - Marine Branch',
+            title: 'Isolate malfunctioning battery modules',
+            assignedTo: 'Operations - Energy Storage Team',
             priority: 'High',
             status: 'Completed',
             dueDate: '11/15/2025 08:00',
-            location: 'Philadelphia Berth 4',
-            description: 'Deploy containment boom around affected berth area to prevent product spread into Delaware River. Maintain boom integrity.',
+            location: 'Kona Battery Storage Facility',
+            description: 'Isolate affected battery modules from grid to prevent system instability. Verify isolation procedures and safety systems.',
             taskId: 'ICS-204-M-005',
             startedAt: '11/15/2025 05:30',
             completedAt: '11/15/2025 07:50'
           },
           {
-            title: 'Deploy vacuum trucks for recovery',
-            assignedTo: 'Operations - Recovery Team',
+            title: 'Deploy backup frequency regulation resources',
+            assignedTo: 'Operations - Grid Stability Team',
             priority: 'High',
             status: 'In Progress',
             dueDate: '11/15/2025 18:00',
-            location: 'Philadelphia Berth 4',
-            description: 'Position vacuum recovery trucks and initiate product recovery operations within contained area. Monitor recovery progress hourly.',
+            location: 'Big Island Grid Operations',
+            description: 'Activate alternative frequency regulation resources to compensate for battery storage outage. Monitor grid frequency stability continuously.',
             taskId: 'ICS-204-R-011',
             startedAt: '11/15/2025 09:00'
           },
           {
-            title: 'Develop tanker repair plan',
+            title: 'Develop battery system repair plan',
             assignedTo: 'Planning Section - Technical Specialist',
             priority: 'Medium',
             status: 'Pending',
             dueDate: '11/15/2025 20:00',
-            location: 'Unified Command Post',
-            description: 'Work with responsible party to develop repair plan for tanker manifold. Review for safety and environmental compliance.',
+            location: 'Unified Operations Center',
+            description: 'Work with equipment manufacturer to develop comprehensive repair plan for battery storage system. Review warranty and replacement options.',
             taskId: 'ICS-215-P-007'
           }
         ];
-      case '4': // Straits of Mackinac Sheen
+      case '4': // Kauai Transmission Line Damage
         return [
           {
-            title: 'Conduct source investigation',
-            assignedTo: 'Environmental Unit - Investigation Team',
+            title: 'Conduct damage assessment of transmission towers',
+            assignedTo: 'Engineering Unit - Transmission Team',
             priority: 'High',
             status: 'In Progress',
             dueDate: '11/15/2025 16:00',
-            location: 'Straits of Mackinac',
-            description: 'Investigate reported sheen source through water sampling and visual surveys. Coordinate with USCG and State environmental agencies.',
+            location: 'North Shore Transmission Corridor, Kauai',
+            description: 'Inspect transmission towers and lines for hurricane damage. Document structural integrity issues and prioritize repair locations.',
             taskId: 'ICS-215-E-024',
             startedAt: '11/15/2025 08:00'
           },
           {
-            title: 'Deploy precautionary boom at key inlets',
-            assignedTo: 'Operations - Marine Branch',
+            title: 'Deploy line crews for emergency repairs',
+            assignedTo: 'Operations - Transmission Repair',
             priority: 'Medium',
             status: 'In Progress',
             dueDate: '11/15/2025 15:00',
-            location: 'Mackinaw City Inlets',
-            description: 'As precautionary measure, deploy boom at sensitive inlet locations to protect against potential shoreline contact.',
+            location: 'Kauai Transmission Network',
+            description: 'Deploy line repair crews to priority damage sites. Establish temporary power routing to restore service to critical areas.',
             taskId: 'ICS-204-M-019',
             startedAt: '11/15/2025 10:30'
           },
           {
-            title: 'Execute drone survey of affected area',
-            assignedTo: 'Operations - UAS Team',
+            title: 'Execute aerial survey of transmission corridor',
+            assignedTo: 'Operations - Aerial Inspection Team',
             priority: 'High',
             status: 'Pending',
             dueDate: '11/15/2025 14:00',
-            location: 'Straits of Mackinac',
-            description: 'Deploy unmanned aerial system to survey water surface and document sheen extent. Provide imagery for analysis.',
+            location: 'Kauai Island-wide',
+            description: 'Deploy drone and helicopter surveys to assess full extent of transmission line damage across the island. Provide imagery for repair planning.',
             taskId: 'ICS-204-U-003'
           }
         ];
-      case '5': // Galveston Bay Barge Collision
+      case '5': // Honolulu Harbor Substation Flooding
         return [
           {
-            title: 'Scale up skimmer operations',
-            assignedTo: 'Operations - Marine Branch',
+            title: 'Pump water from substation facility',
+            assignedTo: 'Operations - Emergency Response',
             priority: 'High',
             status: 'In Progress',
             dueDate: '11/15/2025 20:00',
-            location: 'Galveston Bay Channel',
-            description: 'Mobilize additional skimmer vessels to intercept product before it reaches marsh areas. Coordinate with tug support.',
+            location: 'Honolulu Harbor Substation',
+            description: 'Deploy high-capacity pumps to remove storm surge water from substation. Coordinate with harbor operations and ensure safety protocols.',
             taskId: 'ICS-204-M-027',
             startedAt: '11/15/2025 06:00'
           },
           {
-            title: 'Deploy secondary boom line',
-            assignedTo: 'Operations - Boom Team',
+            title: 'Install temporary flood barriers',
+            assignedTo: 'Operations - Infrastructure Protection',
             priority: 'High',
             status: 'In Progress',
             dueDate: '11/15/2025 18:00',
-            location: 'Outer Galveston Bay',
-            description: 'Establish secondary containment boom line to protect marsh habitats from incoming tide. Monitor tidal predictions.',
+            location: 'Honolulu Harbor Critical Infrastructure',
+            description: 'Establish temporary flood protection barriers around critical electrical equipment to prevent additional storm surge impacts.',
             taskId: 'ICS-204-B-014',
             startedAt: '11/15/2025 08:30'
           },
           {
-            title: 'Activate marsh protection teams',
-            assignedTo: 'Environmental Unit',
+            title: 'Activate waterfront resilience measures',
+            assignedTo: 'Engineering Unit',
             priority: 'High',
             status: 'Pending',
             dueDate: '11/15/2025 16:00',
-            location: 'Galveston Bay Marshlands',
-            description: 'Pre-position marsh protection equipment and teams at high-risk areas identified in Geographic Response Strategies.',
+            location: 'Honolulu Harbor Energy Infrastructure',
+            description: 'Implement pre-planned waterfront resilience measures for harbor area substations. Coordinate with Coast Guard and harbor operations.',
             taskId: 'ICS-215-E-016'
           }
         ];
-      case '6': // Mobile Bay Pipeline Release
+      case '6': // Molokai Wind Farm Emergency Shutdown
         return [
           {
-            title: 'Install access matting for equipment',
-            assignedTo: 'Logistics - Ground Support Unit',
+            title: 'Reset wind turbine control systems',
+            assignedTo: 'Operations - Wind Energy Team',
             priority: 'High',
             status: 'In Progress',
             dueDate: '11/15/2025 17:00',
-            location: 'Mobile Bay Wetlands Access Point',
-            description: 'Deploy temporary access matting to enable heavy equipment access while minimizing wetland disturbance. Coordinate with Environmental Unit.',
+            location: 'Molokai Wind Farm',
+            description: 'Systematically reset and restart wind turbine control systems following emergency shutdown. Verify all safety systems before reconnecting to grid.',
             taskId: 'ICS-204-G-022',
             startedAt: '11/15/2025 09:00'
           },
           {
-            title: 'Deploy vacuum truck support',
-            assignedTo: 'Operations - Recovery Team',
+            title: 'Deploy backup diesel generation',
+            assignedTo: 'Operations - Thermal Generation',
             priority: 'High',
             status: 'Pending',
             dueDate: '11/15/2025 19:00',
-            location: 'Pipeline Release Site, Mobile Bay',
-            description: 'Position vacuum trucks at release site once access is established. Initiate product recovery operations.',
+            location: 'Molokai Power Station',
+            description: 'Activate backup diesel generators to compensate for wind farm outage. Ensure adequate fuel supply and load distribution.',
             taskId: 'ICS-204-R-018'
           },
           {
-            title: 'Conduct wildlife impact assessment',
-            assignedTo: 'Environmental Unit - Wildlife Branch',
+            title: 'Conduct grid stability impact assessment',
+            assignedTo: 'Engineering Unit - Grid Analysis',
             priority: 'Medium',
             status: 'In Progress',
             dueDate: '11/16/2025 10:00',
-            location: 'Mobile Bay Wetlands',
-            description: 'Survey wetland areas for wildlife impacts and oiling. Coordinate wildlife rehabilitation if needed.',
+            location: 'Molokai Grid Operations',
+            description: 'Assess impact of wind farm shutdown on island grid stability. Develop contingency plans for extended outage scenario.',
             taskId: 'ICS-215-W-009',
             startedAt: '11/15/2025 11:00'
           }
@@ -1007,6 +1050,18 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
       if (!selectedIncidentTypes.includes(incidentType)) return false;
     }
     
+    // Filter by AOR
+    if (selectedAORs.length > 0) {
+      const aor = getIncidentAOR(objective);
+      if (!selectedAORs.includes(aor)) return false;
+    }
+    
+    // Filter by severity
+    if (selectedSeverities.length > 0) {
+      const severity = getIncidentSeverity(objective.id);
+      if (!selectedSeverities.includes(severity)) return false;
+    }
+    
     return true;
   });
 
@@ -1021,6 +1076,32 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
 
   const clearIncidentTypeFilter = () => {
     setSelectedIncidentTypes([]);
+  };
+
+  // Handler for AOR selection
+  const toggleAOR = (aor: string) => {
+    setSelectedAORs(prev => 
+      prev.includes(aor) 
+        ? prev.filter(a => a !== aor)
+        : [...prev, aor]
+    );
+  };
+
+  const clearAORFilter = () => {
+    setSelectedAORs([]);
+  };
+
+  // Handler for severity selection
+  const toggleSeverity = (severity: string) => {
+    setSelectedSeverities(prev => 
+      prev.includes(severity) 
+        ? prev.filter(s => s !== severity)
+        : [...prev, severity]
+    );
+  };
+
+  const clearSeverityFilter = () => {
+    setSelectedSeverities([]);
   };
 
   return (
@@ -1080,78 +1161,231 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
         </div>
       </div>
 
-      {/* Incident Type Filter */}
-      <div className="space-y-3 px-4 py-3 bg-[#222529] rounded-lg border border-[#6e757c]">
-        <div className="flex items-center gap-2">
-          <span className="caption text-white whitespace-nowrap">Incident Type:</span>
-          <Popover open={isIncidentTypePopoverOpen} onOpenChange={setIsIncidentTypePopoverOpen}>
-            <PopoverTrigger asChild>
-              <button
-                className="flex-1 h-[24px] bg-transparent border border-[#6e757c] rounded-[4px] px-2 caption text-white focus:outline-none focus:border-accent cursor-pointer flex items-center justify-between"
-                style={{ 
-                  fontFamily: "'Open Sans', sans-serif",
-                  fontSize: '12px',
-                  fontWeight: 400,
-                  lineHeight: '18px'
-                }}
-              >
-                {selectedIncidentTypes.length === 0 
-                  ? 'All Types' 
-                  : selectedIncidentTypes.length === 1 
-                  ? selectedIncidentTypes[0]
-                  : `${selectedIncidentTypes.length} types selected`}
-                <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0 bg-[#222529] border-[#6e757c]" align="start">
-              <Command className="bg-[#222529]">
-                <CommandInput 
-                  placeholder="Search incident type..." 
-                  className="h-9 caption text-white"
+      {/* Filters Section - Three Columns */}
+      <div className="flex gap-3">
+        {/* Incident Type Filter */}
+        <div className="flex-1 space-y-2 px-4 py-3 bg-[#222529] rounded-lg border border-[#6e757c]">
+          <span className="caption text-white whitespace-nowrap block">Incident Type:</span>
+          <div className="flex items-center gap-2">
+            <Popover open={isIncidentTypePopoverOpen} onOpenChange={setIsIncidentTypePopoverOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex-1 h-[24px] bg-transparent border border-[#6e757c] rounded-[4px] px-2 caption text-white focus:outline-none focus:border-accent cursor-pointer flex items-center justify-between"
                   style={{ 
                     fontFamily: "'Open Sans', sans-serif",
                     fontSize: '12px',
                     fontWeight: 400,
                     lineHeight: '18px'
                   }}
-                />
-                <CommandList>
-                  <CommandEmpty className="caption text-white/70 p-2">No incident type found.</CommandEmpty>
-                  <CommandGroup>
-                    {incidentTypes.map((type) => (
-                      <CommandItem
-                        key={type}
-                        value={type}
-                        onSelect={() => toggleIncidentType(type)}
-                        className="caption text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
-                        style={{ 
-                          fontFamily: "'Open Sans', sans-serif",
-                          fontSize: '12px',
-                          fontWeight: 400,
-                          lineHeight: '18px'
-                        }}
-                      >
-                        <Checkbox
-                          checked={selectedIncidentTypes.includes(type)}
-                          className="mr-2 h-3 w-3 border-white data-[state=checked]:bg-accent data-[state=checked]:border-accent"
-                        />
-                        {type}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          {selectedIncidentTypes.length > 0 && (
-            <button
-              onClick={clearIncidentTypeFilter}
-              className="p-1 hover:bg-muted/30 rounded transition-colors"
-              title="Clear filter"
-            >
-              <X className="w-3 h-3 text-white" />
-            </button>
-          )}
+                >
+                  {selectedIncidentTypes.length === 0 
+                    ? 'All Types' 
+                    : selectedIncidentTypes.length === 1 
+                    ? selectedIncidentTypes[0]
+                    : `${selectedIncidentTypes.length} types selected`}
+                  <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+                <Command className="bg-[#222529]">
+                  <CommandInput 
+                    placeholder="Search incident type..." 
+                    className="h-9 caption text-white"
+                    style={{ 
+                      fontFamily: "'Open Sans', sans-serif",
+                      fontSize: '12px',
+                      fontWeight: 400,
+                      lineHeight: '18px'
+                    }}
+                  />
+                  <CommandList>
+                    <CommandEmpty className="caption text-white/70 p-2">No incident type found.</CommandEmpty>
+                    <CommandGroup>
+                      {incidentTypes.map((type) => (
+                        <CommandItem
+                          key={type}
+                          value={type}
+                          onSelect={() => toggleIncidentType(type)}
+                          className="caption text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
+                          style={{ 
+                            fontFamily: "'Open Sans', sans-serif",
+                            fontSize: '12px',
+                            fontWeight: 400,
+                            lineHeight: '18px'
+                          }}
+                        >
+                          <Checkbox
+                            checked={selectedIncidentTypes.includes(type)}
+                            className="mr-2 h-3 w-3 border-white data-[state=checked]:bg-accent data-[state=checked]:border-accent"
+                          />
+                          {type}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {selectedIncidentTypes.length > 0 && (
+              <button
+                onClick={clearIncidentTypeFilter}
+                className="p-1 hover:bg-muted/30 rounded transition-colors"
+                title="Clear filter"
+              >
+                <X className="w-3 h-3 text-white" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* AOR Filter */}
+        <div className="flex-1 space-y-2 px-4 py-3 bg-[#222529] rounded-lg border border-[#6e757c]">
+          <span className="caption text-white whitespace-nowrap block">AOR:</span>
+          <div className="flex items-center gap-2">
+            <Popover open={isAORPopoverOpen} onOpenChange={setIsAORPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex-1 h-[24px] bg-transparent border border-[#6e757c] rounded-[4px] px-2 caption text-white focus:outline-none focus:border-accent cursor-pointer flex items-center justify-between"
+                  style={{ 
+                    fontFamily: "'Open Sans', sans-serif",
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    lineHeight: '18px'
+                  }}
+                >
+                  {selectedAORs.length === 0 
+                    ? 'All AORs' 
+                    : selectedAORs.length === 1 
+                    ? selectedAORs[0]
+                    : `${selectedAORs.length} AORs selected`}
+                  <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+                <Command className="bg-[#222529]">
+                  <CommandInput 
+                    placeholder="Search AOR..." 
+                    className="h-9 caption text-white"
+                    style={{ 
+                      fontFamily: "'Open Sans', sans-serif",
+                      fontSize: '12px',
+                      fontWeight: 400,
+                      lineHeight: '18px'
+                    }}
+                  />
+                  <CommandList>
+                    <CommandEmpty className="caption text-white/70 p-2">No AOR found.</CommandEmpty>
+                    <CommandGroup>
+                      {aors.map((aor) => (
+                        <CommandItem
+                          key={aor}
+                          value={aor}
+                          onSelect={() => toggleAOR(aor)}
+                          className="caption text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
+                          style={{ 
+                            fontFamily: "'Open Sans', sans-serif",
+                            fontSize: '12px',
+                            fontWeight: 400,
+                            lineHeight: '18px'
+                          }}
+                        >
+                          <Checkbox
+                            checked={selectedAORs.includes(aor)}
+                            className="mr-2 h-3 w-3 border-white data-[state=checked]:bg-accent data-[state=checked]:border-accent"
+                          />
+                          {aor}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {selectedAORs.length > 0 && (
+              <button
+                onClick={clearAORFilter}
+                className="p-1 hover:bg-muted/30 rounded transition-colors"
+                title="Clear filter"
+              >
+                <X className="w-3 h-3 text-white" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Severity Filter */}
+        <div className="flex-1 space-y-2 px-4 py-3 bg-[#222529] rounded-lg border border-[#6e757c]">
+          <span className="caption text-white whitespace-nowrap block">Severity:</span>
+          <div className="flex items-center gap-2">
+            <Popover open={isSeverityPopoverOpen} onOpenChange={setIsSeverityPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex-1 h-[24px] bg-transparent border border-[#6e757c] rounded-[4px] px-2 caption text-white focus:outline-none focus:border-accent cursor-pointer flex items-center justify-between"
+                  style={{ 
+                    fontFamily: "'Open Sans', sans-serif",
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    lineHeight: '18px'
+                  }}
+                >
+                  {selectedSeverities.length === 0 
+                    ? 'All Severities' 
+                    : selectedSeverities.length === 1 
+                    ? selectedSeverities[0]
+                    : `${selectedSeverities.length} severities selected`}
+                  <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+                <Command className="bg-[#222529]">
+                  <CommandInput 
+                    placeholder="Search severity..." 
+                    className="h-9 caption text-white"
+                    style={{ 
+                      fontFamily: "'Open Sans', sans-serif",
+                      fontSize: '12px',
+                      fontWeight: 400,
+                      lineHeight: '18px'
+                    }}
+                  />
+                  <CommandList>
+                    <CommandEmpty className="caption text-white/70 p-2">No severity found.</CommandEmpty>
+                    <CommandGroup>
+                      {severities.map((severity) => (
+                        <CommandItem
+                          key={severity}
+                          value={severity}
+                          onSelect={() => toggleSeverity(severity)}
+                          className="caption text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
+                          style={{ 
+                            fontFamily: "'Open Sans', sans-serif",
+                            fontSize: '12px',
+                            fontWeight: 400,
+                            lineHeight: '18px'
+                          }}
+                        >
+                          <Checkbox
+                            checked={selectedSeverities.includes(severity)}
+                            className="mr-2 h-3 w-3 border-white data-[state=checked]:bg-accent data-[state=checked]:border-accent"
+                          />
+                          {severity}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {selectedSeverities.length > 0 && (
+              <button
+                onClick={clearSeverityFilter}
+                className="p-1 hover:bg-muted/30 rounded transition-colors"
+                title="Clear filter"
+              >
+                <X className="w-3 h-3 text-white" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
