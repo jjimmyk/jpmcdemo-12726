@@ -1076,6 +1076,17 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        console.log('Export data source:', source.name);
+                        // Placeholder for export functionality
+                      }}
+                      className="p-1 hover:bg-muted/30 rounded transition-colors"
+                      title="Export data source"
+                    >
+                      <Download className="w-3 h-3 text-white" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
                         // Simulate refresh
                         const updatedSources = dataSources.map(s => 
                           s.id === source.id 

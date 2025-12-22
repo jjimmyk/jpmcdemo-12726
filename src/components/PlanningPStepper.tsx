@@ -43,9 +43,34 @@ export function PlanningPStepper({ phases, currentPhaseId, onPhaseSelect, operat
               }`}
             >
               <div className="flex flex-col items-center gap-1">
-                <span className="caption">
-                  {phase.shortName}
-                </span>
+                <div className="flex items-center gap-2">
+                  {phase.id === 'alerts' && notificationCount > 0 && (
+                    <div 
+                      className="rounded-full text-white"
+                      style={{ 
+                        width: '20px', 
+                        height: '20px',
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        backgroundColor: '#ef4444',
+                        zIndex: 9999,
+                        position: 'relative',
+                        border: '2px solid #ef4444',
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                        lineHeight: '20px'
+                      }}
+                    >
+                      {notificationCount}
+                    </div>
+                  )}
+                  <span className="caption">
+                    {phase.shortName}
+                  </span>
+                </div>
                 
                 {/* Descriptive text for Operational Period 0 */}
                 {descriptiveText && (

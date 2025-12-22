@@ -522,11 +522,7 @@ export default function App() {
                 currentPhaseId={currentPhaseId}
                 onPhaseSelect={setCurrentPhaseId}
                 operationalPeriodNumber={displayedPeriod.number}
-                notificationCount={(() => {
-                  const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
-                  const alertsData = alertsPhase?.data?.alerts || [];
-                  return alertsData.length + 1; // +1 for adversary vessel alert
-                })()}
+                notificationCount={0}
               />
             </div>
             
@@ -986,7 +982,7 @@ export default function App() {
                             notificationCount={(() => {
                               const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
                               const alertsData = alertsPhase?.data?.alerts || [];
-                              return alertsData.length + 2; // +2 for safety check and acknowledgement notifications
+                              return (alertsData.length || 3) + 4; // +4 for boom data layer review, SITREP review, safety check, and acknowledgement notifications; default to 3 dynamic alerts if not loaded
                             })()}
                           />
                         </div>
@@ -1200,7 +1196,7 @@ export default function App() {
                       notificationCount={(() => {
                         const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
                         const alertsData = alertsPhase?.data?.alerts || [];
-                        return alertsData.length + 2; // +2 for safety check and acknowledgement notifications
+                        return (alertsData.length || 3) + 4; // +4 for boom data layer review, SITREP review, safety check, and acknowledgement notifications; default to 3 dynamic alerts if not loaded
                       })()}
                     />
                     <div className="mr-20">

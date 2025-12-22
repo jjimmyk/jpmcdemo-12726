@@ -35,7 +35,10 @@ export function DataLayers({
   incidentFilter: externalIncidentFilter,
   setIncidentFilter: externalSetIncidentFilter
 }: DataLayersProps) {
+  const [myDraftsExpanded, setMyDraftsExpanded] = React.useState(false);
   const [myArcGISExpanded, setMyArcGISExpanded] = React.useState(false);
+  const [fsltpExpanded, setFsltpExpanded] = React.useState(false);
+  const [marineInfraExpanded, setMarineInfraExpanded] = React.useState(false);
   const [weatherExpanded, setWeatherExpanded] = React.useState(false);
   const [resourcesExpanded, setResourcesExpanded] = React.useState(false);
   const [tacticsExpanded, setTacticsExpanded] = React.useState(false);
@@ -949,6 +952,46 @@ export function DataLayers({
         </div>
       </CardHeader>
       <CardContent className="space-y-4 flex-1 min-h-0 overflow-y-auto pr-2">
+        {/* My Drafts */}
+        <div
+          className="border border-border rounded-lg overflow-hidden"
+          style={{
+            background:
+              'linear-gradient(90deg, rgba(2, 163, 254, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)',
+            ...(orientation === 'horizontal' ? { minWidth: '320px' } : {})
+          }}
+        >
+          <div className={`p-3 ${myDraftsExpanded ? 'border-b border-border' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div
+                className="flex items-start gap-2 flex-1"
+              >
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setMyDraftsExpanded((v) => !v)}
+                >
+                  {myDraftsExpanded ? (
+                    <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  )}
+                </div>
+                <Label
+                  className="cursor-pointer"
+                  onClick={() => setMyDraftsExpanded((v) => !v)}
+                >
+                  My Drafts
+                </Label>
+              </div>
+            </div>
+          </div>
+          {myDraftsExpanded && (
+            <div className="p-3 space-y-2">
+              {/* Empty for now */}
+            </div>
+          )}
+        </div>
+
         {/* My ArcGIS */}
         <div
           className="border border-border rounded-lg overflow-hidden"
@@ -983,6 +1026,86 @@ export function DataLayers({
             </div>
           </div>
           {myArcGISExpanded && (
+            <div className="p-3 space-y-2">
+              {/* Empty for now */}
+            </div>
+          )}
+        </div>
+
+        {/* FSLTP */}
+        <div
+          className="border border-border rounded-lg overflow-hidden"
+          style={{
+            background:
+              'linear-gradient(90deg, rgba(2, 163, 254, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)',
+            ...(orientation === 'horizontal' ? { minWidth: '320px' } : {})
+          }}
+        >
+          <div className={`p-3 ${fsltpExpanded ? 'border-b border-border' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div
+                className="flex items-start gap-2 flex-1"
+              >
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setFsltpExpanded((v) => !v)}
+                >
+                  {fsltpExpanded ? (
+                    <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  )}
+                </div>
+                <Label
+                  className="cursor-pointer"
+                  onClick={() => setFsltpExpanded((v) => !v)}
+                >
+                  FSLTP
+                </Label>
+              </div>
+            </div>
+          </div>
+          {fsltpExpanded && (
+            <div className="p-3 space-y-2">
+              {/* Empty for now */}
+            </div>
+          )}
+        </div>
+
+        {/* Marine Critical Infrastructure */}
+        <div
+          className="border border-border rounded-lg overflow-hidden"
+          style={{
+            background:
+              'linear-gradient(90deg, rgba(2, 163, 254, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)',
+            ...(orientation === 'horizontal' ? { minWidth: '320px' } : {})
+          }}
+        >
+          <div className={`p-3 ${marineInfraExpanded ? 'border-b border-border' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div
+                className="flex items-start gap-2 flex-1"
+              >
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setMarineInfraExpanded((v) => !v)}
+                >
+                  {marineInfraExpanded ? (
+                    <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  )}
+                </div>
+                <Label
+                  className="cursor-pointer"
+                  onClick={() => setMarineInfraExpanded((v) => !v)}
+                >
+                  Marine Critical Infrastructure
+                </Label>
+              </div>
+            </div>
+          </div>
+          {marineInfraExpanded && (
             <div className="p-3 space-y-2">
               {/* Empty for now */}
             </div>
@@ -2659,7 +2782,10 @@ export function DataLayers({
                       <CommandGroup>
                         {[
                           'No Category',
+                          'My Drafts',
                           'My ArcGIS',
+                          'FSLTP',
+                          'Marine Critical Infrastructure',
                           'Weather',
                           'Resources',
                           'Tactics',

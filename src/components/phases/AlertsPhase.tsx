@@ -60,6 +60,25 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
     submittedAt: data.safetyFormData?.submittedAt || null
   });
 
+  // State for boom data layer review notification
+  const [boomDataLayerReviewed, setBoomDataLayerReviewed] = useState(data.boomDataLayerReviewed || false);
+  const [boomDataLayerReviewData, setBoomDataLayerReviewData] = useState({
+    decision: data.boomDataLayerReviewData?.decision || '',
+    comments: data.boomDataLayerReviewData?.comments || '',
+    submittedAt: data.boomDataLayerReviewData?.submittedAt || null
+  });
+
+  // State for SITREP review notification
+  const [sitrepReviewed, setSitrepReviewed] = useState(data.sitrepReviewed || false);
+  const [sitrepReviewData, setSitrepReviewData] = useState({
+    decision: data.sitrepReviewData?.decision || '',
+    comments: data.sitrepReviewData?.comments || '',
+    submittedAt: data.sitrepReviewData?.submittedAt || null
+  });
+  const [draftSitrepContent] = useState(
+    'SITREP - District East\n\nCurrent Situation: District East maintains elevated readiness posture following Hurricane Delta downgrade. All sectors report normal operations resuming. Port Condition WHISKEY set for Delaware Bay and New York Harbor effective 0800L.\n\nOperational Status: Sector New York has 3 cutters deployed conducting post-storm damage assessment. Sector Delaware Bay reports 2 SAR cases resolved overnight with no casualties. Maritime Safety Zones lifted in outer waters.\n\nResources: 87-ft patrol boats returning to normal patrol schedules. Air Station Atlantic City conducting aerial reconnaissance of affected areas. All facilities report power restored and full operational capability.\n\nSubmitted by: J. Smith (j.smith@uscg.mil)\nSubmitted: 12/19/2025 14:30'
+  );
+
   const [alerts, setAlerts] = useState<AlertItem[]>(
     data.alerts || [
       {
@@ -358,23 +377,6 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
             <div className="relative">
               <p className="caption text-nowrap text-white whitespace-pre">Notifications</p>
             </div>
-            <div className="relative h-[26px] w-[195px]">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search"
-                className="box-border w-full h-[26px] bg-transparent border border-[#6e757c] rounded-[4px] px-[26px] py-[3.25px] caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent"
-              />
-              <div className="absolute left-[8px] size-[11.375px] top-[7.44px] pointer-events-none">
-                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
-                  <g>
-                    <path d={svgPaths.p3a3bec00} stroke="#6E757C" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.710938" />
-                    <path d={svgPaths.p380aaa80} stroke="#6E757C" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.710938" />
-                  </g>
-                </svg>
-              </div>
-            </div>
           </div>
           <button
             onClick={openAddAlert}
@@ -431,6 +433,31 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
         >
           Sent
         </button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-4 relative h-[26px] w-[390px]">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder={
+            viewMode === 'active' 
+              ? 'Search Active Notifications' 
+              : viewMode === 'historical' 
+              ? 'Search Historical Notifications' 
+              : 'Search Sent Notifications'
+          }
+          className="box-border w-full h-[26px] bg-transparent border border-[#6e757c] rounded-[4px] px-[26px] py-[3.25px] caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent"
+        />
+        <div className="absolute left-[8px] size-[11.375px] top-[7.44px] pointer-events-none">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
+            <g>
+              <path d={svgPaths.p3a3bec00} stroke="#6E757C" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.710938" />
+              <path d={svgPaths.p380aaa80} stroke="#6E757C" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.710938" />
+            </g>
+          </svg>
+        </div>
       </div>
 
       {/* Incident Filter */}
@@ -512,10 +539,365 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
       {viewMode === 'active' && (
         <div className="space-y-4">
         
+        {/* Boom Data Layer Review Notification */}
+        <div
+          className="border border-border rounded-lg overflow-hidden"
+          style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+        >
+          <div className={`p-3 ${expandedAlerts.has('boom-data-layer-review') ? 'border-b border-border' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div
+                className="flex items-start gap-2 flex-1 cursor-pointer"
+                onClick={() => {
+                  const id = 'boom-data-layer-review';
+                  setExpandedAlerts(prev => {
+                    const next = new Set(prev);
+                    if (next.has(id)) next.delete(id); else next.add(id);
+                    return next;
+                  });
+                }}
+              >
+                {expandedAlerts.has('boom-data-layer-review') ? (
+                  <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <span className="caption text-white">Review Requested of Update to Incident Alpha: Boom Data Layer</span>
+                  {!expandedAlerts.has('boom-data-layer-review') && (
+                    <div className="space-y-2 mt-1">
+                      <div className="flex items-center gap-3">
+                        <span className="caption text-white">M. Rodriguez</span>
+                        <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}</span>
+                      </div>
+                      {!boomDataLayerReviewed ? (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedAlerts(prev => new Set(prev).add('boom-data-layer-review'));
+                          }}
+                          className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
+                          style={{ paddingTop: '4px', paddingBottom: '4px' }}
+                        >
+                          Review Update
+                        </Button>
+                      ) : (
+                        <p className="caption text-white">
+                          Review submitted at {formatDateDisplay(boomDataLayerReviewData.submittedAt)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {expandedAlerts.has('boom-data-layer-review') && (
+            <div className="p-4 space-y-4 bg-card/50">
+              {!boomDataLayerReviewed ? (
+                <>
+                  <div>
+                    <label className="text-white mb-1 block">Incident Alpha Boom Data Layer Update</label>
+                    <p className="caption text-white mb-3">
+                      Submitted by: M. Rodriguez at {formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}
+                    </p>
+                    <Button
+                      onClick={() => {
+                        console.log('Preview Proposed Data Layer clicked');
+                        // Placeholder for functionality
+                      }}
+                      className="bg-primary hover:bg-primary/90 text-white px-4 h-auto text-xs"
+                      style={{ paddingTop: '6px', paddingBottom: '6px', marginTop: '8px' }}
+                    >
+                      Preview Proposed Data Layer
+                    </Button>
+                    
+                    {/* Legend Section */}
+                    <div className="mt-4">
+                      <label className="text-white mb-2 block text-xs">Legend</label>
+                      <div className="flex items-center gap-3">
+                        <span className="caption text-white">Proposed Boom</span>
+                        <div 
+                          style={{ 
+                            width: '16px', 
+                            height: '16px', 
+                            borderRadius: '50%', 
+                            backgroundColor: '#ef4444',
+                            zIndex: 9999,
+                            position: 'relative',
+                            border: '3px solid rgba(255, 255, 255, 0.5)',
+                            flexShrink: 0
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-white mb-2 block">Decision</label>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setBoomDataLayerReviewData({ ...boomDataLayerReviewData, decision: 'approve' })}
+                          className={`px-4 py-2 rounded border transition-colors ${
+                            boomDataLayerReviewData.decision === 'approve'
+                              ? 'bg-accent/20 border-accent text-accent'
+                              : 'border-border text-white hover:bg-muted/20'
+                          }`}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => setBoomDataLayerReviewData({ ...boomDataLayerReviewData, decision: 'deny' })}
+                          className={`px-4 py-2 rounded border transition-colors ${
+                            boomDataLayerReviewData.decision === 'deny'
+                              ? 'bg-accent/20 border-accent text-accent'
+                              : 'border-border text-white hover:bg-muted/20'
+                          }`}
+                        >
+                          Deny
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-white mb-2 block">Comments to Submitter</label>
+                      <Textarea
+                        value={boomDataLayerReviewData.comments}
+                        onChange={(e) => setBoomDataLayerReviewData({ ...boomDataLayerReviewData, comments: e.target.value })}
+                        placeholder="Enter feedback or additional requirements..."
+                        rows={4}
+                        className="bg-input-background border-border resize-none text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      onClick={() => {
+                        if (boomDataLayerReviewData.decision) {
+                          const submittedData = {
+                            ...boomDataLayerReviewData,
+                            submittedAt: new Date().toISOString()
+                          };
+                          setBoomDataLayerReviewData(submittedData);
+                          setBoomDataLayerReviewed(true);
+                          onDataChange({ 
+                            ...data, 
+                            boomDataLayerReviewed: true,
+                            boomDataLayerReviewData: submittedData
+                          });
+                          // Auto-collapse after submission
+                          setExpandedAlerts(prev => {
+                            const next = new Set(prev);
+                            next.delete('boom-data-layer-review');
+                            return next;
+                          });
+                        }
+                      }}
+                      disabled={!boomDataLayerReviewData.decision}
+                      className="bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Submit Review
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-white mb-1 block">Review Submitted</label>
+                    <p className="caption text-white">
+                      You {boomDataLayerReviewData.decision === 'approve' ? 'approved' : 'denied'} this update at {formatDateDisplay(boomDataLayerReviewData.submittedAt)}.
+                    </p>
+                  </div>
+                  {boomDataLayerReviewData.comments && (
+                    <div>
+                      <label className="text-white mb-1 block">Your Comments</label>
+                      <p className="caption text-white">{boomDataLayerReviewData.comments}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* SITREP Review Notification */}
+        <div
+          className="border border-border rounded-lg overflow-hidden"
+          style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+        >
+          <div className={`p-3 ${expandedAlerts.has('sitrep-review') ? 'border-b border-border' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div
+                className="flex items-start gap-2 flex-1 cursor-pointer"
+                onClick={() => {
+                  const id = 'sitrep-review';
+                  setExpandedAlerts(prev => {
+                    const next = new Set(prev);
+                    if (next.has(id)) next.delete(id); else next.add(id);
+                    return next;
+                  });
+                }}
+              >
+                {expandedAlerts.has('sitrep-review') ? (
+                  <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <span className="caption text-white">Review Requested of SITREP for District East</span>
+                  {!expandedAlerts.has('sitrep-review') && (
+                    <div className="space-y-2 mt-1">
+                      <div className="flex items-center gap-3">
+                        <span className="caption text-white">J. Smith</span>
+                        <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}</span>
+                      </div>
+                      {!sitrepReviewed ? (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedAlerts(prev => new Set(prev).add('sitrep-review'));
+                          }}
+                          className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
+                          style={{ paddingTop: '4px', paddingBottom: '4px' }}
+                        >
+                          Review Draft SITREP
+                        </Button>
+                      ) : (
+                        <p className="caption text-white">
+                          Review submitted at {formatDateDisplay(sitrepReviewData.submittedAt)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {expandedAlerts.has('sitrep-review') && (
+            <div className="p-4 space-y-4 bg-card/50">
+              {!sitrepReviewed ? (
+                <>
+                  <div>
+                    <label className="text-white mb-1 block">District East SITREP</label>
+                    <p className="caption text-white mb-3">
+                      Drafted by: J. Smith at {formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}
+                    </p>
+                    <div className="bg-input-background border border-border rounded p-3 max-h-[200px] overflow-y-auto" style={{ marginTop: '13px' }}>
+                      <pre className="caption text-white whitespace-pre-wrap font-sans break-words">
+                        {draftSitrepContent}
+                      </pre>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-white mb-2 block">Decision</label>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setSitrepReviewData({ ...sitrepReviewData, decision: 'approve' })}
+                          className={`px-4 py-2 rounded border transition-colors ${
+                            sitrepReviewData.decision === 'approve'
+                              ? 'bg-accent/20 border-accent text-accent'
+                              : 'border-border text-white hover:bg-muted/20'
+                          }`}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => setSitrepReviewData({ ...sitrepReviewData, decision: 'deny' })}
+                          className={`px-4 py-2 rounded border transition-colors ${
+                            sitrepReviewData.decision === 'deny'
+                              ? 'bg-accent/20 border-accent text-accent'
+                              : 'border-border text-white hover:bg-muted/20'
+                          }`}
+                        >
+                          Deny
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-white mb-2 block">Comments to Author</label>
+                      <Textarea
+                        value={sitrepReviewData.comments}
+                        onChange={(e) => setSitrepReviewData({ ...sitrepReviewData, comments: e.target.value })}
+                        placeholder="Enter feedback or revision requests..."
+                        rows={4}
+                        className="bg-input-background border-border resize-none text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      onClick={() => {
+                        if (sitrepReviewData.decision) {
+                          const submittedData = {
+                            ...sitrepReviewData,
+                            submittedAt: new Date().toISOString()
+                          };
+                          setSitrepReviewData(submittedData);
+                          setSitrepReviewed(true);
+                          onDataChange({ 
+                            ...data, 
+                            sitrepReviewed: true,
+                            sitrepReviewData: submittedData
+                          });
+                          // Auto-collapse after submission
+                          setExpandedAlerts(prev => {
+                            const next = new Set(prev);
+                            next.delete('sitrep-review');
+                            return next;
+                          });
+                        }
+                      }}
+                      disabled={!sitrepReviewData.decision}
+                      className="bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Submit Review
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-white mb-1 block">Review Submitted</label>
+                    <p className="caption text-white">
+                      Your review decision has been submitted and sent to J. Smith.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-white mb-1 block text-xs">Decision</label>
+                      <p className="caption text-sm text-accent">
+                        {sitrepReviewData.decision === 'approve' ? 'Approved' : 'Denied'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-white mb-1 block text-xs">Submitted At</label>
+                      <p className="caption text-white text-sm">{formatDateDisplay(sitrepReviewData.submittedAt)}</p>
+                    </div>
+                  </div>
+                  {sitrepReviewData.comments && (
+                    <div>
+                      <label className="text-white mb-1 block text-xs">Comments</label>
+                      <p className="caption text-white text-sm">{sitrepReviewData.comments}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+        
         {/* Safety Check Form Notification */}
         <div
           className="border border-border rounded-lg overflow-hidden"
-          style={{ background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+          style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
         >
           <div className={`p-3 ${expandedAlerts.has('safety-check-form') ? 'border-b border-border' : ''}`}>
             <div className="flex items-start justify-between">
@@ -543,10 +925,6 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
                         <span className="caption text-white">System</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-red-500" />
-                          <span className="caption text-red-500">Action Required</span>
-                        </div>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date().toISOString())}</span>
                       </div>
                       {!safetyFormSubmitted ? (
@@ -687,7 +1065,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
         {/* Acknowledgement Receipt Notification */}
         <div
           className="border border-border rounded-lg overflow-hidden"
-          style={{ background: 'linear-gradient(90deg, rgba(2, 163, 254, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+          style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
         >
           <div className={`p-3 ${expandedAlerts.has('acknowledgement-receipt') ? 'border-b border-border' : ''}`}>
             <div className="flex items-start justify-between">
@@ -713,10 +1091,6 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
                         <span className="caption text-white">System</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-red-500" />
-                          <span className="caption text-red-500">Action Required</span>
-                        </div>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date().toISOString())}</span>
                       </div>
                       {!acknowledgedTimestamp ? (
@@ -797,7 +1171,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
             <div
               key={a.id}
               className="border border-border rounded-lg overflow-hidden"
-              style={{ background: 'linear-gradient(90deg, rgba(2, 163, 254, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+              style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
             >
               <div className={`p-3 ${isExpanded ? 'border-b border-border' : ''}`}>
                 <div className="flex items-start justify-between">
@@ -951,7 +1325,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           {/* Safety Assessment Notification */}
           <div
             className="border border-border rounded-lg overflow-hidden"
-            style={{ background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+            style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
           >
             <div className={`p-3 ${expandedAlerts.has('sent-safety-assessment') ? 'border-b border-border' : ''}`}>
               <div className="flex items-start justify-between">
@@ -1072,7 +1446,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           {/* Incident Briefing Acknowledgement */}
           <div
             className="border border-border rounded-lg overflow-hidden"
-            style={{ background: 'linear-gradient(90deg, rgba(2, 163, 254, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+            style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
           >
             <div className={`p-3 ${expandedAlerts.has('sent-incident-briefing') ? 'border-b border-border' : ''}`}>
               <div className="flex items-start justify-between">
@@ -1158,7 +1532,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           {/* Emergency Stand Down */}
           <div
             className="border border-border rounded-lg overflow-hidden"
-            style={{ background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+            style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
           >
             <div className={`p-3 ${expandedAlerts.has('sent-emergency-standdown') ? 'border-b border-border' : ''}`}>
               <div className="flex items-start justify-between">
