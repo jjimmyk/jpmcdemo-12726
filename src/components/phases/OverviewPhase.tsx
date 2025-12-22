@@ -728,7 +728,7 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
             >
               <Download className="w-3 h-3 text-white" />
               <span className="caption text-white">
-                Export All Reports for {filterMode === 'region' 
+                Export Approved Reports for {filterMode === 'region' 
                   ? regions.find(r => r.id === selectedRegion)?.name 
                   : incidents.find(i => i.id === selectedIncident)?.name}
               </span>
@@ -872,26 +872,13 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                     <div className="space-y-3">
                       {historicalSitreps.map((sitrep) => (
                         <div key={sitrep.id} className="border border-border rounded-lg overflow-hidden bg-background/30">
-                          <div className="p-3 space-y-2">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-1">
-                                  <span className="caption text-white font-semibold">{sitrep.operationalPeriod}</span>
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                                    <span className="caption text-green-500 text-xs">Approved</span>
-                                  </div>
-                                </div>
-                                <span className="caption text-white/70 text-xs block">
-                                  Approved: {sitrep.approvedDate} by {sitrep.approvedBy}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="bg-input-background border border-border rounded p-3">
-                              <p className="caption text-white whitespace-pre-wrap">
-                                {sitrep.content}
-                              </p>
-                            </div>
+                          <div className="p-3 space-y-3">
+                            <span className="caption text-white/70 text-xs block">
+                              Authored by {sitrep.approvedBy} at {sitrep.approvedDate}
+                            </span>
+                            <p className="caption text-white whitespace-pre-wrap">
+                              {sitrep.content}
+                            </p>
                           </div>
                         </div>
                       ))}

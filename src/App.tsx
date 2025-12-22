@@ -982,7 +982,8 @@ export default function App() {
                             notificationCount={(() => {
                               const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
                               const alertsData = alertsPhase?.data?.alerts || [];
-                              return (alertsData.length || 3) + 4; // +4 for boom data layer review, SITREP review, safety check, and acknowledgement notifications; default to 3 dynamic alerts if not loaded
+                              const boomDataLayerReviewed = alertsPhase?.data?.boomDataLayerReviewed || false;
+                              return (alertsData.length || 3) + (boomDataLayerReviewed ? 3 : 4); // +3 or +4 depending on boom review status, SITREP review, safety check, and acknowledgement notifications; default to 3 dynamic alerts if not loaded
                             })()}
                           />
                         </div>
@@ -1196,7 +1197,8 @@ export default function App() {
                       notificationCount={(() => {
                         const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
                         const alertsData = alertsPhase?.data?.alerts || [];
-                        return (alertsData.length || 3) + 4; // +4 for boom data layer review, SITREP review, safety check, and acknowledgement notifications; default to 3 dynamic alerts if not loaded
+                        const boomDataLayerReviewed = alertsPhase?.data?.boomDataLayerReviewed || false;
+                        return (alertsData.length || 3) + (boomDataLayerReviewed ? 3 : 4); // +3 or +4 depending on boom review status, SITREP review, safety check, and acknowledgement notifications; default to 3 dynamic alerts if not loaded
                       })()}
                     />
                     <div className="mr-20">

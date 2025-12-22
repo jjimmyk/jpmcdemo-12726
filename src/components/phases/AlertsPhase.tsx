@@ -169,6 +169,12 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   // State for keep message same across channels
   const [keepMessageSame, setKeepMessageSame] = useState(true);
   
+  // State for require acknowledgement
+  const [requireAcknowledgement, setRequireAcknowledgement] = useState(false);
+  
+  // State for accept responses
+  const [acceptResponses, setAcceptResponses] = useState(false);
+  
   // State for active message tab
   const [activeMessageTab, setActiveMessageTab] = useState<string>('');
   
@@ -189,7 +195,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   const communicationChannels = [
     { id: 'email', label: 'Email', icon: '📧' },
     { id: 'sms', label: 'SMS', icon: '💬' },
-    { id: 'push', label: 'Push Notification', icon: '🔔' },
+    { id: 'push', label: 'PRATUS Notification', icon: '🔔' },
     { id: 'teams', label: 'Microsoft Teams', icon: '💼' },
   ];
 
@@ -539,8 +545,8 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
       {viewMode === 'active' && (
         <div className="space-y-4">
         
-        {/* Boom Data Layer Review Notification */}
-        <div
+        {/* Boom Data Layer Review Notification - Only show if not reviewed */}
+        {!boomDataLayerReviewed && <div
           className="border border-border rounded-lg overflow-hidden"
           style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
         >
@@ -721,7 +727,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
               )}
             </div>
           )}
-        </div>
+        </div>}
         
         {/* SITREP Review Notification */}
         <div
@@ -1319,6 +1325,76 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
       </div>
       )}
 
+      {/* Historical Notifications View */}
+      {viewMode === 'historical' && (
+        <div className="space-y-4">
+          {/* Boom Data Layer Review Notification - Only show if reviewed */}
+          {boomDataLayerReviewed && <div
+            className="border border-border rounded-lg overflow-hidden"
+            style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+          >
+            <div className={`p-3 ${expandedAlerts.has('boom-data-layer-review-historical') ? 'border-b border-border' : ''}`}>
+              <div className="flex items-start justify-between">
+                <div
+                  className="flex items-start gap-2 flex-1 cursor-pointer"
+                  onClick={() => {
+                    const id = 'boom-data-layer-review-historical';
+                    setExpandedAlerts(prev => {
+                      const next = new Set(prev);
+                      if (next.has(id)) next.delete(id); else next.add(id);
+                      return next;
+                    });
+                  }}
+                >
+                  {expandedAlerts.has('boom-data-layer-review-historical') ? (
+                    <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <span className="caption text-white">Review Requested of Update to Incident Alpha: Boom Data Layer</span>
+                    {!expandedAlerts.has('boom-data-layer-review-historical') && (
+                      <div className="space-y-2 mt-1">
+                        <div className="flex items-center gap-3">
+                          <span className="caption text-white">M. Rodriguez</span>
+                          <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}</span>
+                        </div>
+                        <p className="caption text-white">
+                          Review submitted at {formatDateDisplay(boomDataLayerReviewData.submittedAt)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {expandedAlerts.has('boom-data-layer-review-historical') && (
+              <div className="p-4 space-y-4 bg-card/50">
+                <div>
+                  <label className="text-white mb-1 block">Review Submitted</label>
+                  <p className="caption text-white">
+                    You {boomDataLayerReviewData.decision === 'approve' ? 'approved' : 'denied'} this update at {formatDateDisplay(boomDataLayerReviewData.submittedAt)}.
+                  </p>
+                </div>
+                {boomDataLayerReviewData.comments && (
+                  <div>
+                    <label className="text-white mb-1 block">Your Comments</label>
+                    <p className="caption text-white">{boomDataLayerReviewData.comments}</p>
+                  </div>
+                )}
+                <div>
+                  <label className="text-white mb-1 block">Incident Alpha Boom Data Layer Update</label>
+                  <p className="caption text-white mb-3">
+                    Submitted by: M. Rodriguez at {formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>}
+        </div>
+      )}
+
       {/* Sent Notifications View */}
       {viewMode === 'sent' && (
         <div className="space-y-4">
@@ -1354,10 +1430,6 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-1">
-                            <span className="caption text-white font-semibold">42</span>
-                            <span className="caption text-white">read</span>
-                          </div>
-                          <div className="flex items-center gap-1">
                             <span className="caption text-white font-semibold">38</span>
                             <span className="caption text-white">acknowledged</span>
                           </div>
@@ -1382,12 +1454,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   </p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-white mb-1 block">Read</label>
-                    <p className="caption text-white text-lg font-semibold">42 / 45</p>
-                    <p className="caption text-white text-xs">93% read rate</p>
-                  </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-white mb-1 block">Acknowledged</label>
                     <p className="caption text-white text-lg font-semibold">38 / 45</p>
@@ -1415,7 +1482,12 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     </div>
                     
                     <div>
-                      <p className="caption text-white mb-2">Recent Comments:</p>
+                      <p className="caption text-white mb-2">Submissions Log</p>
+                      <input
+                        type="text"
+                        placeholder="Search submissions..."
+                        className="w-48 h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
+                      />
                       <div className="space-y-2">
                         <div className="p-2 bg-background rounded border border-border">
                           <p className="caption text-white text-xs">
@@ -1475,10 +1547,6 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-1">
-                            <span className="caption text-white font-semibold">28</span>
-                            <span className="caption text-white">read</span>
-                          </div>
-                          <div className="flex items-center gap-1">
                             <span className="caption text-white font-semibold">25</span>
                             <span className="caption text-white">acknowledged</span>
                           </div>
@@ -1499,12 +1567,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-white mb-1 block">Read</label>
-                    <p className="caption text-white text-lg font-semibold">28 / 30</p>
-                    <p className="caption text-white text-xs">93% read rate</p>
-                  </div>
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="text-white mb-1 block">Acknowledged</label>
                     <p className="caption text-white text-lg font-semibold">25 / 30</p>
@@ -1513,7 +1576,12 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 </div>
 
                 <div>
-                  <label className="text-white mb-2 block">Acknowledgement Timeline</label>
+                  <p className="caption text-white mb-2">Submissions Log</p>
+                  <input
+                    type="text"
+                    placeholder="Search submissions..."
+                    className="w-48 h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
+                  />
                   <div className="space-y-2">
                     <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
                       <span className="caption text-white text-xs">First acknowledgement</span>
@@ -1566,10 +1634,6 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-1">
                             <span className="caption text-white font-semibold">45</span>
-                            <span className="caption text-white">read</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="caption text-white font-semibold">45</span>
                             <span className="caption text-white">acknowledged</span>
                           </div>
                         </div>
@@ -1589,12 +1653,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-white mb-1 block">Read</label>
-                    <p className="caption text-white text-lg font-semibold">45 / 45</p>
-                    <p className="caption text-green-500 text-xs">100% read rate</p>
-                  </div>
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="text-white mb-1 block">Acknowledged</label>
                     <p className="caption text-white text-lg font-semibold">45 / 45</p>
@@ -1603,7 +1662,12 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 </div>
 
                 <div>
-                  <label className="text-white mb-2 block">Response Speed</label>
+                  <p className="caption text-white mb-2">Submissions Log</p>
+                  <input
+                    type="text"
+                    placeholder="Search submissions..."
+                    className="w-48 h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
+                  />
                   <div className="space-y-2">
                     <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
                       <span className="caption text-white text-xs">Average acknowledgement time</span>
@@ -1627,12 +1691,12 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
 
       {/* Add/Edit Alert Side Panel */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-[640px] bg-card overflow-y-auto px-6">
+        <SheetContent side="right" className="w-full sm:max-w-[640px] bg-card overflow-y-auto px-6 [&>button]:text-white">
           <SheetHeader>
-            <SheetTitle>{editingAlertId ? 'Edit Notification' : 'Schedule Notification'}</SheetTitle>
+            <SheetTitle style={{ marginLeft: '-20px' }}>{editingAlertId ? 'Edit Notification' : 'New Notification'}</SheetTitle>
           </SheetHeader>
 
-          <div className="mt-6 space-y-6 pb-6">
+          <div className="space-y-6 pb-6" style={{ marginTop: 'calc(1.5rem - 20px)' }}>
             {/* Communication Channels */}
             <div className="space-y-2">
               <Label className="text-foreground">Communication Channels <span className="text-destructive">*</span></Label>
@@ -1766,29 +1830,38 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
 
             <div className="space-y-2">
               <Label className="text-foreground">Upload Files</Label>
-              <div className="border-2 border-dashed border-border rounded-lg p-6 bg-input-background hover:bg-muted/10 transition-colors cursor-pointer">
-                <div className="flex flex-col items-center justify-center text-center">
-                  <svg 
-                    className="w-12 h-12 text-muted-foreground mb-3" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" 
-                    />
-                  </svg>
-                  <p className="text-sm text-foreground mb-1">
-                    <span className="font-semibold text-accent">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    PDF, DOC, DOCX, XLS, XLSX, PNG, JPG (max. 10MB)
-                  </p>
-                </div>
-              </div>
+            </div>
+
+            {/* Require Acknowledgement checkbox */}
+            <div className="flex items-center gap-2 pb-2">
+              <Checkbox
+                id="require-acknowledgement"
+                checked={requireAcknowledgement}
+                onCheckedChange={(checked) => setRequireAcknowledgement(checked as boolean)}
+                className="border-border"
+              />
+              <label
+                htmlFor="require-acknowledgement"
+                className="text-sm cursor-pointer text-foreground"
+              >
+                Require Recipients to Acknowledge
+              </label>
+            </div>
+
+            {/* Accept Responses checkbox */}
+            <div className="flex items-center gap-2 pb-2">
+              <Checkbox
+                id="accept-responses"
+                checked={acceptResponses}
+                onCheckedChange={(checked) => setAcceptResponses(checked as boolean)}
+                className="border-border"
+              />
+              <label
+                htmlFor="accept-responses"
+                className="text-sm cursor-pointer text-foreground"
+              >
+                Accept Responses
+              </label>
             </div>
 
             <div className="space-y-2">

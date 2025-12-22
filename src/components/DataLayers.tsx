@@ -97,6 +97,7 @@ export function DataLayers({
   const [addLayerMode, setAddLayerMode] = React.useState<'upload' | 'draw'>('upload');
   const [addLayerCategory, setAddLayerCategory] = React.useState<string>('No Category');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = React.useState(false);
+  const [selectedLayersPillExpanded, setSelectedLayersPillExpanded] = React.useState(false);
 
   // Use external filters if provided, otherwise use local state
   const regionFilter = externalRegionFilter !== undefined ? externalRegionFilter : localRegionFilter;
@@ -739,9 +740,182 @@ export function DataLayers({
   const vesselsSelected = Object.values(layerToggles.vessels).filter(Boolean).length;
   const vesselsTotal = Object.keys(layerToggles.vessels).length;
 
+  // Total selected layers across all categories
+  const totalSelectedLayers = weatherSelected + resourcesSelected + tacticsSelected + grsSelected + vesselsSelected;
+
+  // Get list of all selected layers with their deselect handlers
+  const getSelectedLayersList = () => {
+    const layers: Array<{ name: string; category: string; onDeselect: () => void }> = [];
+    
+    if (layerToggles.weather.radar) {
+      layers.push({
+        name: 'Radar Precipitation',
+        category: 'Weather',
+        onDeselect: () => setLayerToggles(prev => ({ ...prev, weather: { ...prev.weather, radar: false } }))
+      });
+    }
+    if (layerToggles.weather.warnings) {
+      layers.push({
+        name: 'Active Weather Warnings',
+        category: 'Weather',
+        onDeselect: () => setLayerToggles(prev => ({ ...prev, weather: { ...prev.weather, warnings: false } }))
+      });
+    }
+    if (layerToggles.resources.staging) {
+      layers.push({
+        name: 'Staging Areas',
+        category: 'Resources',
+        onDeselect: () => setLayerToggles(prev => ({ ...prev, resources: { ...prev.resources, staging: false } }))
+      });
+    }
+    if (layerToggles.resources.facilities) {
+      layers.push({
+        name: 'Critical Facilities',
+        category: 'Resources',
+        onDeselect: () => setLayerToggles(prev => ({ ...prev, resources: { ...prev.resources, facilities: false } }))
+      });
+    }
+    if (layerToggles.tactics.booms) {
+      layers.push({
+        name: 'Boom Deployment Lines',
+        category: 'Tactics',
+        onDeselect: () => setLayerToggles(prev => ({ ...prev, tactics: { ...prev.tactics, booms: false } }))
+      });
+    }
+    if (layerToggles.tactics.skimmers) {
+      layers.push({
+        name: 'Skimmer Operations',
+        category: 'Tactics',
+        onDeselect: () => setLayerToggles(prev => ({ ...prev, tactics: { ...prev.tactics, skimmers: false } }))
+      });
+    }
+    if (layerToggles.grs.priority) {
+      layers.push({
+        name: 'Priority Protection Areas',
+        category: 'GRS',
+        onDeselect: () => setLayerToggles(prev => ({ ...prev, grs: { ...prev.grs, priority: false } }))
+      });
+    }
+    if (layerToggles.grs.anchor) {
+      layers.push({
+        name: 'Boom Anchor Points',
+        category: 'GRS',
+        onDeselect: () => setLayerToggles(prev => ({ ...prev, grs: { ...prev.grs, anchor: false } }))
+      });
+    }
+    if (layerToggles.vessels.ais) {
+      layers.push({
+        name: 'AIS Vessel Tracks',
+        category: 'Vessels',
+        onDeselect: () => setLayerToggles(prev => ({ ...prev, vessels: { ...prev.vessels, ais: false } }))
+      });
+    }
+    if (layerToggles.vessels.patrol) {
+      layers.push({
+        name: 'Patrol Sectors',
+        category: 'Vessels',
+        onDeselect: () => setLayerToggles(prev => ({ ...prev, vessels: { ...prev.vessels, patrol: false } }))
+      });
+    }
+    
+    return layers;
+  };
+
+  const selectedLayers = getSelectedLayersList();
+
   return (
     <Card className={`${className ?? ''} flex flex-col relative`} style={style} role="complementary" aria-label="Data Layers">
       <CardHeader>
+        {/* Selected Layers Pill */}
+        {totalSelectedLayers > 0 && (
+          <div className="mb-3" style={{ marginTop: '-5px' }}>
+            <div 
+              className="inline-flex flex-col border border-accent rounded-lg bg-accent/10 overflow-hidden"
+              style={{ minWidth: selectedLayersPillExpanded ? '300px' : 'auto' }}
+            >
+              {/* Pill Header */}
+              <div 
+                className="flex items-center justify-between px-3 py-1 cursor-pointer hover:bg-accent/20 transition-colors"
+                onClick={() => setSelectedLayersPillExpanded(!selectedLayersPillExpanded)}
+              >
+                <span className="caption font-medium text-accent">{totalSelectedLayers} Layers Selected</span>
+                {selectedLayersPillExpanded ? (
+                  <ChevronDown className="w-3 h-3 text-accent ml-2" />
+                ) : (
+                  <ChevronRight className="w-3 h-3 text-accent ml-2" />
+                )}
+              </div>
+              
+              {/* Expanded Layer List */}
+              {selectedLayersPillExpanded && (
+                <div className="border-t border-accent/30">
+                  {/* Deselect All Button */}
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-accent/30">
+                    <span className="text-xs text-white flex-1">Deselect All</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLayerToggles({
+                          weather: { radar: false, warnings: false },
+                          resources: { staging: false, facilities: false },
+                          tactics: { booms: false, skimmers: false },
+                          grs: { priority: false, anchor: false },
+                          vessels: { ais: false, patrol: false },
+                        });
+                      }}
+                      className="ml-2 p-1 hover:bg-accent/30 rounded transition-colors flex-shrink-0"
+                      title="Deselect all layers"
+                    >
+                      <X className="text-white" style={{ width: '14.4px', height: '14.4px' }} />
+                    </button>
+                  </div>
+
+                  {/* Layer List */}
+                  <div className="max-h-[200px] overflow-y-auto">
+                    {selectedLayers.map((layer, index) => (
+                      <div 
+                        key={`${layer.category}-${layer.name}`}
+                        className="flex items-center justify-between px-3 py-2 hover:bg-accent/20 transition-colors"
+                        style={{ borderTop: index > 0 ? '1px solid rgba(2, 163, 254, 0.2)' : 'none' }}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white font-medium truncate">{layer.name}</p>
+                          <p className="text-accent/70 mt-0.5" style={{ fontSize: '0.84375rem' }}>{layer.category}</p>
+                        </div>
+                        <div className="flex items-center" style={{ gap: '27px' }}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 p-0 hover:bg-muted"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openIndividualLayerModal(layer.name);
+                            }}
+                            title="View layer details"
+                          >
+                            <Maximize2 className="w-3 h-3 text-white" />
+                          </Button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              layer.onDeselect();
+                            }}
+                            className="p-1 hover:bg-accent/30 rounded transition-colors flex-shrink-0"
+                            title={`Deselect ${layer.name}`}
+                          >
+                            <X className="text-white" style={{ width: '14.4px', height: '14.4px' }} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
         <div className="flex items-center justify-between gap-2">
           <div className="relative h-[26px] w-[195px]">
             <input
