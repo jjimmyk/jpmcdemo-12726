@@ -128,6 +128,14 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
     'SITREP - District East\n\nCurrent Situation: District East maintains elevated readiness posture following Hurricane Delta downgrade. All sectors report normal operations resuming. Port Condition WHISKEY set for Delaware Bay and New York Harbor effective 0800L.\n\nOperational Status: Sector New York has 3 cutters deployed conducting post-storm damage assessment. Sector Delaware Bay reports 2 SAR cases resolved overnight with no casualties. Maritime Safety Zones lifted in outer waters.\n\nResources: 87-ft patrol boats returning to normal patrol schedules. Air Station Atlantic City conducting aerial reconnaissance of affected areas. All facilities report power restored and full operational capability.\n\nSubmitted by: J. Smith (j.smith@uscg.mil)\nSubmitted: 12/19/2025 14:30'
   );
 
+  // State for sent notification search filters
+  const [safetyAssessmentAckSearch, setSafetyAssessmentAckSearch] = useState('');
+  const [safetyAssessmentNotAckSearch, setSafetyAssessmentNotAckSearch] = useState('');
+  const [incidentBriefingAckSearch, setIncidentBriefingAckSearch] = useState('');
+  const [incidentBriefingNotAckSearch, setIncidentBriefingNotAckSearch] = useState('');
+  const [emergencyStandDownAckSearch, setEmergencyStandDownAckSearch] = useState('');
+  const [emergencyStandDownNotAckSearch, setEmergencyStandDownNotAckSearch] = useState('');
+
   const [alerts, setAlerts] = useState<AlertItem[]>(
     data.alerts || [
       {
@@ -725,7 +733,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     <span className="caption text-white">Incident Alpha Activation Request</span>
                     <span 
                       className="caption px-2 py-0.5 rounded text-xs"
-                      style={{ 
+            style={{ 
                         backgroundColor: `${getSeverityColor(getNotificationSeverity('incident-activation-request'))}20`,
                         color: getSeverityColor(getNotificationSeverity('incident-activation-request')),
                         border: `1px solid ${getSeverityColor(getNotificationSeverity('incident-activation-request'))}60`
@@ -900,24 +908,24 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
         >
           <div className={`p-3 ${expandedAlerts.has('boom-data-layer-review') ? 'border-b border-border' : ''}`}>
-            <div className="flex items-start justify-between">
-              <div
-                className="flex items-start gap-2 flex-1 cursor-pointer"
-                onClick={() => {
+              <div className="flex items-start justify-between">
+                <div
+                  className="flex items-start gap-2 flex-1 cursor-pointer"
+                  onClick={() => {
                   const id = 'boom-data-layer-review';
-                  setExpandedAlerts(prev => {
-                    const next = new Set(prev);
+                    setExpandedAlerts(prev => {
+                      const next = new Set(prev);
                     if (next.has(id)) next.delete(id); else next.add(id);
-                    return next;
-                  });
-                }}
-              >
+                      return next;
+                    });
+                  }}
+                >
                 {expandedAlerts.has('boom-data-layer-review') ? (
-                  <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
-                )}
-                <div className="flex-1">
+                    <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="caption text-white">Review Requested of Update to Incident Alpha: Boom Data Layer</span>
                     <span 
@@ -932,8 +940,8 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     </span>
                   </div>
                   {!expandedAlerts.has('boom-data-layer-review') && (
-                    <div className="space-y-2 mt-1">
-                      <div className="flex items-center gap-3">
+                      <div className="space-y-2 mt-1">
+                        <div className="flex items-center gap-3">
                         <span className="caption text-white">M. Rodriguez</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}</span>
                       </div>
@@ -1129,7 +1137,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                 )}
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2">
                     <span className="caption text-white">Safety Check - Personnel Status Report</span>
                     <span 
                       className="caption px-2 py-0.5 rounded text-xs"
@@ -1141,13 +1149,13 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     >
                       {getNotificationSeverity('safety-check-form')}
                     </span>
-                  </div>
+                          </div>
                   {!expandedAlerts.has('safety-check-form') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
                         <span className="caption text-white">System</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date().toISOString())}</span>
-                      </div>
+                        </div>
                       {!safetyFormSubmitted ? (
                         <Button
                           onClick={(e) => {
@@ -1164,10 +1172,10 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                           Status submitted at {formatDateDisplay(safetyFormData.submittedAt)}
                         </p>
                       )}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={(e) => {
@@ -1190,16 +1198,16 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   <ArrowRightToLine className="w-4 h-4 text-white" />
                 </button>
               </div>
+              </div>
             </div>
-          </div>
 
           {expandedAlerts.has('safety-check-form') && (
             <div className="p-4 space-y-4 bg-card/50">
               {!safetyFormSubmitted ? (
                 <>
-                  <div>
-                    <label className="text-white mb-1 block">Description</label>
-                    <p className="caption text-white">
+                <div>
+                  <label className="text-white mb-1 block">Description</label>
+                  <p className="caption text-white">
                       Please complete this safety status form to confirm your current condition and location.
                     </p>
                   </div>
@@ -1279,22 +1287,22 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     <label className="text-white mb-1 block">Form Submitted</label>
                     <p className="caption text-white">
                       Thank you for completing the safety status form.
-                    </p>
-                  </div>
+                  </p>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
                       <label className="text-white mb-1 block">Status</label>
                       <p className="caption text-white capitalize">{safetyFormData.isSafe === 'yes' ? 'Safe' : 'Unsafe'}</p>
-                    </div>
-                    <div>
+                  </div>
+                  <div>
                       <label className="text-white mb-1 block">Submitted</label>
                       <p className="caption text-white">{formatDateDisplay(safetyFormData.submittedAt)}</p>
-                    </div>
+                  </div>
                   </div>
 
                   {safetyFormData.comments && (
-                    <div>
+                  <div>
                       <label className="text-white mb-1 block">Comments</label>
                       <p className="caption text-white">{safetyFormData.comments}</p>
                     </div>
@@ -1330,7 +1338,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                 )}
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                     <span className="caption text-white">Review Requested of SITREP for District East</span>
                     <span 
                       className="caption px-2 py-0.5 rounded text-xs"
@@ -1342,13 +1350,13 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     >
                       {getNotificationSeverity('sitrep-review')}
                     </span>
-                  </div>
+                    </div>
                   {!expandedAlerts.has('sitrep-review') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
                         <span className="caption text-white">J. Smith</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}</span>
-                      </div>
+                  </div>
                       {!sitrepReviewed ? (
                         <Button
                           onClick={(e) => {
@@ -1437,10 +1445,10 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                         rows={4}
                         className="bg-input-background border-border resize-none text-white"
                       />
-                    </div>
                   </div>
+                </div>
 
-                  <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 pt-2">
                     <Button
                       onClick={() => {
                         if (sitrepReviewData.decision) {
@@ -1545,9 +1553,9 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date().toISOString())}</span>
                       </div>
                       {!acknowledgedTimestamp ? (
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
                             const timestamp = new Date().toISOString();
                             setAcknowledgedTimestamp(timestamp);
                             onDataChange({ ...data, acknowledgedTimestamp: timestamp });
@@ -1610,10 +1618,10 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   <p className="caption text-white">
                     User acknowledged at {formatDateDisplay(acknowledgedTimestamp)}
                   </p>
-                </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+        )}
         </div>
         
         {filtered.map((a) => {
@@ -2067,71 +2075,103 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   
                   <div className="space-y-3">
                     <div>
-                      <p className="caption text-white font-semibold mb-2">Acknowledged (38)</p>
+                      <p className="caption text-white font-bold mb-2">Acknowledged (38)</p>
+                      <input
+                        type="text"
+                        value={safetyAssessmentAckSearch}
+                        onChange={(e) => setSafetyAssessmentAckSearch(e.target.value)}
+                        placeholder="Search acknowledged..."
+                        className="w-full h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
+                      />
                       <div className="max-h-[200px] overflow-y-auto">
-                        {[
-                          { name: 'Jose Martinez', email: 'jose.martinez@uscg.mil' },
-                          { name: 'Sarah Johnson', email: 'sarah.johnson@uscg.mil' },
-                          { name: 'Michael Rodriguez', email: 'michael.rodriguez@uscg.mil' },
-                          { name: 'Karen Williams', email: 'karen.williams@uscg.mil' },
-                          { name: 'Thomas Brown', email: 'thomas.brown@uscg.mil' },
-                          { name: 'Amanda Davis', email: 'amanda.davis@uscg.mil' },
-                          { name: 'Robert Wilson', email: 'robert.wilson@uscg.mil' },
-                          { name: 'Lisa Moore', email: 'lisa.moore@uscg.mil' },
-                          { name: 'Christopher Taylor', email: 'christopher.taylor@uscg.mil' },
-                          { name: 'David Anderson', email: 'david.anderson@uscg.mil' },
-                          { name: 'Patricia Thomas', email: 'patricia.thomas@uscg.mil' },
-                          { name: 'Henry Jackson', email: 'henry.jackson@uscg.mil' },
-                          { name: 'Nancy White', email: 'nancy.white@uscg.mil' },
-                          { name: 'Edward Harris', email: 'edward.harris@uscg.mil' },
-                          { name: 'Barbara Martin', email: 'barbara.martin@uscg.mil' },
-                          { name: 'George Thompson', email: 'george.thompson@uscg.mil' },
-                          { name: 'Victoria Garcia', email: 'victoria.garcia@uscg.mil' },
-                          { name: 'Frank Martinez', email: 'frank.martinez@uscg.mil' },
-                          { name: 'Isabella Robinson', email: 'isabella.robinson@uscg.mil' },
-                          { name: 'Oscar Clark', email: 'oscar.clark@uscg.mil' },
-                          { name: 'Uma Rodriguez', email: 'uma.rodriguez@uscg.mil' },
-                          { name: 'Yolanda Lewis', email: 'yolanda.lewis@uscg.mil' },
-                          { name: 'Quentin Lee', email: 'quentin.lee@uscg.mil' },
-                          { name: 'Walter Walker', email: 'walter.walker@uscg.mil' },
-                          { name: 'Xavier Hall', email: 'xavier.hall@uscg.mil' },
-                          { name: 'Zachary Allen', email: 'zachary.allen@uscg.mil' },
-                          { name: 'Sophia Young', email: 'sophia.young@uscg.mil' },
-                          { name: 'James Hernandez', email: 'james.hernandez@uscg.mil' },
-                          { name: 'Megan King', email: 'megan.king@uscg.mil' },
-                          { name: 'Kevin Wright', email: 'kevin.wright@uscg.mil' },
-                          { name: 'Teresa Lopez', email: 'teresa.lopez@uscg.mil' },
-                          { name: 'Anthony Hill', email: 'anthony.hill@uscg.mil' },
-                          { name: 'Rachel Scott', email: 'rachel.scott@uscg.mil' },
-                          { name: 'Lawrence Green', email: 'lawrence.green@uscg.mil' },
-                          { name: 'Carol Adams', email: 'carol.adams@uscg.mil' },
-                          { name: 'Daniel Baker', email: 'daniel.baker@uscg.mil' },
-                          { name: 'Paula Gonzalez', email: 'paula.gonzalez@uscg.mil' },
-                          { name: 'Harold Nelson', email: 'harold.nelson@uscg.mil' }
-                        ].map((user) => (
-                          <div key={user.email} className="caption text-white text-xs py-1">
-                            {user.name} ({user.email})
-                          </div>
-                        ))}
+                        {(() => {
+                          const acknowledgedUsers = [
+                            { name: 'Jose Martinez', email: 'jose.martinez@uscg.mil' },
+                            { name: 'Sarah Johnson', email: 'sarah.johnson@uscg.mil' },
+                            { name: 'Michael Rodriguez', email: 'michael.rodriguez@uscg.mil' },
+                            { name: 'Karen Williams', email: 'karen.williams@uscg.mil' },
+                            { name: 'Thomas Brown', email: 'thomas.brown@uscg.mil' },
+                            { name: 'Amanda Davis', email: 'amanda.davis@uscg.mil' },
+                            { name: 'Robert Wilson', email: 'robert.wilson@uscg.mil' },
+                            { name: 'Lisa Moore', email: 'lisa.moore@uscg.mil' },
+                            { name: 'Christopher Taylor', email: 'christopher.taylor@uscg.mil' },
+                            { name: 'David Anderson', email: 'david.anderson@uscg.mil' },
+                            { name: 'Patricia Thomas', email: 'patricia.thomas@uscg.mil' },
+                            { name: 'Henry Jackson', email: 'henry.jackson@uscg.mil' },
+                            { name: 'Nancy White', email: 'nancy.white@uscg.mil' },
+                            { name: 'Edward Harris', email: 'edward.harris@uscg.mil' },
+                            { name: 'Barbara Martin', email: 'barbara.martin@uscg.mil' },
+                            { name: 'George Thompson', email: 'george.thompson@uscg.mil' },
+                            { name: 'Victoria Garcia', email: 'victoria.garcia@uscg.mil' },
+                            { name: 'Frank Martinez', email: 'frank.martinez@uscg.mil' },
+                            { name: 'Isabella Robinson', email: 'isabella.robinson@uscg.mil' },
+                            { name: 'Oscar Clark', email: 'oscar.clark@uscg.mil' },
+                            { name: 'Uma Rodriguez', email: 'uma.rodriguez@uscg.mil' },
+                            { name: 'Yolanda Lewis', email: 'yolanda.lewis@uscg.mil' },
+                            { name: 'Quentin Lee', email: 'quentin.lee@uscg.mil' },
+                            { name: 'Walter Walker', email: 'walter.walker@uscg.mil' },
+                            { name: 'Xavier Hall', email: 'xavier.hall@uscg.mil' },
+                            { name: 'Zachary Allen', email: 'zachary.allen@uscg.mil' },
+                            { name: 'Sophia Young', email: 'sophia.young@uscg.mil' },
+                            { name: 'James Hernandez', email: 'james.hernandez@uscg.mil' },
+                            { name: 'Megan King', email: 'megan.king@uscg.mil' },
+                            { name: 'Kevin Wright', email: 'kevin.wright@uscg.mil' },
+                            { name: 'Teresa Lopez', email: 'teresa.lopez@uscg.mil' },
+                            { name: 'Anthony Hill', email: 'anthony.hill@uscg.mil' },
+                            { name: 'Rachel Scott', email: 'rachel.scott@uscg.mil' },
+                            { name: 'Lawrence Green', email: 'lawrence.green@uscg.mil' },
+                            { name: 'Carol Adams', email: 'carol.adams@uscg.mil' },
+                            { name: 'Daniel Baker', email: 'daniel.baker@uscg.mil' },
+                            { name: 'Paula Gonzalez', email: 'paula.gonzalez@uscg.mil' },
+                            { name: 'Harold Nelson', email: 'harold.nelson@uscg.mil' }
+                          ];
+                          
+                          const filteredUsers = acknowledgedUsers.filter(user => {
+                            const searchLower = safetyAssessmentAckSearch.toLowerCase();
+                            return user.name.toLowerCase().includes(searchLower) || user.email.toLowerCase().includes(searchLower);
+                          });
+                          
+                          return filteredUsers.map((user) => (
+                            <div key={user.email} className="caption text-white text-xs py-1">
+                              {user.name} ({user.email})
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
 
                     <div>
-                      <p className="caption text-white font-semibold mb-2">Not Yet Acknowledged (7)</p>
+                      <p className="caption text-white font-bold mb-2">Not Yet Acknowledged (7)</p>
+                      <input
+                        type="text"
+                        value={safetyAssessmentNotAckSearch}
+                        onChange={(e) => setSafetyAssessmentNotAckSearch(e.target.value)}
+                        placeholder="Search not acknowledged..."
+                        className="w-full h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
+                      />
                       <div>
-                        {[
-                          { name: 'Nathan Carter', email: 'nathan.carter@uscg.mil' },
-                          { name: 'Emily Mitchell', email: 'emily.mitchell@uscg.mil' },
-                          { name: 'Brian Perez', email: 'brian.perez@uscg.mil' },
-                          { name: 'Grace Roberts', email: 'grace.roberts@uscg.mil' },
-                          { name: 'Vincent Turner', email: 'vincent.turner@uscg.mil' },
-                          { name: 'Fiona Phillips', email: 'fiona.phillips@uscg.mil' },
-                          { name: 'Isaac Campbell', email: 'isaac.campbell@uscg.mil' }
-                        ].map((user) => (
-                          <div key={user.email} className="caption text-white/70 text-xs py-1">
-                            {user.name} ({user.email})
-                          </div>
-                        ))}
+                        {(() => {
+                          const notAcknowledgedUsers = [
+                            { name: 'Nathan Carter', email: 'nathan.carter@uscg.mil' },
+                            { name: 'Emily Mitchell', email: 'emily.mitchell@uscg.mil' },
+                            { name: 'Brian Perez', email: 'brian.perez@uscg.mil' },
+                            { name: 'Grace Roberts', email: 'grace.roberts@uscg.mil' },
+                            { name: 'Vincent Turner', email: 'vincent.turner@uscg.mil' },
+                            { name: 'Fiona Phillips', email: 'fiona.phillips@uscg.mil' },
+                            { name: 'Isaac Campbell', email: 'isaac.campbell@uscg.mil' }
+                          ];
+                          
+                          const filteredUsers = notAcknowledgedUsers.filter(user => {
+                            const searchLower = safetyAssessmentNotAckSearch.toLowerCase();
+                            return user.name.toLowerCase().includes(searchLower) || user.email.toLowerCase().includes(searchLower);
+                          });
+                          
+                          return filteredUsers.map((user) => (
+                            <div key={user.email} className="caption text-white/70 text-xs py-1">
+                              {user.name} ({user.email})
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -2198,56 +2238,88 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   
                   <div className="space-y-3">
                     <div>
-                      <p className="caption text-white font-semibold mb-2">Acknowledged (25)</p>
+                      <p className="caption text-white font-bold mb-2">Acknowledged (25)</p>
+                      <input
+                        type="text"
+                        value={incidentBriefingAckSearch}
+                        onChange={(e) => setIncidentBriefingAckSearch(e.target.value)}
+                        placeholder="Search acknowledged..."
+                        className="w-full h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
+                      />
                       <div className="max-h-[200px] overflow-y-auto">
-                        {[
-                          { name: 'Jose Martinez', email: 'jose.martinez@uscg.mil' },
-                          { name: 'Sarah Johnson', email: 'sarah.johnson@uscg.mil' },
-                          { name: 'Michael Rodriguez', email: 'michael.rodriguez@uscg.mil' },
-                          { name: 'Karen Williams', email: 'karen.williams@uscg.mil' },
-                          { name: 'Thomas Brown', email: 'thomas.brown@uscg.mil' },
-                          { name: 'Amanda Davis', email: 'amanda.davis@uscg.mil' },
-                          { name: 'Robert Wilson', email: 'robert.wilson@uscg.mil' },
-                          { name: 'Lisa Moore', email: 'lisa.moore@uscg.mil' },
-                          { name: 'Christopher Taylor', email: 'christopher.taylor@uscg.mil' },
-                          { name: 'David Anderson', email: 'david.anderson@uscg.mil' },
-                          { name: 'Patricia Thomas', email: 'patricia.thomas@uscg.mil' },
-                          { name: 'Henry Jackson', email: 'henry.jackson@uscg.mil' },
-                          { name: 'Nancy White', email: 'nancy.white@uscg.mil' },
-                          { name: 'Edward Harris', email: 'edward.harris@uscg.mil' },
-                          { name: 'Barbara Martin', email: 'barbara.martin@uscg.mil' },
-                          { name: 'George Thompson', email: 'george.thompson@uscg.mil' },
-                          { name: 'Victoria Garcia', email: 'victoria.garcia@uscg.mil' },
-                          { name: 'Frank Martinez', email: 'frank.martinez@uscg.mil' },
-                          { name: 'Isabella Robinson', email: 'isabella.robinson@uscg.mil' },
-                          { name: 'Oscar Clark', email: 'oscar.clark@uscg.mil' },
-                          { name: 'Uma Rodriguez', email: 'uma.rodriguez@uscg.mil' },
-                          { name: 'Yolanda Lewis', email: 'yolanda.lewis@uscg.mil' },
-                          { name: 'Quentin Lee', email: 'quentin.lee@uscg.mil' },
-                          { name: 'Walter Walker', email: 'walter.walker@uscg.mil' },
-                          { name: 'Xavier Hall', email: 'xavier.hall@uscg.mil' }
-                        ].map((user) => (
-                          <div key={user.email} className="caption text-white text-xs py-1">
-                            {user.name} ({user.email})
-                          </div>
-                        ))}
+                        {(() => {
+                          const acknowledgedUsers = [
+                            { name: 'Jose Martinez', email: 'jose.martinez@uscg.mil' },
+                            { name: 'Sarah Johnson', email: 'sarah.johnson@uscg.mil' },
+                            { name: 'Michael Rodriguez', email: 'michael.rodriguez@uscg.mil' },
+                            { name: 'Karen Williams', email: 'karen.williams@uscg.mil' },
+                            { name: 'Thomas Brown', email: 'thomas.brown@uscg.mil' },
+                            { name: 'Amanda Davis', email: 'amanda.davis@uscg.mil' },
+                            { name: 'Robert Wilson', email: 'robert.wilson@uscg.mil' },
+                            { name: 'Lisa Moore', email: 'lisa.moore@uscg.mil' },
+                            { name: 'Christopher Taylor', email: 'christopher.taylor@uscg.mil' },
+                            { name: 'David Anderson', email: 'david.anderson@uscg.mil' },
+                            { name: 'Patricia Thomas', email: 'patricia.thomas@uscg.mil' },
+                            { name: 'Henry Jackson', email: 'henry.jackson@uscg.mil' },
+                            { name: 'Nancy White', email: 'nancy.white@uscg.mil' },
+                            { name: 'Edward Harris', email: 'edward.harris@uscg.mil' },
+                            { name: 'Barbara Martin', email: 'barbara.martin@uscg.mil' },
+                            { name: 'George Thompson', email: 'george.thompson@uscg.mil' },
+                            { name: 'Victoria Garcia', email: 'victoria.garcia@uscg.mil' },
+                            { name: 'Frank Martinez', email: 'frank.martinez@uscg.mil' },
+                            { name: 'Isabella Robinson', email: 'isabella.robinson@uscg.mil' },
+                            { name: 'Oscar Clark', email: 'oscar.clark@uscg.mil' },
+                            { name: 'Uma Rodriguez', email: 'uma.rodriguez@uscg.mil' },
+                            { name: 'Yolanda Lewis', email: 'yolanda.lewis@uscg.mil' },
+                            { name: 'Quentin Lee', email: 'quentin.lee@uscg.mil' },
+                            { name: 'Walter Walker', email: 'walter.walker@uscg.mil' },
+                            { name: 'Xavier Hall', email: 'xavier.hall@uscg.mil' }
+                          ];
+                          
+                          const filteredUsers = acknowledgedUsers.filter(user => {
+                            const searchLower = incidentBriefingAckSearch.toLowerCase();
+                            return user.name.toLowerCase().includes(searchLower) || user.email.toLowerCase().includes(searchLower);
+                          });
+                          
+                          return filteredUsers.map((user) => (
+                            <div key={user.email} className="caption text-white text-xs py-1">
+                              {user.name} ({user.email})
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
 
                     <div>
-                      <p className="caption text-white font-semibold mb-2">Not Yet Acknowledged (5)</p>
+                      <p className="caption text-white font-bold mb-2">Not Yet Acknowledged (5)</p>
+                      <input
+                        type="text"
+                        value={incidentBriefingNotAckSearch}
+                        onChange={(e) => setIncidentBriefingNotAckSearch(e.target.value)}
+                        placeholder="Search not acknowledged..."
+                        className="w-full h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
+                      />
                       <div>
-                        {[
-                          { name: 'Zachary Allen', email: 'zachary.allen@uscg.mil' },
-                          { name: 'Sophia Young', email: 'sophia.young@uscg.mil' },
-                          { name: 'James Hernandez', email: 'james.hernandez@uscg.mil' },
-                          { name: 'Megan King', email: 'megan.king@uscg.mil' },
-                          { name: 'Kevin Wright', email: 'kevin.wright@uscg.mil' }
-                        ].map((user) => (
-                          <div key={user.email} className="caption text-white/70 text-xs py-1">
-                            {user.name} ({user.email})
-                          </div>
-                        ))}
+                        {(() => {
+                          const notAcknowledgedUsers = [
+                            { name: 'Zachary Allen', email: 'zachary.allen@uscg.mil' },
+                            { name: 'Sophia Young', email: 'sophia.young@uscg.mil' },
+                            { name: 'James Hernandez', email: 'james.hernandez@uscg.mil' },
+                            { name: 'Megan King', email: 'megan.king@uscg.mil' },
+                            { name: 'Kevin Wright', email: 'kevin.wright@uscg.mil' }
+                          ];
+                          
+                          const filteredUsers = notAcknowledgedUsers.filter(user => {
+                            const searchLower = incidentBriefingNotAckSearch.toLowerCase();
+                            return user.name.toLowerCase().includes(searchLower) || user.email.toLowerCase().includes(searchLower);
+                          });
+                          
+                          return filteredUsers.map((user) => (
+                            <div key={user.email} className="caption text-white/70 text-xs py-1">
+                              {user.name} ({user.email})
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -2318,64 +2390,87 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   
                   <div className="space-y-3">
                     <div>
-                      <p className="caption text-white font-semibold mb-2">Acknowledged (45)</p>
+                      <p className="caption text-white font-bold mb-2">Acknowledged (45)</p>
+                      <input
+                        type="text"
+                        value={emergencyStandDownAckSearch}
+                        onChange={(e) => setEmergencyStandDownAckSearch(e.target.value)}
+                        placeholder="Search acknowledged..."
+                        className="w-full h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
+                      />
                       <div className="max-h-[200px] overflow-y-auto">
-                        {[
-                          { name: 'Jose Martinez', email: 'jose.martinez@uscg.mil' },
-                          { name: 'Sarah Johnson', email: 'sarah.johnson@uscg.mil' },
-                          { name: 'Michael Rodriguez', email: 'michael.rodriguez@uscg.mil' },
-                          { name: 'Karen Williams', email: 'karen.williams@uscg.mil' },
-                          { name: 'Thomas Brown', email: 'thomas.brown@uscg.mil' },
-                          { name: 'Amanda Davis', email: 'amanda.davis@uscg.mil' },
-                          { name: 'Robert Wilson', email: 'robert.wilson@uscg.mil' },
-                          { name: 'Lisa Moore', email: 'lisa.moore@uscg.mil' },
-                          { name: 'Christopher Taylor', email: 'christopher.taylor@uscg.mil' },
-                          { name: 'David Anderson', email: 'david.anderson@uscg.mil' },
-                          { name: 'Patricia Thomas', email: 'patricia.thomas@uscg.mil' },
-                          { name: 'Henry Jackson', email: 'henry.jackson@uscg.mil' },
-                          { name: 'Nancy White', email: 'nancy.white@uscg.mil' },
-                          { name: 'Edward Harris', email: 'edward.harris@uscg.mil' },
-                          { name: 'Barbara Martin', email: 'barbara.martin@uscg.mil' },
-                          { name: 'George Thompson', email: 'george.thompson@uscg.mil' },
-                          { name: 'Victoria Garcia', email: 'victoria.garcia@uscg.mil' },
-                          { name: 'Frank Martinez', email: 'frank.martinez@uscg.mil' },
-                          { name: 'Isabella Robinson', email: 'isabella.robinson@uscg.mil' },
-                          { name: 'Oscar Clark', email: 'oscar.clark@uscg.mil' },
-                          { name: 'Uma Rodriguez', email: 'uma.rodriguez@uscg.mil' },
-                          { name: 'Yolanda Lewis', email: 'yolanda.lewis@uscg.mil' },
-                          { name: 'Quentin Lee', email: 'quentin.lee@uscg.mil' },
-                          { name: 'Walter Walker', email: 'walter.walker@uscg.mil' },
-                          { name: 'Xavier Hall', email: 'xavier.hall@uscg.mil' },
-                          { name: 'Zachary Allen', email: 'zachary.allen@uscg.mil' },
-                          { name: 'Sophia Young', email: 'sophia.young@uscg.mil' },
-                          { name: 'James Hernandez', email: 'james.hernandez@uscg.mil' },
-                          { name: 'Megan King', email: 'megan.king@uscg.mil' },
-                          { name: 'Kevin Wright', email: 'kevin.wright@uscg.mil' },
-                          { name: 'Teresa Lopez', email: 'teresa.lopez@uscg.mil' },
-                          { name: 'Anthony Hill', email: 'anthony.hill@uscg.mil' },
-                          { name: 'Rachel Scott', email: 'rachel.scott@uscg.mil' },
-                          { name: 'Lawrence Green', email: 'lawrence.green@uscg.mil' },
-                          { name: 'Carol Adams', email: 'carol.adams@uscg.mil' },
-                          { name: 'Daniel Baker', email: 'daniel.baker@uscg.mil' },
-                          { name: 'Paula Gonzalez', email: 'paula.gonzalez@uscg.mil' },
-                          { name: 'Harold Nelson', email: 'harold.nelson@uscg.mil' },
-                          { name: 'Nathan Carter', email: 'nathan.carter@uscg.mil' },
-                          { name: 'Emily Mitchell', email: 'emily.mitchell@uscg.mil' },
-                          { name: 'Brian Perez', email: 'brian.perez@uscg.mil' },
-                          { name: 'Grace Roberts', email: 'grace.roberts@uscg.mil' },
-                          { name: 'Vincent Turner', email: 'vincent.turner@uscg.mil' },
-                          { name: 'Fiona Phillips', email: 'fiona.phillips@uscg.mil' },
-                          { name: 'Isaac Campbell', email: 'isaac.campbell@uscg.mil' }
-                        ].map((user) => (
-                          <div key={user.email} className="caption text-white text-xs py-1">
-                            {user.name} ({user.email})
-                          </div>
-                        ))}
+                        {(() => {
+                          const acknowledgedUsers = [
+                            { name: 'Jose Martinez', email: 'jose.martinez@uscg.mil' },
+                            { name: 'Sarah Johnson', email: 'sarah.johnson@uscg.mil' },
+                            { name: 'Michael Rodriguez', email: 'michael.rodriguez@uscg.mil' },
+                            { name: 'Karen Williams', email: 'karen.williams@uscg.mil' },
+                            { name: 'Thomas Brown', email: 'thomas.brown@uscg.mil' },
+                            { name: 'Amanda Davis', email: 'amanda.davis@uscg.mil' },
+                            { name: 'Robert Wilson', email: 'robert.wilson@uscg.mil' },
+                            { name: 'Lisa Moore', email: 'lisa.moore@uscg.mil' },
+                            { name: 'Christopher Taylor', email: 'christopher.taylor@uscg.mil' },
+                            { name: 'David Anderson', email: 'david.anderson@uscg.mil' },
+                            { name: 'Patricia Thomas', email: 'patricia.thomas@uscg.mil' },
+                            { name: 'Henry Jackson', email: 'henry.jackson@uscg.mil' },
+                            { name: 'Nancy White', email: 'nancy.white@uscg.mil' },
+                            { name: 'Edward Harris', email: 'edward.harris@uscg.mil' },
+                            { name: 'Barbara Martin', email: 'barbara.martin@uscg.mil' },
+                            { name: 'George Thompson', email: 'george.thompson@uscg.mil' },
+                            { name: 'Victoria Garcia', email: 'victoria.garcia@uscg.mil' },
+                            { name: 'Frank Martinez', email: 'frank.martinez@uscg.mil' },
+                            { name: 'Isabella Robinson', email: 'isabella.robinson@uscg.mil' },
+                            { name: 'Oscar Clark', email: 'oscar.clark@uscg.mil' },
+                            { name: 'Uma Rodriguez', email: 'uma.rodriguez@uscg.mil' },
+                            { name: 'Yolanda Lewis', email: 'yolanda.lewis@uscg.mil' },
+                            { name: 'Quentin Lee', email: 'quentin.lee@uscg.mil' },
+                            { name: 'Walter Walker', email: 'walter.walker@uscg.mil' },
+                            { name: 'Xavier Hall', email: 'xavier.hall@uscg.mil' },
+                            { name: 'Zachary Allen', email: 'zachary.allen@uscg.mil' },
+                            { name: 'Sophia Young', email: 'sophia.young@uscg.mil' },
+                            { name: 'James Hernandez', email: 'james.hernandez@uscg.mil' },
+                            { name: 'Megan King', email: 'megan.king@uscg.mil' },
+                            { name: 'Kevin Wright', email: 'kevin.wright@uscg.mil' },
+                            { name: 'Teresa Lopez', email: 'teresa.lopez@uscg.mil' },
+                            { name: 'Anthony Hill', email: 'anthony.hill@uscg.mil' },
+                            { name: 'Rachel Scott', email: 'rachel.scott@uscg.mil' },
+                            { name: 'Lawrence Green', email: 'lawrence.green@uscg.mil' },
+                            { name: 'Carol Adams', email: 'carol.adams@uscg.mil' },
+                            { name: 'Daniel Baker', email: 'daniel.baker@uscg.mil' },
+                            { name: 'Paula Gonzalez', email: 'paula.gonzalez@uscg.mil' },
+                            { name: 'Harold Nelson', email: 'harold.nelson@uscg.mil' },
+                            { name: 'Nathan Carter', email: 'nathan.carter@uscg.mil' },
+                            { name: 'Emily Mitchell', email: 'emily.mitchell@uscg.mil' },
+                            { name: 'Brian Perez', email: 'brian.perez@uscg.mil' },
+                            { name: 'Grace Roberts', email: 'grace.roberts@uscg.mil' },
+                            { name: 'Vincent Turner', email: 'vincent.turner@uscg.mil' },
+                            { name: 'Fiona Phillips', email: 'fiona.phillips@uscg.mil' },
+                            { name: 'Isaac Campbell', email: 'isaac.campbell@uscg.mil' }
+                          ];
+                          
+                          const filteredUsers = acknowledgedUsers.filter(user => {
+                            const searchLower = emergencyStandDownAckSearch.toLowerCase();
+                            return user.name.toLowerCase().includes(searchLower) || user.email.toLowerCase().includes(searchLower);
+                          });
+                          
+                          return filteredUsers.map((user) => (
+                            <div key={user.email} className="caption text-white text-xs py-1">
+                              {user.name} ({user.email})
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
 
                     <div>
-                      <p className="caption text-white font-semibold mb-2">Not Yet Acknowledged (0)</p>
+                      <p className="caption text-white font-bold mb-2">Not Yet Acknowledged (0)</p>
+                      <input
+                        type="text"
+                        value={emergencyStandDownNotAckSearch}
+                        onChange={(e) => setEmergencyStandDownNotAckSearch(e.target.value)}
+                        placeholder="Search not acknowledged..."
+                        className="w-full h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
+                      />
                       <div>
                         <span className="caption text-white/70 text-xs italic">All recipients have acknowledged</span>
                       </div>
@@ -2385,7 +2480,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
               </div>
             )}
           </div>
-        </div>
+      </div>
       )}
 
       {/* Add/Edit Alert Side Panel */}
