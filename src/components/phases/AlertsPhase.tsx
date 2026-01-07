@@ -3,7 +3,7 @@ import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { ChevronDown, ChevronRight, Edit2, Trash2, Map, X, Check, Archive } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Trash2, Map, X, Check, ArrowRightToLine } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Label } from '../ui/label';
@@ -1290,7 +1290,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 className="p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
                 title="Archive for all users"
               >
-                <Archive className="w-4 h-4 text-white" />
+                <ArrowRightToLine className="w-4 h-4 text-white" />
               </button>
             </div>
           </div>
