@@ -1099,200 +1099,6 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           )}
         </div>}
         
-        {/* SITREP Review Notification - Only show if not archived */}
-        {!sitrepArchived && <div
-          className="border border-border rounded-lg overflow-hidden"
-          style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
-        >
-          <div className={`p-3 ${expandedAlerts.has('sitrep-review') ? 'border-b border-border' : ''}`}>
-            <div className="flex items-start justify-between">
-              <div
-                className="flex items-start gap-2 flex-1 cursor-pointer"
-                onClick={() => {
-                  const id = 'sitrep-review';
-                  setExpandedAlerts(prev => {
-                    const next = new Set(prev);
-                    if (next.has(id)) next.delete(id); else next.add(id);
-                    return next;
-                  });
-                }}
-              >
-                {expandedAlerts.has('sitrep-review') ? (
-                  <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
-                )}
-                <div className="flex-1">
-                  <span className="caption text-white">Review Requested of SITREP for District East</span>
-                  {!expandedAlerts.has('sitrep-review') && (
-                    <div className="space-y-2 mt-1">
-                      <div className="flex items-center gap-3">
-                        <span 
-                          className="caption px-2 py-0.5 rounded text-xs"
-                          style={{ 
-                            backgroundColor: `${getSeverityColor(getNotificationSeverity('sitrep-review'))}20`,
-                            color: getSeverityColor(getNotificationSeverity('sitrep-review')),
-                            border: `1px solid ${getSeverityColor(getNotificationSeverity('sitrep-review'))}60`
-                          }}
-                        >
-                          {getNotificationSeverity('sitrep-review')}
-                        </span>
-                        <span className="caption text-white">J. Smith</span>
-                        <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}</span>
-                      </div>
-                      {!sitrepReviewed ? (
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setExpandedAlerts(prev => new Set(prev).add('sitrep-review'));
-                          }}
-                          className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
-                          style={{ paddingTop: '4px', paddingBottom: '4px' }}
-                        >
-                          Review Draft SITREP
-                        </Button>
-                      ) : (
-                        <p className="caption text-white">
-                          Review submitted at {formatDateDisplay(sitrepReviewData.submittedAt)}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSitrepArchived(true);
-                  onDataChange({
-                    ...data,
-                    sitrepArchived: true
-                  });
-                }}
-                className="p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
-              >
-                <X className="w-4 h-4 text-white" />
-              </button>
-            </div>
-          </div>
-
-          {expandedAlerts.has('sitrep-review') && (
-            <div className="p-4 space-y-4 bg-card/50">
-              {!sitrepReviewed ? (
-                <>
-                  <div>
-                    <label className="text-white mb-1 block">District East SITREP</label>
-                    <p className="caption text-white mb-3">
-                      Drafted by: J. Smith at {formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}
-                    </p>
-                    <div className="bg-input-background border border-border rounded p-3 max-h-[200px] overflow-y-auto" style={{ marginTop: '13px' }}>
-                      <pre className="caption text-white whitespace-pre-wrap font-sans break-words">
-                        {draftSitrepContent}
-                      </pre>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-white mb-2 block">Decision</label>
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => setSitrepReviewData({ ...sitrepReviewData, decision: 'approve' })}
-                          className={`px-4 py-2 rounded border transition-colors ${
-                            sitrepReviewData.decision === 'approve'
-                              ? 'bg-accent/20 border-accent text-accent'
-                              : 'border-border text-white hover:bg-muted/20'
-                          }`}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => setSitrepReviewData({ ...sitrepReviewData, decision: 'deny' })}
-                          className={`px-4 py-2 rounded border transition-colors ${
-                            sitrepReviewData.decision === 'deny'
-                              ? 'bg-accent/20 border-accent text-accent'
-                              : 'border-border text-white hover:bg-muted/20'
-                          }`}
-                        >
-                          Deny
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-white mb-2 block">Comments to Author</label>
-                      <Textarea
-                        value={sitrepReviewData.comments}
-                        onChange={(e) => setSitrepReviewData({ ...sitrepReviewData, comments: e.target.value })}
-                        placeholder="Enter feedback or revision requests..."
-                        rows={4}
-                        className="bg-input-background border-border resize-none text-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-2">
-                    <Button
-                      onClick={() => {
-                        if (sitrepReviewData.decision) {
-                          const submittedData = {
-                            ...sitrepReviewData,
-                            submittedAt: new Date().toISOString()
-                          };
-                          setSitrepReviewData(submittedData);
-                          setSitrepReviewed(true);
-                          onDataChange({ 
-                            ...data, 
-                            sitrepReviewed: true,
-                            sitrepReviewData: submittedData
-                          });
-                          // Auto-collapse after submission
-                          setExpandedAlerts(prev => {
-                            const next = new Set(prev);
-                            next.delete('sitrep-review');
-                            return next;
-                          });
-                        }
-                      }}
-                      disabled={!sitrepReviewData.decision}
-                      className="bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Submit Review
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <label className="text-white mb-1 block">Review Submitted</label>
-                    <p className="caption text-white">
-                      Your review decision has been submitted and sent to J. Smith.
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-white mb-1 block text-xs">Decision</label>
-                      <p className="caption text-sm text-accent">
-                        {sitrepReviewData.decision === 'approve' ? 'Approved' : 'Denied'}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-white mb-1 block text-xs">Submitted At</label>
-                      <p className="caption text-white text-sm">{formatDateDisplay(sitrepReviewData.submittedAt)}</p>
-                    </div>
-                  </div>
-                  {sitrepReviewData.comments && (
-                    <div>
-                      <label className="text-white mb-1 block text-xs">Comments</label>
-                      <p className="caption text-white text-sm">{sitrepReviewData.comments}</p>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-        </div>}
-        
         {/* Safety Check Form Notification - Only show if not archived */}
         {!safetyCheckArchived && <div
           className="border border-border rounded-lg overflow-hidden"
@@ -1493,6 +1299,200 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           )}
         </div>}
         
+
+        {/* SITREP Review Notification - Only show if not archived */}
+        {!sitrepArchived && <div
+          className="border border-border rounded-lg overflow-hidden"
+          style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+        >
+          <div className={`p-3 ${expandedAlerts.has('sitrep-review') ? 'border-b border-border' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div
+                className="flex items-start gap-2 flex-1 cursor-pointer"
+                onClick={() => {
+                  const id = 'sitrep-review';
+                  setExpandedAlerts(prev => {
+                    const next = new Set(prev);
+                    if (next.has(id)) next.delete(id); else next.add(id);
+                    return next;
+                  });
+                }}
+              >
+                {expandedAlerts.has('sitrep-review') ? (
+                  <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <span className="caption text-white">Review Requested of SITREP for District East</span>
+                  {!expandedAlerts.has('sitrep-review') && (
+                    <div className="space-y-2 mt-1">
+                      <div className="flex items-center gap-3">
+                        <span 
+                          className="caption px-2 py-0.5 rounded text-xs"
+                          style={{ 
+                            backgroundColor: `${getSeverityColor(getNotificationSeverity('sitrep-review'))}20`,
+                            color: getSeverityColor(getNotificationSeverity('sitrep-review')),
+                            border: `1px solid ${getSeverityColor(getNotificationSeverity('sitrep-review'))}60`
+                          }}
+                        >
+                          {getNotificationSeverity('sitrep-review')}
+                        </span>
+                        <span className="caption text-white">J. Smith</span>
+                        <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}</span>
+                      </div>
+                      {!sitrepReviewed ? (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedAlerts(prev => new Set(prev).add('sitrep-review'));
+                          }}
+                          className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
+                          style={{ paddingTop: '4px', paddingBottom: '4px' }}
+                        >
+                          Review Draft SITREP
+                        </Button>
+                      ) : (
+                        <p className="caption text-white">
+                          Review submitted at {formatDateDisplay(sitrepReviewData.submittedAt)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSitrepArchived(true);
+                  onDataChange({
+                    ...data,
+                    sitrepArchived: true
+                  });
+                }}
+                className="p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
+          </div>
+
+          {expandedAlerts.has('sitrep-review') && (
+            <div className="p-4 space-y-4 bg-card/50">
+              {!sitrepReviewed ? (
+                <>
+                  <div>
+                    <label className="text-white mb-1 block">District East SITREP</label>
+                    <p className="caption text-white mb-3">
+                      Drafted by: J. Smith at {formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}
+                    </p>
+                    <div className="bg-input-background border border-border rounded p-3 max-h-[200px] overflow-y-auto" style={{ marginTop: '13px' }}>
+                      <pre className="caption text-white whitespace-pre-wrap font-sans break-words">
+                        {draftSitrepContent}
+                      </pre>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-white mb-2 block">Decision</label>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setSitrepReviewData({ ...sitrepReviewData, decision: 'approve' })}
+                          className={`px-4 py-2 rounded border transition-colors ${
+                            sitrepReviewData.decision === 'approve'
+                              ? 'bg-accent/20 border-accent text-accent'
+                              : 'border-border text-white hover:bg-muted/20'
+                          }`}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => setSitrepReviewData({ ...sitrepReviewData, decision: 'deny' })}
+                          className={`px-4 py-2 rounded border transition-colors ${
+                            sitrepReviewData.decision === 'deny'
+                              ? 'bg-accent/20 border-accent text-accent'
+                              : 'border-border text-white hover:bg-muted/20'
+                          }`}
+                        >
+                          Deny
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-white mb-2 block">Comments to Author</label>
+                      <Textarea
+                        value={sitrepReviewData.comments}
+                        onChange={(e) => setSitrepReviewData({ ...sitrepReviewData, comments: e.target.value })}
+                        placeholder="Enter feedback or revision requests..."
+                        rows={4}
+                        className="bg-input-background border-border resize-none text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      onClick={() => {
+                        if (sitrepReviewData.decision) {
+                          const submittedData = {
+                            ...sitrepReviewData,
+                            submittedAt: new Date().toISOString()
+                          };
+                          setSitrepReviewData(submittedData);
+                          setSitrepReviewed(true);
+                          onDataChange({ 
+                            ...data, 
+                            sitrepReviewed: true,
+                            sitrepReviewData: submittedData
+                          });
+                          // Auto-collapse after submission
+                          setExpandedAlerts(prev => {
+                            const next = new Set(prev);
+                            next.delete('sitrep-review');
+                            return next;
+                          });
+                        }
+                      }}
+                      disabled={!sitrepReviewData.decision}
+                      className="bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Submit Review
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-white mb-1 block">Review Submitted</label>
+                    <p className="caption text-white">
+                      Your review decision has been submitted and sent to J. Smith.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-white mb-1 block text-xs">Decision</label>
+                      <p className="caption text-sm text-accent">
+                        {sitrepReviewData.decision === 'approve' ? 'Approved' : 'Denied'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-white mb-1 block text-xs">Submitted At</label>
+                      <p className="caption text-white text-sm">{formatDateDisplay(sitrepReviewData.submittedAt)}</p>
+                    </div>
+                  </div>
+                  {sitrepReviewData.comments && (
+                    <div>
+                      <label className="text-white mb-1 block text-xs">Comments</label>
+                      <p className="caption text-white text-sm">{sitrepReviewData.comments}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>}
         {/* Acknowledgement Receipt Notification */}
         <div
           className="border border-border rounded-lg overflow-hidden"
