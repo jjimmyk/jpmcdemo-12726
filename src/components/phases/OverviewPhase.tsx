@@ -808,9 +808,10 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                     {!sitrepEditMode && filterMode === 'region' && selectedRegion === 'sector-new-york' && (
                       <Button
                         onClick={startEditSitrep}
-                        className="bg-transparent border border-white text-white hover:bg-white/10 h-auto px-2 py-1 text-xs flex items-center gap-1"
+                        className="bg-transparent border border-white text-white hover:bg-white/10 h-auto px-1 py-0.5 flex items-center gap-0.5"
+                        style={{ fontSize: '6px' }}
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-1.5 h-1.5" />
                         Add Draft
                       </Button>
                     )}
