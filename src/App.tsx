@@ -982,10 +982,12 @@ export default function App() {
                             notificationCount={(() => {
                               const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
                               const alertsData = alertsPhase?.data?.alerts || [];
-                              const boomDataLayerReviewed = alertsPhase?.data?.boomDataLayerReviewed || false;
+                              const boomDataLayerArchived = alertsPhase?.data?.boomDataLayerArchived || false;
+                              const sitrepArchived = alertsPhase?.data?.sitrepArchived || false;
                               const incidentActivationResponded = alertsPhase?.data?.incidentActivationResponded || false;
-                              let customNotifications = 4; // SITREP review, safety check, acknowledgement, incident activation
-                              if (boomDataLayerReviewed) customNotifications--;
+                              let customNotifications = 4; // boom data layer review, SITREP review, safety check, acknowledgement, incident activation (minus archived/responded)
+                              if (boomDataLayerArchived) customNotifications--;
+                              if (sitrepArchived) customNotifications--;
                               if (incidentActivationResponded) customNotifications--;
                               return (alertsData.length || 3) + customNotifications; // default to 3 dynamic alerts if not loaded
                             })()}
@@ -1201,10 +1203,12 @@ export default function App() {
                       notificationCount={(() => {
                         const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
                         const alertsData = alertsPhase?.data?.alerts || [];
-                        const boomDataLayerReviewed = alertsPhase?.data?.boomDataLayerReviewed || false;
+                        const boomDataLayerArchived = alertsPhase?.data?.boomDataLayerArchived || false;
+                        const sitrepArchived = alertsPhase?.data?.sitrepArchived || false;
                         const incidentActivationResponded = alertsPhase?.data?.incidentActivationResponded || false;
-                        let customNotifications = 4; // SITREP review, safety check, acknowledgement, incident activation
-                        if (boomDataLayerReviewed) customNotifications--;
+                        let customNotifications = 4; // boom data layer review, SITREP review, safety check, acknowledgement, incident activation (minus archived/responded)
+                        if (boomDataLayerArchived) customNotifications--;
+                        if (sitrepArchived) customNotifications--;
                         if (incidentActivationResponded) customNotifications--;
                         return (alertsData.length || 3) + customNotifications; // default to 3 dynamic alerts if not loaded
                       })()}

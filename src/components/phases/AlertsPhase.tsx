@@ -64,6 +64,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
 
   // State for boom data layer review notification
   const [boomDataLayerReviewed, setBoomDataLayerReviewed] = useState(data.boomDataLayerReviewed || false);
+  const [boomDataLayerArchived, setBoomDataLayerArchived] = useState(data.boomDataLayerArchived || false);
   const [boomDataLayerReviewData, setBoomDataLayerReviewData] = useState({
     decision: data.boomDataLayerReviewData?.decision || '',
     comments: data.boomDataLayerReviewData?.comments || '',
@@ -80,6 +81,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
 
   // State for SITREP review notification
   const [sitrepReviewed, setSitrepReviewed] = useState(data.sitrepReviewed || false);
+  const [sitrepArchived, setSitrepArchived] = useState(data.sitrepArchived || false);
   const [sitrepReviewData, setSitrepReviewData] = useState({
     decision: data.sitrepReviewData?.decision || '',
     comments: data.sitrepReviewData?.comments || '',
@@ -841,8 +843,8 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           )}
         </div>}
         
-        {/* Boom Data Layer Review Notification - Only show if not reviewed */}
-        {!boomDataLayerReviewed && <div
+        {/* Boom Data Layer Review Notification - Only show if not archived */}
+        {!boomDataLayerArchived && <div
           className="border border-border rounded-lg overflow-hidden"
           style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
         >
@@ -892,6 +894,19 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   )}
                 </div>
               </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setBoomDataLayerArchived(true);
+                  onDataChange({
+                    ...data,
+                    boomDataLayerArchived: true
+                  });
+                }}
+                className="p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
             </div>
           </div>
 
@@ -1025,8 +1040,8 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           )}
         </div>}
         
-        {/* SITREP Review Notification */}
-        <div
+        {/* SITREP Review Notification - Only show if not archived */}
+        {!sitrepArchived && <div
           className="border border-border rounded-lg overflow-hidden"
           style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
         >
@@ -1076,6 +1091,19 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   )}
                 </div>
               </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSitrepArchived(true);
+                  onDataChange({
+                    ...data,
+                    sitrepArchived: true
+                  });
+                }}
+                className="p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
             </div>
           </div>
 
@@ -1194,7 +1222,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
               )}
             </div>
           )}
-        </div>
+        </div>}
         
         {/* Safety Check Form Notification */}
         <div
@@ -1624,8 +1652,8 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
       {/* Historical Notifications View */}
       {viewMode === 'historical' && (
         <div className="space-y-4">
-          {/* Boom Data Layer Review Notification - Only show if reviewed */}
-          {boomDataLayerReviewed && <div
+          {/* Boom Data Layer Review Notification - Only show if archived */}
+          {boomDataLayerArchived && <div
             className="border border-border rounded-lg overflow-hidden"
             style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
           >
@@ -1685,6 +1713,95 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     Submitted by: M. Rodriguez at {formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}
                   </p>
                 </div>
+              </div>
+            )}
+          </div>}
+
+          {/* SITREP Review Notification - Only show if archived */}
+          {sitrepArchived && <div
+            className="border border-border rounded-lg overflow-hidden"
+            style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+          >
+            <div className={`p-3 ${expandedAlerts.has('sitrep-review-historical') ? 'border-b border-border' : ''}`}>
+              <div className="flex items-start justify-between">
+                <div
+                  className="flex items-start gap-2 flex-1 cursor-pointer"
+                  onClick={() => {
+                    const id = 'sitrep-review-historical';
+                    setExpandedAlerts(prev => {
+                      const next = new Set(prev);
+                      if (next.has(id)) next.delete(id); else next.add(id);
+                      return next;
+                    });
+                  }}
+                >
+                  {expandedAlerts.has('sitrep-review-historical') ? (
+                    <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <span className="caption text-white">Review Requested of SITREP for District East</span>
+                    {!expandedAlerts.has('sitrep-review-historical') && (
+                      <div className="space-y-2 mt-1">
+                        <div className="flex items-center gap-3">
+                          <span className="caption text-white">J. Smith</span>
+                          <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}</span>
+                        </div>
+                        {sitrepReviewed && (
+                          <p className="caption text-white">
+                            Review submitted at {formatDateDisplay(sitrepReviewData.submittedAt)}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {expandedAlerts.has('sitrep-review-historical') && (
+              <div className="p-4 space-y-4 bg-card/50">
+                {sitrepReviewed ? (
+                  <>
+                    <div>
+                      <label className="text-white mb-1 block">Review Submitted</label>
+                      <p className="caption text-white">
+                        Your review decision has been submitted and sent to J. Smith.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-white mb-1 block text-xs">Decision</label>
+                        <p className="caption text-sm text-accent">
+                          {sitrepReviewData.decision === 'approve' ? 'Approved' : 'Denied'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-white mb-1 block text-xs">Submitted At</label>
+                        <p className="caption text-white text-sm">{formatDateDisplay(sitrepReviewData.submittedAt)}</p>
+                      </div>
+                    </div>
+                    {sitrepReviewData.comments && (
+                      <div>
+                        <label className="text-white mb-1 block text-xs">Comments</label>
+                        <p className="caption text-white text-sm">{sitrepReviewData.comments}</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div>
+                    <label className="text-white mb-1 block">District East SITREP</label>
+                    <p className="caption text-white mb-3">
+                      Drafted by: J. Smith at {formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}
+                    </p>
+                    <div className="bg-input-background border border-border rounded p-3" style={{ marginTop: '13px' }}>
+                      <p className="caption text-white whitespace-pre-wrap">
+                        {draftSitrepContent}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>}
