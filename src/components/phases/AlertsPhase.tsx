@@ -721,20 +721,22 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                 )}
                 <div className="flex-1">
-                  <span className="caption text-white">Incident Alpha Activation Request</span>
+                  <div className="flex items-center gap-2">
+                    <span className="caption text-white">Incident Alpha Activation Request</span>
+                    <span 
+                      className="caption px-2 py-0.5 rounded text-xs"
+                      style={{ 
+                        backgroundColor: `${getSeverityColor(getNotificationSeverity('incident-activation-request'))}20`,
+                        color: getSeverityColor(getNotificationSeverity('incident-activation-request')),
+                        border: `1px solid ${getSeverityColor(getNotificationSeverity('incident-activation-request'))}60`
+                      }}
+                    >
+                      {getNotificationSeverity('incident-activation-request')}
+                    </span>
+                  </div>
                   {!expandedAlerts.has('incident-activation-request') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
-                        <span 
-                          className="caption px-2 py-0.5 rounded text-xs"
-                          style={{ 
-                            backgroundColor: `${getSeverityColor(getNotificationSeverity('incident-activation-request'))}20`,
-                            color: getSeverityColor(getNotificationSeverity('incident-activation-request')),
-                            border: `1px solid ${getSeverityColor(getNotificationSeverity('incident-activation-request'))}60`
-                          }}
-                        >
-                          {getNotificationSeverity('incident-activation-request')}
-                        </span>
                         <span className="caption text-white">District Command</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}</span>
                       </div>
@@ -916,20 +918,22 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                 )}
                 <div className="flex-1">
-                  <span className="caption text-white">Review Requested of Update to Incident Alpha: Boom Data Layer</span>
+                  <div className="flex items-center gap-2">
+                    <span className="caption text-white">Review Requested of Update to Incident Alpha: Boom Data Layer</span>
+                    <span 
+                      className="caption px-2 py-0.5 rounded text-xs"
+                      style={{ 
+                        backgroundColor: `${getSeverityColor(getNotificationSeverity('boom-data-layer-review'))}20`,
+                        color: getSeverityColor(getNotificationSeverity('boom-data-layer-review')),
+                        border: `1px solid ${getSeverityColor(getNotificationSeverity('boom-data-layer-review'))}60`
+                      }}
+                    >
+                      {getNotificationSeverity('boom-data-layer-review')}
+                    </span>
+                  </div>
                   {!expandedAlerts.has('boom-data-layer-review') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
-                        <span 
-                          className="caption px-2 py-0.5 rounded text-xs"
-                          style={{ 
-                            backgroundColor: `${getSeverityColor(getNotificationSeverity('boom-data-layer-review'))}20`,
-                            color: getSeverityColor(getNotificationSeverity('boom-data-layer-review')),
-                            border: `1px solid ${getSeverityColor(getNotificationSeverity('boom-data-layer-review'))}60`
-                          }}
-                        >
-                          {getNotificationSeverity('boom-data-layer-review')}
-                        </span>
                         <span className="caption text-white">M. Rodriguez</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}</span>
                       </div>
@@ -1125,20 +1129,22 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                 )}
                 <div className="flex-1">
-                  <span className="caption text-white">Safety Check - Personnel Status Report</span>
+                  <div className="flex items-center gap-2">
+                    <span className="caption text-white">Safety Check - Personnel Status Report</span>
+                    <span 
+                      className="caption px-2 py-0.5 rounded text-xs"
+                      style={{ 
+                        backgroundColor: `${getSeverityColor(getNotificationSeverity('safety-check-form'))}20`,
+                        color: getSeverityColor(getNotificationSeverity('safety-check-form')),
+                        border: `1px solid ${getSeverityColor(getNotificationSeverity('safety-check-form'))}60`
+                      }}
+                    >
+                      {getNotificationSeverity('safety-check-form')}
+                    </span>
+                  </div>
                   {!expandedAlerts.has('safety-check-form') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
-                        <span 
-                          className="caption px-2 py-0.5 rounded text-xs"
-                          style={{ 
-                            backgroundColor: `${getSeverityColor(getNotificationSeverity('safety-check-form'))}20`,
-                            color: getSeverityColor(getNotificationSeverity('safety-check-form')),
-                            border: `1px solid ${getSeverityColor(getNotificationSeverity('safety-check-form'))}60`
-                          }}
-                        >
-                          {getNotificationSeverity('safety-check-form')}
-                        </span>
                         <span className="caption text-white">System</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date().toISOString())}</span>
                       </div>
@@ -1324,20 +1330,22 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                 )}
                 <div className="flex-1">
-                  <span className="caption text-white">Review Requested of SITREP for District East</span>
+                  <div className="flex items-center gap-2">
+                    <span className="caption text-white">Review Requested of SITREP for District East</span>
+                    <span 
+                      className="caption px-2 py-0.5 rounded text-xs"
+                      style={{ 
+                        backgroundColor: `${getSeverityColor(getNotificationSeverity('sitrep-review'))}20`,
+                        color: getSeverityColor(getNotificationSeverity('sitrep-review')),
+                        border: `1px solid ${getSeverityColor(getNotificationSeverity('sitrep-review'))}60`
+                      }}
+                    >
+                      {getNotificationSeverity('sitrep-review')}
+                    </span>
+                  </div>
                   {!expandedAlerts.has('sitrep-review') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
-                        <span 
-                          className="caption px-2 py-0.5 rounded text-xs"
-                          style={{ 
-                            backgroundColor: `${getSeverityColor(getNotificationSeverity('sitrep-review'))}20`,
-                            color: getSeverityColor(getNotificationSeverity('sitrep-review')),
-                            border: `1px solid ${getSeverityColor(getNotificationSeverity('sitrep-review'))}60`
-                          }}
-                        >
-                          {getNotificationSeverity('sitrep-review')}
-                        </span>
                         <span className="caption text-white">J. Smith</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}</span>
                       </div>
@@ -1517,20 +1525,22 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                 )}
                 <div className="flex-1">
-                  <span className="caption text-white">Acknowledgement Required - Incident Briefing Review</span>
+                  <div className="flex items-center gap-2">
+                    <span className="caption text-white">Acknowledgement Required - Incident Briefing Review</span>
+                    <span 
+                      className="caption px-2 py-0.5 rounded text-xs"
+                      style={{ 
+                        backgroundColor: `${getSeverityColor(getNotificationSeverity('acknowledgement-receipt'))}20`,
+                        color: getSeverityColor(getNotificationSeverity('acknowledgement-receipt')),
+                        border: `1px solid ${getSeverityColor(getNotificationSeverity('acknowledgement-receipt'))}60`
+                      }}
+                    >
+                      {getNotificationSeverity('acknowledgement-receipt')}
+                    </span>
+                  </div>
                   {!expandedAlerts.has('acknowledgement-receipt') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
-                        <span 
-                          className="caption px-2 py-0.5 rounded text-xs"
-                          style={{ 
-                            backgroundColor: `${getSeverityColor(getNotificationSeverity('acknowledgement-receipt'))}20`,
-                            color: getSeverityColor(getNotificationSeverity('acknowledgement-receipt')),
-                            border: `1px solid ${getSeverityColor(getNotificationSeverity('acknowledgement-receipt'))}60`
-                          }}
-                        >
-                          {getNotificationSeverity('acknowledgement-receipt')}
-                        </span>
                         <span className="caption text-white">System</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date().toISOString())}</span>
                       </div>
