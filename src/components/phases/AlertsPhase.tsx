@@ -191,7 +191,9 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
     recipients: [],
     scheduledTime: new Date().toISOString(),
     channels: [],
+    archiveDateTime: '',
   });
+  const [enableArchiveDateTime, setEnableArchiveDateTime] = useState(false);
 
   // State for recipient popovers
   const [individualsPopoverOpen, setIndividualsPopoverOpen] = useState(false);
@@ -2499,6 +2501,44 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 placeholder="Enter location..."
                 className="bg-input-background border-border" 
               />
+            </div>
+
+            {/* Archive Date & Time */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 pb-2">
+                <Checkbox
+                  id="enable-archive-datetime"
+                  checked={enableArchiveDateTime}
+                  onCheckedChange={(checked) => {
+                    setEnableArchiveDateTime(checked as boolean);
+                    if (!checked) {
+                      setFormData({ ...formData, archiveDateTime: '' });
+                    }
+                  }}
+                  className="border-border"
+                />
+                <label
+                  htmlFor="enable-archive-datetime"
+                  className="text-sm cursor-pointer text-foreground"
+                >
+                  Set Archive Date & Time
+                </label>
+              </div>
+              
+              {enableArchiveDateTime && (
+                <div className="space-y-2 pl-6">
+                  <Label className="text-foreground text-xs">Archive Date & Time</Label>
+                  <Input
+                    type="datetime-local"
+                    value={formData.archiveDateTime ? new Date(formData.archiveDateTime).toISOString().slice(0, 16) : ''}
+                    onChange={(e) => {
+                      const dateValue = e.target.value ? new Date(e.target.value).toISOString() : '';
+                      setFormData({ ...formData, archiveDateTime: dateValue });
+                    }}
+                    className="bg-input-background border-border text-white"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
