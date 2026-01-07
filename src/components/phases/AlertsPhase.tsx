@@ -2061,59 +2061,30 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-white mb-1 block">Acknowledged</label>
-                    <p className="caption text-white text-lg font-semibold">38 / 45</p>
-                    <p className="caption text-white text-xs">84% acknowledged</p>
-                  </div>
-                  <div>
-                    <label className="text-white mb-1 block">Submitted</label>
-                    <p className="caption text-white text-lg font-semibold">35 / 45</p>
-                    <p className="caption text-white text-xs">78% submitted</p>
-                  </div>
-                </div>
-
                 <div>
-                  <label className="text-white mb-2 block">Form Submissions Summary</label>
+                  <label className="text-white mb-2 block">Acknowledgement Status</label>
+                  <p className="caption text-white text-lg font-semibold mb-3">38 / 45 acknowledged (84%)</p>
+                  
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4 p-3 bg-background rounded border border-border">
-                      <div>
-                        <p className="caption text-white mb-1">Safe</p>
-                        <p className="caption text-white text-lg font-semibold">32 responses</p>
-                      </div>
-                      <div>
-                        <p className="caption text-white mb-1">Unsafe</p>
-                        <p className="caption text-white text-lg font-semibold">3 responses</p>
+                    <div>
+                      <p className="caption text-white font-semibold mb-2">Acknowledged (38)</p>
+                      <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                        {['J. Martinez', 'S. Johnson', 'M. Rodriguez', 'K. Williams', 'T. Brown', 'A. Davis', 'R. Wilson', 'L. Moore', 'C. Taylor', 'D. Anderson', 'P. Thomas', 'H. Jackson', 'N. White', 'E. Harris', 'B. Martin', 'G. Thompson', 'V. Garcia', 'F. Martinez', 'I. Robinson', 'O. Clark', 'U. Rodriguez', 'Y. Lewis', 'Q. Lee', 'W. Walker', 'X. Hall', 'Z. Allen', 'S. Young', 'J. Hernandez', 'M. King', 'K. Wright', 'T. Lopez', 'A. Hill', 'R. Scott', 'L. Green', 'C. Adams', 'D. Baker', 'P. Gonzalez', 'H. Nelson'].map((name) => (
+                          <div key={name} className="p-2 bg-background rounded border border-border">
+                            <span className="caption text-white text-xs">{name}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    
+
                     <div>
-                      <p className="caption text-white mb-2">Submissions Log</p>
-                      <input
-                        type="text"
-                        placeholder="Search submissions..."
-                        className="w-48 h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
-                      />
-                      <div className="space-y-2">
-                        <div className="p-2 bg-background rounded border border-border">
-                          <p className="caption text-white text-xs">
-                            "All clear at Station 3. Equipment secured and personnel accounted for."
-                          </p>
-                          <p className="caption text-white text-xs mt-1">- J. Martinez</p>
-                        </div>
-                        <div className="p-2 bg-background rounded border border-border">
-                          <p className="caption text-white text-xs">
-                            "Minor equipment damage in storage area, no injuries. Photos attached."
-                          </p>
-                          <p className="caption text-white text-xs mt-1">- S. Johnson</p>
-                        </div>
-                        <div className="p-2 bg-background rounded border border-border">
-                          <p className="caption text-white text-xs">
-                            "Evacuated to safe zone. All team members present and safe."
-                          </p>
-                          <p className="caption text-white text-xs mt-1">- M. Rodriguez</p>
-                        </div>
+                      <p className="caption text-white font-semibold mb-2">Not Yet Acknowledged (7)</p>
+                      <div className="space-y-1">
+                        {['N. Carter', 'E. Mitchell', 'B. Perez', 'G. Roberts', 'V. Turner', 'F. Phillips', 'I. Campbell'].map((name) => (
+                          <div key={name} className="p-2 bg-background rounded border border-border">
+                            <span className="caption text-white/70 text-xs">{name}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -2174,29 +2145,31 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label className="text-white mb-1 block">Acknowledged</label>
-                    <p className="caption text-white text-lg font-semibold">25 / 30</p>
-                    <p className="caption text-white text-xs">83% acknowledged</p>
-                  </div>
-                </div>
-
                 <div>
-                  <p className="caption text-white mb-2">Submissions Log</p>
-                  <input
-                    type="text"
-                    placeholder="Search submissions..."
-                    className="w-48 h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
-                  />
-                  <div className="space-y-2">
-                    <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
-                      <span className="caption text-white text-xs">First acknowledgement</span>
-                      <span className="caption text-white text-xs">2 minutes after sent</span>
+                  <label className="text-white mb-2 block">Acknowledgement Status</label>
+                  <p className="caption text-white text-lg font-semibold mb-3">25 / 30 acknowledged (83%)</p>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <p className="caption text-white font-semibold mb-2">Acknowledged (25)</p>
+                      <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                        {['J. Martinez', 'S. Johnson', 'M. Rodriguez', 'K. Williams', 'T. Brown', 'A. Davis', 'R. Wilson', 'L. Moore', 'C. Taylor', 'D. Anderson', 'P. Thomas', 'H. Jackson', 'N. White', 'E. Harris', 'B. Martin', 'G. Thompson', 'V. Garcia', 'F. Martinez', 'I. Robinson', 'O. Clark', 'U. Rodriguez', 'Y. Lewis', 'Q. Lee', 'W. Walker', 'X. Hall'].map((name) => (
+                          <div key={name} className="p-2 bg-background rounded border border-border">
+                            <span className="caption text-white text-xs">{name}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
-                      <span className="caption text-white text-xs">Last acknowledgement</span>
-                      <span className="caption text-white text-xs">45 minutes after sent</span>
+
+                    <div>
+                      <p className="caption text-white font-semibold mb-2">Not Yet Acknowledged (5)</p>
+                      <div className="space-y-1">
+                        {['Z. Allen', 'S. Young', 'J. Hernandez', 'M. King', 'K. Wright'].map((name) => (
+                          <div key={name} className="p-2 bg-background rounded border border-border">
+                            <span className="caption text-white/70 text-xs">{name}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2260,33 +2233,27 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label className="text-white mb-1 block">Acknowledged</label>
-                    <p className="caption text-white text-lg font-semibold">45 / 45</p>
-                    <p className="caption text-green-500 text-xs">100% acknowledged</p>
-                  </div>
-                </div>
-
                 <div>
-                  <p className="caption text-white mb-2">Submissions Log</p>
-                  <input
-                    type="text"
-                    placeholder="Search submissions..."
-                    className="w-48 h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
-                  />
-                  <div className="space-y-2">
-                    <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
-                      <span className="caption text-white text-xs">Average acknowledgement time</span>
-                      <span className="caption text-green-500 text-xs font-semibold">47 seconds</span>
+                  <label className="text-white mb-2 block">Acknowledgement Status</label>
+                  <p className="caption text-green-500 text-lg font-semibold mb-3">45 / 45 acknowledged (100%)</p>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <p className="caption text-white font-semibold mb-2">Acknowledged (45)</p>
+                      <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                        {['J. Martinez', 'S. Johnson', 'M. Rodriguez', 'K. Williams', 'T. Brown', 'A. Davis', 'R. Wilson', 'L. Moore', 'C. Taylor', 'D. Anderson', 'P. Thomas', 'H. Jackson', 'N. White', 'E. Harris', 'B. Martin', 'G. Thompson', 'V. Garcia', 'F. Martinez', 'I. Robinson', 'O. Clark', 'U. Rodriguez', 'Y. Lewis', 'Q. Lee', 'W. Walker', 'X. Hall', 'Z. Allen', 'S. Young', 'J. Hernandez', 'M. King', 'K. Wright', 'T. Lopez', 'A. Hill', 'R. Scott', 'L. Green', 'C. Adams', 'D. Baker', 'P. Gonzalez', 'H. Nelson', 'N. Carter', 'E. Mitchell', 'B. Perez', 'G. Roberts', 'V. Turner', 'F. Phillips', 'I. Campbell'].map((name) => (
+                          <div key={name} className="p-2 bg-background rounded border border-border">
+                            <span className="caption text-white text-xs">{name}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
-                      <span className="caption text-white text-xs">Fastest acknowledgement</span>
-                      <span className="caption text-white text-xs">12 seconds</span>
-                    </div>
-                    <div className="p-2 bg-background rounded border border-border flex justify-between items-center">
-                      <span className="caption text-white text-xs">Slowest acknowledgement</span>
-                      <span className="caption text-white text-xs">3 minutes 15 seconds</span>
+
+                    <div>
+                      <p className="caption text-white font-semibold mb-2">Not Yet Acknowledged (0)</p>
+                      <div className="p-3 bg-background rounded border border-border">
+                        <span className="caption text-white/70 text-xs italic">All recipients have acknowledged</span>
+                      </div>
                     </div>
                   </div>
                 </div>
