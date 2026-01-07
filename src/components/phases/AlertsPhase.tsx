@@ -1282,16 +1282,28 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   )}
                 </div>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSafetyCheckArchiveModalOpen(true);
-                }}
-                className="p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
-                title="Archive for all users"
-              >
-                <ArrowRightToLine className="w-4 h-4 text-white" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Edit functionality placeholder
+                  }}
+                  className="p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
+                  title="Edit notification"
+                >
+                  <Edit2 className="w-4 h-4 text-white" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSafetyCheckArchiveModalOpen(true);
+                  }}
+                  className="p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
+                  title="Archive for all users"
+                >
+                  <ArrowRightToLine className="w-4 h-4 text-white" />
+                </button>
+              </div>
             </div>
           </div>
 
