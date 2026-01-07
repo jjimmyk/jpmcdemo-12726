@@ -852,11 +852,35 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                   </>
                 ) : (
                   <div className="bg-input-background border border-border rounded p-3 min-h-[120px]">
-                    <p className="caption text-white whitespace-pre-wrap">
-                      {filterMode === 'region' && selectedRegion === 'sector-new-york' 
-                        ? (sitrepContent || 'There is no SITREP for this AOR yet. Click Add Draft to create one and submit it for review.')
-                        : 'SITREP editing is only available for Sector Honolulu.'}
-                    </p>
+                    {filterMode === 'region' && selectedRegion === 'west-coast' ? (
+                      <div className="space-y-3">
+                        <p className="caption text-white whitespace-pre-wrap">
+                          SITREP - West Coast Region
+
+Current Situation: West Coast Region maintains normal operational readiness across all districts. Weather conditions are favorable with moderate seas and clear visibility. All ports report normal commercial and recreational vessel traffic patterns. No active weather advisories or marine hazards at this time.
+
+Operational Status: District 11 has 4 cutters conducting routine patrol operations off Southern California. District 13 reports 3 active SAR cases resolved in the past 24 hours with no casualties. All Port Security Units are at normal readiness levels. Maritime Safety Zones are in effect around major port facilities.
+
+Resources: All districts report full operational capability with no significant equipment degradation. Air stations are conducting scheduled training operations and maintaining SAR alert posture. Port State Control boarding teams continue routine vessel inspections with no major deficiencies noted.
+
+Notable Events: Completed joint exercise with Navy and CBP in San Diego operational area. Conducted port security assessment at Port of Oakland with positive results. All scheduled maintenance and logistics operations proceeding on schedule.
+                        </p>
+                        <div className="border-t border-border pt-2 space-y-1">
+                          <p className="caption text-white/70 text-xs">
+                            Written by: CAPT Jennifer Morrison at 08:45 UTC 19 DEC 2025
+                          </p>
+                          <p className="caption text-white/70 text-xs">
+                            Approved by: RADM Thomas Bradley at 09:30 UTC 19 DEC 2025
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="caption text-white whitespace-pre-wrap">
+                        {filterMode === 'region' && selectedRegion === 'sector-new-york' 
+                          ? (sitrepContent || 'There is no SITREP for this AOR yet. Click Add Draft to create one and submit it for review.')
+                          : 'SITREP editing is only available for Sector Honolulu.'}
+                      </p>
+                    )}
                   </div>
                 )}
               </>
