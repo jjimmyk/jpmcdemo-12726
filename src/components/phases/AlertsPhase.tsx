@@ -3,8 +3,9 @@ import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { ChevronDown, ChevronRight, Edit2, Trash2, Map, X, Check } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Trash2, Map, X, Check, Archive } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Checkbox } from '../ui/checkbox';
@@ -61,6 +62,8 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
     comments: data.safetyFormData?.comments || '',
     submittedAt: data.safetyFormData?.submittedAt || null
   });
+  const [safetyCheckArchived, setSafetyCheckArchived] = useState(data.safetyCheckArchived || false);
+  const [safetyCheckArchiveModalOpen, setSafetyCheckArchiveModalOpen] = useState(false);
 
   // State for boom data layer review notification
   const [boomDataLayerReviewed, setBoomDataLayerReviewed] = useState(data.boomDataLayerReviewed || false);
@@ -1226,8 +1229,8 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           )}
         </div>}
         
-        {/* Safety Check Form Notification */}
-        <div
+        {/* Safety Check Form Notification - Only show if not archived */}
+        {!safetyCheckArchived && <div
           className="border border-border rounded-lg overflow-hidden"
           style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
         >
@@ -1279,6 +1282,16 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   )}
                 </div>
               </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSafetyCheckArchiveModalOpen(true);
+                }}
+                className="p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
+                title="Archive for all users"
+              >
+                <Archive className="w-4 h-4 text-white" />
+              </button>
             </div>
           </div>
 
@@ -1392,7 +1405,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
               )}
             </div>
           )}
-        </div>
+        </div>}
         
         {/* Acknowledgement Receipt Notification */}
         <div
@@ -1803,6 +1816,79 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                       </p>
                     </div>
                   </div>
+                )}
+              </div>
+            )}
+          </div>}
+
+          {/* Safety Check Notification - Only show if archived */}
+          {safetyCheckArchived && <div
+            className="border border-border rounded-lg overflow-hidden"
+            style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+          >
+            <div className={`p-3 ${expandedAlerts.has('safety-check-historical') ? 'border-b border-border' : ''}`}>
+              <div className="flex items-start justify-between">
+                <div
+                  className="flex items-start gap-2 flex-1 cursor-pointer"
+                  onClick={() => {
+                    const id = 'safety-check-historical';
+                    setExpandedAlerts(prev => {
+                      const next = new Set(prev);
+                      if (next.has(id)) next.delete(id); else next.add(id);
+                      return next;
+                    });
+                  }}
+                >
+                  {expandedAlerts.has('safety-check-historical') ? (
+                    <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <span className="caption text-white">Safety Check - Personnel Status Report</span>
+                    {!expandedAlerts.has('safety-check-historical') && (
+                      <div className="space-y-2 mt-1">
+                        <div className="flex items-center gap-3">
+                          <span className="caption text-white">System</span>
+                          <span className="caption text-white">{formatMilitaryTimeUTC(new Date().toISOString())}</span>
+                        </div>
+                        <p className="caption text-white">
+                          Archived for all users
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {expandedAlerts.has('safety-check-historical') && (
+              <div className="p-4 space-y-4 bg-card/50">
+                <div>
+                  <label className="text-white mb-1 block">Notification Archived</label>
+                  <p className="caption text-white">
+                    This notification has been archived for all users and is no longer visible in Active notifications.
+                  </p>
+                </div>
+                {safetyFormSubmitted && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-white mb-1 block">Status</label>
+                        <p className="caption text-white capitalize">{safetyFormData.isSafe === 'yes' ? 'Safe' : 'Unsafe'}</p>
+                      </div>
+                      <div>
+                        <label className="text-white mb-1 block">Submitted</label>
+                        <p className="caption text-white">{formatDateDisplay(safetyFormData.submittedAt)}</p>
+                      </div>
+                    </div>
+                    {safetyFormData.comments && (
+                      <div>
+                        <label className="text-white mb-1 block">Comments</label>
+                        <p className="caption text-white">{safetyFormData.comments}</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -2562,6 +2648,41 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Safety Check Archive Confirmation Modal */}
+      <Dialog open={safetyCheckArchiveModalOpen} onOpenChange={setSafetyCheckArchiveModalOpen}>
+        <DialogContent className="bg-[#222529] border-[#6e757c] text-white">
+          <DialogHeader>
+            <DialogTitle className="text-white">Archive Safety Check Notification</DialogTitle>
+            <DialogDescription className="text-white/70">
+              This will archive the "Safety Check - Personnel Status Report" notification for all users. 
+              It will be moved to the Historical tab and will no longer be visible in the Active notifications.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-3">
+            <Button
+              onClick={() => setSafetyCheckArchiveModalOpen(false)}
+              variant="outline"
+              className="border-border text-white hover:bg-white/10"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                setSafetyCheckArchived(true);
+                setSafetyCheckArchiveModalOpen(false);
+                onDataChange({
+                  ...data,
+                  safetyCheckArchived: true
+                });
+              }}
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              Confirm Archive
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

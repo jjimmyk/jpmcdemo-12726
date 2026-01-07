@@ -984,10 +984,12 @@ export default function App() {
                               const alertsData = alertsPhase?.data?.alerts || [];
                               const boomDataLayerArchived = alertsPhase?.data?.boomDataLayerArchived || false;
                               const sitrepArchived = alertsPhase?.data?.sitrepArchived || false;
+                              const safetyCheckArchived = alertsPhase?.data?.safetyCheckArchived || false;
                               const incidentActivationResponded = alertsPhase?.data?.incidentActivationResponded || false;
                               let customNotifications = 4; // boom data layer review, SITREP review, safety check, acknowledgement, incident activation (minus archived/responded)
                               if (boomDataLayerArchived) customNotifications--;
                               if (sitrepArchived) customNotifications--;
+                              if (safetyCheckArchived) customNotifications--;
                               if (incidentActivationResponded) customNotifications--;
                               return (alertsData.length || 3) + customNotifications; // default to 3 dynamic alerts if not loaded
                             })()}
@@ -1205,10 +1207,12 @@ export default function App() {
                         const alertsData = alertsPhase?.data?.alerts || [];
                         const boomDataLayerArchived = alertsPhase?.data?.boomDataLayerArchived || false;
                         const sitrepArchived = alertsPhase?.data?.sitrepArchived || false;
+                        const safetyCheckArchived = alertsPhase?.data?.safetyCheckArchived || false;
                         const incidentActivationResponded = alertsPhase?.data?.incidentActivationResponded || false;
                         let customNotifications = 4; // boom data layer review, SITREP review, safety check, acknowledgement, incident activation (minus archived/responded)
                         if (boomDataLayerArchived) customNotifications--;
                         if (sitrepArchived) customNotifications--;
+                        if (safetyCheckArchived) customNotifications--;
                         if (incidentActivationResponded) customNotifications--;
                         return (alertsData.length || 3) + customNotifications; // default to 3 dynamic alerts if not loaded
                       })()}
