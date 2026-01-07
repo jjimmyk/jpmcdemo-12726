@@ -42,6 +42,40 @@ interface AlertItem {
 }
 
 export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIContext }: AlertsPhaseProps) {
+  // Helper functions for notification severity
+  const getNotificationSeverity = (notificationId: string): 'Minor' | 'Moderate' | 'Serious' | 'Severe' | 'Critical' => {
+    switch (notificationId) {
+      case 'incident-activation-request': return 'Critical';
+      case 'boom-data-layer-review': return 'Serious';
+      case 'sitrep-review': return 'Moderate';
+      case 'safety-check-form': return 'Serious';
+      case 'acknowledgement-receipt': return 'Moderate';
+      default: return 'Moderate';
+    }
+  };
+
+  const getSeverityRank = (severity: string): number => {
+    switch (severity) {
+      case 'Critical': return 5;
+      case 'Severe': return 4;
+      case 'Serious': return 3;
+      case 'Moderate': return 2;
+      case 'Minor': return 1;
+      default: return 0;
+    }
+  };
+
+  const getSeverityColor = (severity: string): string => {
+    switch (severity) {
+      case 'Critical': return '#DC2626'; // Red-600
+      case 'Severe': return '#EA580C'; // Orange-600
+      case 'Serious': return '#F59E0B'; // Amber-500
+      case 'Moderate': return '#EAB308'; // Yellow-500
+      case 'Minor': return '#84CC16'; // Lime-500
+      default: return '#6B7280'; // Gray-500
+    }
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -691,6 +725,16 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   {!expandedAlerts.has('incident-activation-request') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
+                        <span 
+                          className="caption px-2 py-0.5 rounded text-xs"
+                          style={{ 
+                            backgroundColor: `${getSeverityColor(getNotificationSeverity('incident-activation-request'))}20`,
+                            color: getSeverityColor(getNotificationSeverity('incident-activation-request')),
+                            border: `1px solid ${getSeverityColor(getNotificationSeverity('incident-activation-request'))}60`
+                          }}
+                        >
+                          {getNotificationSeverity('incident-activation-request')}
+                        </span>
                         <span className="caption text-white">District Command</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}</span>
                       </div>
@@ -876,6 +920,16 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   {!expandedAlerts.has('boom-data-layer-review') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
+                        <span 
+                          className="caption px-2 py-0.5 rounded text-xs"
+                          style={{ 
+                            backgroundColor: `${getSeverityColor(getNotificationSeverity('boom-data-layer-review'))}20`,
+                            color: getSeverityColor(getNotificationSeverity('boom-data-layer-review')),
+                            border: `1px solid ${getSeverityColor(getNotificationSeverity('boom-data-layer-review'))}60`
+                          }}
+                        >
+                          {getNotificationSeverity('boom-data-layer-review')}
+                        </span>
                         <span className="caption text-white">M. Rodriguez</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}</span>
                       </div>
@@ -1073,6 +1127,16 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   {!expandedAlerts.has('sitrep-review') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
+                        <span 
+                          className="caption px-2 py-0.5 rounded text-xs"
+                          style={{ 
+                            backgroundColor: `${getSeverityColor(getNotificationSeverity('sitrep-review'))}20`,
+                            color: getSeverityColor(getNotificationSeverity('sitrep-review')),
+                            border: `1px solid ${getSeverityColor(getNotificationSeverity('sitrep-review'))}60`
+                          }}
+                        >
+                          {getNotificationSeverity('sitrep-review')}
+                        </span>
                         <span className="caption text-white">J. Smith</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}</span>
                       </div>
@@ -1259,6 +1323,16 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   {!expandedAlerts.has('safety-check-form') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
+                        <span 
+                          className="caption px-2 py-0.5 rounded text-xs"
+                          style={{ 
+                            backgroundColor: `${getSeverityColor(getNotificationSeverity('safety-check-form'))}20`,
+                            color: getSeverityColor(getNotificationSeverity('safety-check-form')),
+                            border: `1px solid ${getSeverityColor(getNotificationSeverity('safety-check-form'))}60`
+                          }}
+                        >
+                          {getNotificationSeverity('safety-check-form')}
+                        </span>
                         <span className="caption text-white">System</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date().toISOString())}</span>
                       </div>
@@ -1447,6 +1521,16 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   {!expandedAlerts.has('acknowledgement-receipt') && (
                     <div className="space-y-2 mt-1">
                       <div className="flex items-center gap-3">
+                        <span 
+                          className="caption px-2 py-0.5 rounded text-xs"
+                          style={{ 
+                            backgroundColor: `${getSeverityColor(getNotificationSeverity('acknowledgement-receipt'))}20`,
+                            color: getSeverityColor(getNotificationSeverity('acknowledgement-receipt')),
+                            border: `1px solid ${getSeverityColor(getNotificationSeverity('acknowledgement-receipt'))}60`
+                          }}
+                        >
+                          {getNotificationSeverity('acknowledgement-receipt')}
+                        </span>
                         <span className="caption text-white">System</span>
                         <span className="caption text-white">{formatMilitaryTimeUTC(new Date().toISOString())}</span>
                       </div>
