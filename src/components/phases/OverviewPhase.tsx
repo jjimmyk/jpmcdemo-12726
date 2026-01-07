@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { ChevronDown, ChevronRight, Edit2, Trash2, RefreshCw, Check, Download } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Trash2, RefreshCw, Check, Download, Plus } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
@@ -806,13 +806,13 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                         : incidents.find(i => i.id === selectedIncident)?.name}
                     </Label>
                     {!sitrepEditMode && filterMode === 'region' && selectedRegion === 'sector-new-york' && (
-                      <button
+                      <Button
                         onClick={startEditSitrep}
-                        className="p-1 hover:bg-muted/30 rounded transition-colors"
-                        title="Edit SITREP"
+                        className="bg-transparent border border-white text-white hover:bg-white/10 h-auto px-2 py-1 text-xs flex items-center gap-1"
                       >
-                        <Edit2 className="w-4 h-4 text-white" />
-                      </button>
+                        <Plus className="w-3 h-3" />
+                        Add Draft
+                      </Button>
                     )}
                   </div>
                   {sitrepLastUpdated && (
