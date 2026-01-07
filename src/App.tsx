@@ -983,7 +983,11 @@ export default function App() {
                               const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
                               const alertsData = alertsPhase?.data?.alerts || [];
                               const boomDataLayerReviewed = alertsPhase?.data?.boomDataLayerReviewed || false;
-                              return (alertsData.length || 3) + (boomDataLayerReviewed ? 3 : 4); // +3 or +4 depending on boom review status, SITREP review, safety check, and acknowledgement notifications; default to 3 dynamic alerts if not loaded
+                              const incidentActivationResponded = alertsPhase?.data?.incidentActivationResponded || false;
+                              let customNotifications = 4; // SITREP review, safety check, acknowledgement, incident activation
+                              if (boomDataLayerReviewed) customNotifications--;
+                              if (incidentActivationResponded) customNotifications--;
+                              return (alertsData.length || 3) + customNotifications; // default to 3 dynamic alerts if not loaded
                             })()}
                           />
                         </div>
@@ -1198,7 +1202,11 @@ export default function App() {
                         const alertsPhase = displayedPeriod.phases.find(p => p.id === 'alerts');
                         const alertsData = alertsPhase?.data?.alerts || [];
                         const boomDataLayerReviewed = alertsPhase?.data?.boomDataLayerReviewed || false;
-                        return (alertsData.length || 3) + (boomDataLayerReviewed ? 3 : 4); // +3 or +4 depending on boom review status, SITREP review, safety check, and acknowledgement notifications; default to 3 dynamic alerts if not loaded
+                        const incidentActivationResponded = alertsPhase?.data?.incidentActivationResponded || false;
+                        let customNotifications = 4; // SITREP review, safety check, acknowledgement, incident activation
+                        if (boomDataLayerReviewed) customNotifications--;
+                        if (incidentActivationResponded) customNotifications--;
+                        return (alertsData.length || 3) + customNotifications; // default to 3 dynamic alerts if not loaded
                       })()}
                     />
                     <div className="mr-20">

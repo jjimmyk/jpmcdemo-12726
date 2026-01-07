@@ -98,6 +98,22 @@ export function DataLayers({
   const [addLayerCategory, setAddLayerCategory] = React.useState<string>('No Category');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = React.useState(false);
   const [selectedLayersPillExpanded, setSelectedLayersPillExpanded] = React.useState(false);
+  const [layerViewerIndividuals, setLayerViewerIndividuals] = React.useState<string[]>([]);
+  const [layerEditorIndividuals, setLayerEditorIndividuals] = React.useState<string[]>([]);
+  const [layerDrafterIndividuals, setLayerDrafterIndividuals] = React.useState<string[]>([]);
+  const [layerReviewerIndividuals, setLayerReviewerIndividuals] = React.useState<string[]>([]);
+  const [layerViewerTeams, setLayerViewerTeams] = React.useState<string[]>([]);
+  const [layerEditorTeams, setLayerEditorTeams] = React.useState<string[]>([]);
+  const [layerDrafterTeams, setLayerDrafterTeams] = React.useState<string[]>([]);
+  const [layerReviewerTeams, setLayerReviewerTeams] = React.useState<string[]>([]);
+  const [viewerIndividualsOpen, setViewerIndividualsOpen] = React.useState(false);
+  const [editorIndividualsOpen, setEditorIndividualsOpen] = React.useState(false);
+  const [drafterIndividualsOpen, setDrafterIndividualsOpen] = React.useState(false);
+  const [reviewerIndividualsOpen, setReviewerIndividualsOpen] = React.useState(false);
+  const [viewerTeamsOpen, setViewerTeamsOpen] = React.useState(false);
+  const [editorTeamsOpen, setEditorTeamsOpen] = React.useState(false);
+  const [drafterTeamsOpen, setDrafterTeamsOpen] = React.useState(false);
+  const [reviewerTeamsOpen, setReviewerTeamsOpen] = React.useState(false);
 
   // Use external filters if provided, otherwise use local state
   const regionFilter = externalRegionFilter !== undefined ? externalRegionFilter : localRegionFilter;
@@ -916,7 +932,7 @@ export function DataLayers({
           </div>
         )}
         
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2" style={{ marginTop: '10px' }}>
           <div className="relative h-[26px] w-[195px]">
             <input
               type="text"
@@ -2890,17 +2906,17 @@ export function DataLayers({
 
       {/* Add Layer Modal */}
       <Dialog open={addLayerModalOpen} onOpenChange={setAddLayerModalOpen}>
-        <DialogContent className="bg-[#222529] border-[#6e757c] text-white" style={{ maxWidth: '672px' }}>
+        <DialogContent className="bg-[#222529] border-[#6e757c] text-white overflow-y-auto" style={{ maxWidth: '672px', maxHeight: '75vh' }}>
           <DialogHeader>
-            <DialogTitle className="text-white">Add Layer</DialogTitle>
+            <DialogTitle className="text-white text-sm">Add Layer</DialogTitle>
           </DialogHeader>
-          <div className="mt-4 space-y-4">
+          <div className="mt-2 space-y-2">
             {/* Toggle between Upload and Draw */}
             <div className="flex w-full border border-border bg-[#1a1d21] rounded-md overflow-hidden">
               <button
                 type="button"
                 onClick={() => setAddLayerMode('upload')}
-                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
                   addLayerMode === 'upload'
                     ? 'bg-[#01669f] text-white'
                     : 'bg-transparent text-foreground hover:bg-muted/50'
@@ -2911,7 +2927,7 @@ export function DataLayers({
               <button
                 type="button"
                 onClick={() => setAddLayerMode('draw')}
-                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors border-l border-border ${
+                className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors border-l border-border ${
                   addLayerMode === 'draw'
                     ? 'bg-[#01669f] text-white'
                     : 'bg-transparent text-foreground hover:bg-muted/50'
@@ -2922,35 +2938,430 @@ export function DataLayers({
             </div>
 
             {/* Content area */}
-            <div className="p-8 border border-border/30 rounded-md bg-card/30">
-              <p className="text-center text-white/70">
+            <div className="p-4 border border-border/30 rounded-md bg-card/30">
+              <p className="text-center text-white/70 text-xs">
                 {addLayerMode === 'upload' ? '[Upload File Placeholder]' : '[Draw Layer Placeholder]'}
               </p>
             </div>
 
+            {/* Permissions Section */}
+            <div className="space-y-2 p-3 border border-border/30 rounded-md bg-card/30">
+              <Label className="text-white text-xs font-semibold block">Permissions</Label>
+              
+              <div className="grid grid-cols-4 gap-2">
+                {/* Viewer Permissions */}
+                <div className="space-y-1.5">
+                  <Label className="text-white text-[10px] block">Viewer</Label>
+                  
+                  {/* Viewer Individuals */}
+                  <div>
+                    <Label className="text-white/70 text-[9px] mb-0.5 block">Individuals</Label>
+                    <Popover open={viewerIndividualsOpen} onOpenChange={setViewerIndividualsOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between bg-[#1a1d21] border-border text-white hover:bg-muted/50 h-7 text-[10px]"
+                        >
+                          {layerViewerIndividuals.length === 0 
+                            ? 'Select individuals...' 
+                            : `${layerViewerIndividuals.length} selected`}
+                          <ChevronDown className="ml-1 h-2.5 w-2.5 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0 bg-[#1a1d21] border-border" align="start">
+                        <Command className="bg-[#1a1d21]">
+                          <CommandInput placeholder="Search individuals..." className="h-7 text-white text-[10px]" />
+                          <CommandList>
+                            <CommandEmpty className="text-white/70 p-1.5 text-[9px]">No individual found.</CommandEmpty>
+                            <CommandGroup>
+                              {['J. Smith', 'M. Rodriguez', 'K. Johnson', 'L. Williams', 'T. Brown'].map((person) => (
+                                <CommandItem
+                                  key={person}
+                                  value={person}
+                                  onSelect={() => {
+                                    setLayerViewerIndividuals(prev =>
+                                      prev.includes(person) ? prev.filter(p => p !== person) : [...prev, person]
+                                    );
+                                  }}
+                                  className="text-white cursor-pointer text-[10px]"
+                                >
+                                  <Checkbox
+                                    checked={layerViewerIndividuals.includes(person)}
+                                    className="mr-1 h-2.5 w-2.5"
+                                  />
+                                  {person}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Viewer Teams */}
+                  <div>
+                    <Label className="text-white/70 text-[9px] mb-0.5 block">Teams</Label>
+                    <Popover open={viewerTeamsOpen} onOpenChange={setViewerTeamsOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between bg-[#1a1d21] border-border text-white hover:bg-muted/50 h-7 text-[10px]"
+                        >
+                          {layerViewerTeams.length === 0 
+                            ? 'Select teams...' 
+                            : `${layerViewerTeams.length} selected`}
+                          <ChevronDown className="ml-1 h-2.5 w-2.5 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0 bg-[#1a1d21] border-border" align="start">
+                        <Command className="bg-[#1a1d21]">
+                          <CommandInput placeholder="Search teams..." className="h-7 text-white text-[10px]" />
+                          <CommandList>
+                            <CommandEmpty className="text-white/70 p-1.5 text-[9px]">No team found.</CommandEmpty>
+                            <CommandGroup>
+                              {['Operations Team', 'Planning Team', 'Safety Team', 'Logistics Team', 'Command Staff'].map((team) => (
+                                <CommandItem
+                                  key={team}
+                                  value={team}
+                                  onSelect={() => {
+                                    setLayerViewerTeams(prev =>
+                                      prev.includes(team) ? prev.filter(t => t !== team) : [...prev, team]
+                                    );
+                                  }}
+                                  className="text-white cursor-pointer text-[10px]"
+                                >
+                                  <Checkbox
+                                    checked={layerViewerTeams.includes(team)}
+                                    className="mr-1 h-2.5 w-2.5"
+                                  />
+                                  {team}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+
+                {/* Editor Permissions */}
+                <div className="space-y-1.5">
+                  <Label className="text-white text-[10px] block">Editor</Label>
+                  
+                  {/* Editor Individuals */}
+                  <div>
+                    <Label className="text-white/70 text-[9px] mb-0.5 block">Individuals</Label>
+                    <Popover open={editorIndividualsOpen} onOpenChange={setEditorIndividualsOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between bg-[#1a1d21] border-border text-white hover:bg-muted/50 h-7 text-[10px]"
+                        >
+                          {layerEditorIndividuals.length === 0 
+                            ? 'Select individuals...' 
+                            : `${layerEditorIndividuals.length} selected`}
+                          <ChevronDown className="ml-1 h-2.5 w-2.5 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0 bg-[#1a1d21] border-border" align="start">
+                        <Command className="bg-[#1a1d21]">
+                          <CommandInput placeholder="Search individuals..." className="h-7 text-white text-[10px]" />
+                          <CommandList>
+                            <CommandEmpty className="text-white/70 p-1.5 text-[9px]">No individual found.</CommandEmpty>
+                            <CommandGroup>
+                              {['J. Smith', 'M. Rodriguez', 'K. Johnson', 'L. Williams', 'T. Brown'].map((person) => (
+                                <CommandItem
+                                  key={person}
+                                  value={person}
+                                  onSelect={() => {
+                                    setLayerEditorIndividuals(prev =>
+                                      prev.includes(person) ? prev.filter(p => p !== person) : [...prev, person]
+                                    );
+                                  }}
+                                  className="text-white cursor-pointer text-[10px]"
+                                >
+                                  <Checkbox
+                                    checked={layerEditorIndividuals.includes(person)}
+                                    className="mr-1 h-2.5 w-2.5"
+                                  />
+                                  {person}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Editor Teams */}
+                  <div>
+                    <Label className="text-white/70 text-[9px] mb-0.5 block">Teams</Label>
+                    <Popover open={editorTeamsOpen} onOpenChange={setEditorTeamsOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between bg-[#1a1d21] border-border text-white hover:bg-muted/50 h-7 text-[10px]"
+                        >
+                          {layerEditorTeams.length === 0 
+                            ? 'Select teams...' 
+                            : `${layerEditorTeams.length} selected`}
+                          <ChevronDown className="ml-1 h-2.5 w-2.5 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0 bg-[#1a1d21] border-border" align="start">
+                        <Command className="bg-[#1a1d21]">
+                          <CommandInput placeholder="Search teams..." className="h-7 text-white text-[10px]" />
+                          <CommandList>
+                            <CommandEmpty className="text-white/70 p-1.5 text-[9px]">No team found.</CommandEmpty>
+                            <CommandGroup>
+                              {['Operations Team', 'Planning Team', 'Safety Team', 'Logistics Team', 'Command Staff'].map((team) => (
+                                <CommandItem
+                                  key={team}
+                                  value={team}
+                                  onSelect={() => {
+                                    setLayerEditorTeams(prev =>
+                                      prev.includes(team) ? prev.filter(t => t !== team) : [...prev, team]
+                                    );
+                                  }}
+                                  className="text-white cursor-pointer text-[10px]"
+                                >
+                                  <Checkbox
+                                    checked={layerEditorTeams.includes(team)}
+                                    className="mr-1 h-2.5 w-2.5"
+                                  />
+                                  {team}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+
+                {/* Drafter Permissions */}
+                <div className="space-y-1.5">
+                  <Label className="text-white text-[10px] block">Drafter</Label>
+                  
+                  {/* Drafter Individuals */}
+                  <div>
+                    <Label className="text-white/70 text-[9px] mb-0.5 block">Individuals</Label>
+                    <Popover open={drafterIndividualsOpen} onOpenChange={setDrafterIndividualsOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between bg-[#1a1d21] border-border text-white hover:bg-muted/50 h-7 text-[10px]"
+                        >
+                          {layerDrafterIndividuals.length === 0 
+                            ? 'Select individuals...' 
+                            : `${layerDrafterIndividuals.length} selected`}
+                          <ChevronDown className="ml-1 h-2.5 w-2.5 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0 bg-[#1a1d21] border-border" align="start">
+                        <Command className="bg-[#1a1d21]">
+                          <CommandInput placeholder="Search individuals..." className="h-7 text-white text-[10px]" />
+                          <CommandList>
+                            <CommandEmpty className="text-white/70 p-1.5 text-[9px]">No individual found.</CommandEmpty>
+                            <CommandGroup>
+                              {['J. Smith', 'M. Rodriguez', 'K. Johnson', 'L. Williams', 'T. Brown'].map((person) => (
+                                <CommandItem
+                                  key={person}
+                                  value={person}
+                                  onSelect={() => {
+                                    setLayerDrafterIndividuals(prev =>
+                                      prev.includes(person) ? prev.filter(p => p !== person) : [...prev, person]
+                                    );
+                                  }}
+                                  className="text-white cursor-pointer text-[10px]"
+                                >
+                                  <Checkbox
+                                    checked={layerDrafterIndividuals.includes(person)}
+                                    className="mr-1 h-2.5 w-2.5"
+                                  />
+                                  {person}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Drafter Teams */}
+                  <div>
+                    <Label className="text-white/70 text-[9px] mb-0.5 block">Teams</Label>
+                    <Popover open={drafterTeamsOpen} onOpenChange={setDrafterTeamsOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between bg-[#1a1d21] border-border text-white hover:bg-muted/50 h-7 text-[10px]"
+                        >
+                          {layerDrafterTeams.length === 0 
+                            ? 'Select teams...' 
+                            : `${layerDrafterTeams.length} selected`}
+                          <ChevronDown className="ml-1 h-2.5 w-2.5 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0 bg-[#1a1d21] border-border" align="start">
+                        <Command className="bg-[#1a1d21]">
+                          <CommandInput placeholder="Search teams..." className="h-7 text-white text-[10px]" />
+                          <CommandList>
+                            <CommandEmpty className="text-white/70 p-1.5 text-[9px]">No team found.</CommandEmpty>
+                            <CommandGroup>
+                              {['Operations Team', 'Planning Team', 'Safety Team', 'Logistics Team', 'Command Staff'].map((team) => (
+                                <CommandItem
+                                  key={team}
+                                  value={team}
+                                  onSelect={() => {
+                                    setLayerDrafterTeams(prev =>
+                                      prev.includes(team) ? prev.filter(t => t !== team) : [...prev, team]
+                                    );
+                                  }}
+                                  className="text-white cursor-pointer text-[10px]"
+                                >
+                                  <Checkbox
+                                    checked={layerDrafterTeams.includes(team)}
+                                    className="mr-1 h-2.5 w-2.5"
+                                  />
+                                  {team}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+
+                {/* Reviewer Permissions */}
+                <div className="space-y-1.5">
+                  <Label className="text-white text-[10px] block">Reviewer</Label>
+                  
+                  {/* Reviewer Individuals */}
+                  <div>
+                    <Label className="text-white/70 text-[9px] mb-0.5 block">Individuals</Label>
+                    <Popover open={reviewerIndividualsOpen} onOpenChange={setReviewerIndividualsOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between bg-[#1a1d21] border-border text-white hover:bg-muted/50 h-7 text-[10px]"
+                        >
+                          {layerReviewerIndividuals.length === 0 
+                            ? 'Select individuals...' 
+                            : `${layerReviewerIndividuals.length} selected`}
+                          <ChevronDown className="ml-1 h-2.5 w-2.5 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0 bg-[#1a1d21] border-border" align="start">
+                        <Command className="bg-[#1a1d21]">
+                          <CommandInput placeholder="Search individuals..." className="h-7 text-white text-[10px]" />
+                          <CommandList>
+                            <CommandEmpty className="text-white/70 p-1.5 text-[9px]">No individual found.</CommandEmpty>
+                            <CommandGroup>
+                              {['J. Smith', 'M. Rodriguez', 'K. Johnson', 'L. Williams', 'T. Brown'].map((person) => (
+                                <CommandItem
+                                  key={person}
+                                  value={person}
+                                  onSelect={() => {
+                                    setLayerReviewerIndividuals(prev =>
+                                      prev.includes(person) ? prev.filter(p => p !== person) : [...prev, person]
+                                    );
+                                  }}
+                                  className="text-white cursor-pointer text-[10px]"
+                                >
+                                  <Checkbox
+                                    checked={layerReviewerIndividuals.includes(person)}
+                                    className="mr-1 h-2.5 w-2.5"
+                                  />
+                                  {person}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Reviewer Teams */}
+                  <div>
+                    <Label className="text-white/70 text-[9px] mb-0.5 block">Teams</Label>
+                    <Popover open={reviewerTeamsOpen} onOpenChange={setReviewerTeamsOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between bg-[#1a1d21] border-border text-white hover:bg-muted/50 h-7 text-[10px]"
+                        >
+                          {layerReviewerTeams.length === 0 
+                            ? 'Select teams...' 
+                            : `${layerReviewerTeams.length} selected`}
+                          <ChevronDown className="ml-1 h-2.5 w-2.5 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0 bg-[#1a1d21] border-border" align="start">
+                        <Command className="bg-[#1a1d21]">
+                          <CommandInput placeholder="Search teams..." className="h-7 text-white text-[10px]" />
+                          <CommandList>
+                            <CommandEmpty className="text-white/70 p-1.5 text-[9px]">No team found.</CommandEmpty>
+                            <CommandGroup>
+                              {['Operations Team', 'Planning Team', 'Safety Team', 'Logistics Team', 'Command Staff'].map((team) => (
+                                <CommandItem
+                                  key={team}
+                                  value={team}
+                                  onSelect={() => {
+                                    setLayerReviewerTeams(prev =>
+                                      prev.includes(team) ? prev.filter(t => t !== team) : [...prev, team]
+                                    );
+                                  }}
+                                  className="text-white cursor-pointer text-[10px]"
+                                >
+                                  <Checkbox
+                                    checked={layerReviewerTeams.includes(team)}
+                                    className="mr-1 h-2.5 w-2.5"
+                                  />
+                                  {team}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Layer Category Dropdown */}
             <div>
-              <Label className="text-white text-xs mb-1 block">Layer Category</Label>
+              <Label className="text-white text-[10px] mb-0.5 block">Layer Category</Label>
               <Popover open={categoryDropdownOpen} onOpenChange={setCategoryDropdownOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     role="combobox"
                     aria-expanded={categoryDropdownOpen}
-                    className="w-full justify-between bg-[#1a1d21] border-border text-white hover:bg-muted/50"
+                    className="w-full justify-between bg-[#1a1d21] border-border text-white hover:bg-muted/50 h-7 text-[10px]"
                   >
                     {addLayerCategory}
-                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <ChevronDown className="ml-1 h-2.5 w-2.5 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[624px] p-0 bg-[#1a1d21] border-border" align="start">
                   <Command className="bg-[#1a1d21]">
                     <CommandInput 
                       placeholder="Search categories..." 
-                      className="bg-[#1a1d21] text-white border-none"
+                      className="bg-[#1a1d21] text-white border-none h-7 text-[10px]"
                     />
                     <CommandList>
-                      <CommandEmpty className="text-white/70 py-6 text-center text-sm">
+                      <CommandEmpty className="text-white/70 py-4 text-center text-[10px]">
                         No category found.
                       </CommandEmpty>
                       <CommandGroup>
@@ -2972,10 +3383,10 @@ export function DataLayers({
                               setAddLayerCategory(category);
                               setCategoryDropdownOpen(false);
                             }}
-                            className="text-white hover:bg-muted/50"
+                            className="text-white hover:bg-muted/50 text-[10px]"
                           >
                             <Check
-                              className={`mr-2 h-4 w-4 ${
+                              className={`mr-1 h-3 w-3 ${
                                 addLayerCategory === category ? 'opacity-100' : 'opacity-0'
                               }`}
                             />
@@ -2990,20 +3401,20 @@ export function DataLayers({
             </div>
 
             {/* Submit and Cancel Buttons */}
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <Button
                 onClick={() => {
                   // Submit logic here
                   setAddLayerModalOpen(false);
                 }}
-                className="bg-primary hover:bg-primary/90 px-6 py-0.5 h-auto text-sm"
+                className="bg-primary hover:bg-primary/90 px-4 py-0.5 h-auto text-xs"
               >
                 Submit to East District
               </Button>
               <Button
                 onClick={() => setAddLayerModalOpen(false)}
                 variant="outline"
-                className="border-border px-6 py-0.5 h-auto text-sm"
+                className="border-border px-4 py-0.5 h-auto text-xs"
               >
                 Cancel
               </Button>

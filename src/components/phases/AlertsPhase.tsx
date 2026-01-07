@@ -48,6 +48,8 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   const [viewMode, setViewMode] = useState<'active' | 'historical' | 'sent'>('active');
   const [selectedIncidents, setSelectedIncidents] = useState<string[]>([]);
   const [isIncidentPopoverOpen, setIsIncidentPopoverOpen] = useState(false);
+  const [selectedAORs, setSelectedAORs] = useState<string[]>([]);
+  const [isAORPopoverOpen, setIsAORPopoverOpen] = useState(false);
   
   // State for acknowledgement notification
   const [acknowledgedTimestamp, setAcknowledgedTimestamp] = useState<string | null>(data.acknowledgedTimestamp || null);
@@ -66,6 +68,14 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
     decision: data.boomDataLayerReviewData?.decision || '',
     comments: data.boomDataLayerReviewData?.comments || '',
     submittedAt: data.boomDataLayerReviewData?.submittedAt || null
+  });
+
+  // State for incident activation request notification
+  const [incidentActivationResponded, setIncidentActivationResponded] = useState(data.incidentActivationResponded || false);
+  const [incidentActivationAccepted, setIncidentActivationAccepted] = useState(data.incidentActivationAccepted || false);
+  const [incidentActivationResponse, setIncidentActivationResponse] = useState({
+    decision: data.incidentActivationResponse?.decision || '',
+    submittedAt: data.incidentActivationResponse?.submittedAt || null
   });
 
   // State for SITREP review notification
@@ -132,6 +142,15 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
     'Wind Farm Emergency Shutdown - Molokai'
   ];
 
+  // Available AORs for filtering
+  const aors = [
+    'District East',
+    'District West',
+    'Sector New York',
+    'Sector Delaware Bay',
+    'Sector Galveston',
+  ];
+
   // Handler for incident selection
   const toggleIncident = (incident: string) => {
     setSelectedIncidents(prev => 
@@ -143,6 +162,19 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
 
   const clearIncidentFilter = () => {
     setSelectedIncidents([]);
+  };
+
+  // Handler for AOR selection
+  const toggleAOR = (aor: string) => {
+    setSelectedAORs(prev => 
+      prev.includes(aor) 
+        ? prev.filter(a => a !== aor)
+        : [...prev, aor]
+    );
+  };
+
+  const clearAORFilter = () => {
+    setSelectedAORs([]);
   };
 
   const [formData, setFormData] = useState<AlertItem>({
@@ -174,6 +206,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   
   // State for accept responses
   const [acceptResponses, setAcceptResponses] = useState(false);
+  const [letRecipientsArchive, setLetRecipientsArchive] = useState(false);
   
   // State for active message tab
   const [activeMessageTab, setActiveMessageTab] = useState<string>('');
@@ -466,84 +499,347 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
         </div>
       </div>
 
-      {/* Incident Filter */}
-      <div className="mb-4 px-4 py-3 bg-[#222529] rounded-lg border border-[#6e757c]">
-        <div className="flex items-center gap-2">
-          <span className="caption text-white whitespace-nowrap">Incident:</span>
-          <Popover open={isIncidentPopoverOpen} onOpenChange={setIsIncidentPopoverOpen}>
-            <PopoverTrigger asChild>
-              <button
-                className="w-[300px] h-[24px] bg-transparent border border-[#6e757c] rounded-[4px] px-2 caption text-white focus:outline-none focus:border-accent cursor-pointer flex items-center justify-between"
-                style={{ 
-                  fontFamily: "'Open Sans', sans-serif",
-                  fontSize: '12px',
-                  fontWeight: 400,
-                  lineHeight: '18px'
-                }}
-              >
-                {selectedIncidents.length === 0 
-                  ? 'All Incidents' 
-                  : selectedIncidents.length === 1 
-                  ? selectedIncidents[0]
-                  : `${selectedIncidents.length} incidents selected`}
-                <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0 bg-[#222529] border-[#6e757c]" align="start">
-              <Command className="bg-[#222529]">
-                <CommandInput 
-                  placeholder="Search incident..." 
-                  className="h-9 caption text-white"
+      {/* Incident and AOR Filters */}
+      <div className="mb-4 flex items-center gap-2">
+        {/* Incident Filter */}
+        <div className="flex-1 px-4 py-3 bg-[#222529] rounded-lg border border-[#6e757c]">
+          <div className="flex items-center gap-2">
+            <span className="caption text-white whitespace-nowrap">Incident:</span>
+            <Popover open={isIncidentPopoverOpen} onOpenChange={setIsIncidentPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="w-[180px] h-[24px] bg-transparent border border-[#6e757c] rounded-[4px] px-2 caption text-white focus:outline-none focus:border-accent cursor-pointer flex items-center justify-between"
                   style={{ 
                     fontFamily: "'Open Sans', sans-serif",
                     fontSize: '12px',
                     fontWeight: 400,
                     lineHeight: '18px'
                   }}
-                />
-                <CommandList>
-                  <CommandEmpty className="caption text-white/70 p-2">No incident found.</CommandEmpty>
-                  <CommandGroup>
-                    {incidents.map((incident) => (
-                      <CommandItem
-                        key={incident}
-                        value={incident}
-                        onSelect={() => toggleIncident(incident)}
-                        className="caption text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
-                        style={{ 
-                          fontFamily: "'Open Sans', sans-serif",
-                          fontSize: '12px',
-                          fontWeight: 400,
-                          lineHeight: '18px'
-                        }}
-                      >
-                        <Checkbox
-                          checked={selectedIncidents.includes(incident)}
-                          className="mr-2 h-3 w-3 border-white data-[state=checked]:bg-accent data-[state=checked]:border-accent"
-                        />
-                        {incident}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          {selectedIncidents.length > 0 && (
-            <button
-              onClick={clearIncidentFilter}
-              className="p-1 hover:bg-muted/30 rounded transition-colors"
-              title="Clear filter"
-            >
-              <X className="w-3 h-3 text-white" />
-            </button>
-          )}
+                >
+                  {selectedIncidents.length === 0 
+                    ? 'All Incidents' 
+                    : selectedIncidents.length === 1 
+                    ? selectedIncidents[0]
+                    : `${selectedIncidents.length} selected`}
+                  <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[280px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+                <Command className="bg-[#222529]">
+                  <CommandInput 
+                    placeholder="Search incident..." 
+                    className="h-9 caption text-white"
+                    style={{ 
+                      fontFamily: "'Open Sans', sans-serif",
+                      fontSize: '12px',
+                      fontWeight: 400,
+                      lineHeight: '18px'
+                    }}
+                  />
+                  <CommandList>
+                    <CommandEmpty className="caption text-white/70 p-2">No incident found.</CommandEmpty>
+                    <CommandGroup>
+                      {incidents.map((incident) => (
+                        <CommandItem
+                          key={incident}
+                          value={incident}
+                          onSelect={() => toggleIncident(incident)}
+                          className="caption text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
+                          style={{ 
+                            fontFamily: "'Open Sans', sans-serif",
+                            fontSize: '12px',
+                            fontWeight: 400,
+                            lineHeight: '18px'
+                          }}
+                        >
+                          <Checkbox
+                            checked={selectedIncidents.includes(incident)}
+                            className="mr-2 h-3 w-3 border-white data-[state=checked]:bg-accent data-[state=checked]:border-accent"
+                          />
+                          {incident}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {selectedIncidents.length > 0 && (
+              <button
+                onClick={clearIncidentFilter}
+                className="p-1 hover:bg-muted/30 rounded transition-colors"
+                title="Clear filter"
+              >
+                <X className="w-3 h-3 text-white" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* AOR Filter */}
+        <div className="flex-1 px-4 py-3 bg-[#222529] rounded-lg border border-[#6e757c]">
+          <div className="flex items-center gap-2">
+            <span className="caption text-white whitespace-nowrap">AOR:</span>
+            <Popover open={isAORPopoverOpen} onOpenChange={setIsAORPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="w-[180px] h-[24px] bg-transparent border border-[#6e757c] rounded-[4px] px-2 caption text-white focus:outline-none focus:border-accent cursor-pointer flex items-center justify-between"
+                  style={{ 
+                    fontFamily: "'Open Sans', sans-serif",
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    lineHeight: '18px'
+                  }}
+                >
+                  {selectedAORs.length === 0 
+                    ? 'All AORs' 
+                    : selectedAORs.length === 1 
+                    ? selectedAORs[0]
+                    : `${selectedAORs.length} selected`}
+                  <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[280px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+                <Command className="bg-[#222529]">
+                  <CommandInput 
+                    placeholder="Search AOR..." 
+                    className="h-9 caption text-white"
+                    style={{ 
+                      fontFamily: "'Open Sans', sans-serif",
+                      fontSize: '12px',
+                      fontWeight: 400,
+                      lineHeight: '18px'
+                    }}
+                  />
+                  <CommandList>
+                    <CommandEmpty className="caption text-white/70 p-2">No AOR found.</CommandEmpty>
+                    <CommandGroup>
+                      {aors.map((aor) => (
+                        <CommandItem
+                          key={aor}
+                          value={aor}
+                          onSelect={() => toggleAOR(aor)}
+                          className="caption text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
+                          style={{ 
+                            fontFamily: "'Open Sans', sans-serif",
+                            fontSize: '12px',
+                            fontWeight: 400,
+                            lineHeight: '18px'
+                          }}
+                        >
+                          <Checkbox
+                            checked={selectedAORs.includes(aor)}
+                            className="mr-2 h-3 w-3 border-white data-[state=checked]:bg-accent data-[state=checked]:border-accent"
+                          />
+                          {aor}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {selectedAORs.length > 0 && (
+              <button
+                onClick={clearAORFilter}
+                className="p-1 hover:bg-muted/30 rounded transition-colors"
+                title="Clear filter"
+              >
+                <X className="w-3 h-3 text-white" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Alerts List - similar card layout to Resources */}
       {viewMode === 'active' && (
         <div className="space-y-4">
+        
+        {/* Incident Alpha Activation Request Notification */}
+        {!incidentActivationResponded && <div
+          className="border border-border rounded-lg overflow-hidden"
+          style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+        >
+          <div className={`p-3 ${expandedAlerts.has('incident-activation-request') ? 'border-b border-border' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div
+                className="flex items-start gap-2 flex-1 cursor-pointer"
+                onClick={() => {
+                  const id = 'incident-activation-request';
+                  setExpandedAlerts(prev => {
+                    const next = new Set(prev);
+                    if (next.has(id)) next.delete(id); else next.add(id);
+                    return next;
+                  });
+                }}
+              >
+                {expandedAlerts.has('incident-activation-request') ? (
+                  <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <span className="caption text-white">Incident Alpha Activation Request</span>
+                  {!expandedAlerts.has('incident-activation-request') && (
+                    <div className="space-y-2 mt-1">
+                      <div className="flex items-center gap-3">
+                        <span className="caption text-white">District Command</span>
+                        <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}</span>
+                      </div>
+                      {!incidentActivationAccepted ? (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIncidentActivationAccepted(true);
+                              onDataChange({
+                                ...data,
+                                incidentActivationAccepted: true
+                              });
+                            }}
+                            className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
+                            style={{ paddingTop: '4px', paddingBottom: '4px' }}
+                          >
+                            Accept
+                          </Button>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIncidentActivationResponse({
+                                decision: 'declined',
+                                submittedAt: new Date().toISOString()
+                              });
+                              setIncidentActivationResponded(true);
+                              onDataChange({
+                                ...data,
+                                incidentActivationResponded: true,
+                                incidentActivationResponse: {
+                                  decision: 'declined',
+                                  submittedAt: new Date().toISOString()
+                                }
+                              });
+                            }}
+                            variant="outline"
+                            className="border-border text-white px-3 h-auto text-xs"
+                            style={{ paddingTop: '4px', paddingBottom: '4px' }}
+                          >
+                            Decline
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIncidentActivationResponse({
+                              decision: 'accepted',
+                              submittedAt: new Date().toISOString()
+                            });
+                            setIncidentActivationResponded(true);
+                            onDataChange({
+                              ...data,
+                              incidentActivationResponded: true,
+                              incidentActivationResponse: {
+                                decision: 'accepted',
+                                submittedAt: new Date().toISOString()
+                              }
+                            });
+                          }}
+                          className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
+                          style={{ paddingTop: '4px', paddingBottom: '4px' }}
+                        >
+                          Enter Incident Workspace
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {expandedAlerts.has('incident-activation-request') && (
+            <div className="p-4 space-y-4 bg-card/50">
+              <div>
+                <label className="text-white mb-1 block">Incident Alpha Activation Request</label>
+                <p className="caption text-white mb-3">
+                  Requested by: District Command at {formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}
+                </p>
+                <p className="caption text-white font-semibold">
+                  Your Incident Seat: Situation Unit Leader
+                </p>
+                <div style={{ height: '1rem' }}></div>
+                <p className="caption text-white">
+                  District Command is requesting activation of Incident Alpha due to elevated threat assessment in the operational area. Review the request details and respond with Accept or Decline.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {!incidentActivationAccepted ? (
+                  <>
+                    <Button
+                      onClick={() => {
+                        setIncidentActivationAccepted(true);
+                        onDataChange({
+                          ...data,
+                          incidentActivationAccepted: true
+                        });
+                      }}
+                      className="bg-primary hover:bg-primary/90 text-white px-4 h-auto text-xs"
+                      style={{ paddingTop: '6px', paddingBottom: '6px' }}
+                    >
+                      Accept
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setIncidentActivationResponse({
+                          decision: 'declined',
+                          submittedAt: new Date().toISOString()
+                        });
+                        setIncidentActivationResponded(true);
+                        onDataChange({
+                          ...data,
+                          incidentActivationResponded: true,
+                          incidentActivationResponse: {
+                            decision: 'declined',
+                            submittedAt: new Date().toISOString()
+                          }
+                        });
+                      }}
+                      variant="outline"
+                      className="border-border text-white px-4 h-auto text-xs"
+                      style={{ paddingTop: '6px', paddingBottom: '6px' }}
+                    >
+                      Decline
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      setIncidentActivationResponse({
+                        decision: 'accepted',
+                        submittedAt: new Date().toISOString()
+                      });
+                      setIncidentActivationResponded(true);
+                      onDataChange({
+                        ...data,
+                        incidentActivationResponded: true,
+                        incidentActivationResponse: {
+                          decision: 'accepted',
+                          submittedAt: new Date().toISOString()
+                        }
+                      });
+                    }}
+                    className="bg-primary hover:bg-primary/90 text-white px-4 h-auto text-xs"
+                    style={{ paddingTop: '6px', paddingBottom: '6px' }}
+                  >
+                    Enter Incident Workspace
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>}
         
         {/* Boom Data Layer Review Notification - Only show if not reviewed */}
         {!boomDataLayerReviewed && <div
@@ -1861,6 +2157,22 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 className="text-sm cursor-pointer text-foreground"
               >
                 Accept Responses
+              </label>
+            </div>
+
+            {/* Let Recipients Archive checkbox */}
+            <div className="flex items-center gap-2 pb-2">
+              <Checkbox
+                id="let-recipients-archive"
+                checked={letRecipientsArchive}
+                onCheckedChange={(checked) => setLetRecipientsArchive(checked as boolean)}
+                className="border-border"
+              />
+              <label
+                htmlFor="let-recipients-archive"
+                className="text-sm cursor-pointer text-foreground"
+              >
+                Let Recipients Archive
               </label>
             </div>
 

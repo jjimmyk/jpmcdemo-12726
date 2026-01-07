@@ -349,7 +349,7 @@ export function SafetyAnalysisPhase({ data, onDataChange, onComplete, onPrevious
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="bg-[#222529]">
         <CardContent className="py-6">
           <div className="space-y-6">
             {/* Safety Officer */}
