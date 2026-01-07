@@ -854,7 +854,7 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                   <div className="bg-input-background border border-border rounded p-3 min-h-[120px]">
                     <p className="caption text-white whitespace-pre-wrap">
                       {filterMode === 'region' && selectedRegion === 'sector-new-york' 
-                        ? (sitrepContent || 'No SITREP entered yet. Click Edit to add one.')
+                        ? (sitrepContent || 'There is no SITREP for this AOR yet. Click Add Draft to create one and submit it for review.')
                         : 'SITREP editing is only available for Sector Honolulu.'}
                     </p>
                   </div>
