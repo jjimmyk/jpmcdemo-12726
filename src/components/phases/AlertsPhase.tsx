@@ -116,6 +116,14 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
     submittedAt: data.incidentActivationResponse?.submittedAt || null
   });
 
+  // State for action completion notification
+  const [actionCompletionSubmitted, setActionCompletionSubmitted] = useState(data.actionCompletionSubmitted || false);
+  const [actionCompletionText, setActionCompletionText] = useState(data.actionCompletionText || '');
+  const [actionCompletionResponse, setActionCompletionResponse] = useState({
+    submittedAt: data.actionCompletionResponse?.submittedAt || null,
+    completionNotes: data.actionCompletionResponse?.completionNotes || ''
+  });
+
   // State for SITREP review notification
   const [sitrepReviewed, setSitrepReviewed] = useState(data.sitrepReviewed || false);
   const [sitrepArchived, setSitrepArchived] = useState(data.sitrepArchived || false);
@@ -705,6 +713,127 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
       {viewMode === 'active' && (
         <div className="space-y-4">
         
+        {/* Action Assignment Notification */}
+        {!actionCompletionSubmitted && <div
+          className="border border-border rounded-lg overflow-hidden"
+          style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+        >
+          <div className={`p-3 ${expandedAlerts.has('action-assignment') ? 'border-b border-border' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div
+                className="flex items-start gap-2 flex-1 cursor-pointer"
+                onClick={() => {
+                  const id = 'action-assignment';
+                  setExpandedAlerts(prev => {
+                    const next = new Set(prev);
+                    if (next.has(id)) next.delete(id); else next.add(id);
+                    return next;
+                  });
+                }}
+              >
+                {expandedAlerts.has('action-assignment') ? (
+                  <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="caption text-white">Action Assignment: Establish Communications Protocol</span>
+                  </div>
+                  {!expandedAlerts.has('action-assignment') && (
+                    <div className="space-y-2 mt-1">
+                      <div className="flex items-center gap-3">
+                        <span className="caption text-white">Planning Section Chief</span>
+                        <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 45 * 60 * 1000).toISOString())}</span>
+                      </div>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedAlerts(prev => {
+                            const next = new Set(prev);
+                            next.add('action-assignment');
+                            return next;
+                          });
+                        }}
+                        className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
+                        style={{ paddingTop: '4px', paddingBottom: '4px' }}
+                      >
+                        Submit Completion
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {expandedAlerts.has('action-assignment') && (
+            <div className="p-4 space-y-4 bg-card/50">
+              <div>
+                <label className="text-white mb-1 block">Action Assignment: Establish Communications Protocol</label>
+                <p className="caption text-white mb-3">
+                  Assigned by: Planning Section Chief at {formatMilitaryTimeUTC(new Date(Date.now() - 45 * 60 * 1000).toISOString())}
+                </p>
+                <p className="caption text-white font-semibold">
+                  Priority: High
+                </p>
+                <div style={{ height: '1rem' }}></div>
+                <p className="caption text-white">
+                  You have been assigned to establish and document a standardized communications protocol for all field units operating in the incident area. This should include primary and backup channels, check-in procedures, and emergency protocols.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="completion-notes" className="text-white mb-2 block">
+                    Completion Notes
+                  </Label>
+                  <Textarea
+                    id="completion-notes"
+                    value={actionCompletionText}
+                    onChange={(e) => {
+                      setActionCompletionText(e.target.value);
+                      onDataChange({
+                        ...data,
+                        actionCompletionText: e.target.value
+                      });
+                    }}
+                    placeholder="Enter details about how you completed this action..."
+                    className="bg-card/50 border-border text-white placeholder:text-white/40 min-h-[100px]"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <p className="caption text-white/60 mt-1">
+                    Describe the steps taken to complete this action and any relevant details for verification.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={() => {
+                    setActionCompletionResponse({
+                      submittedAt: new Date().toISOString(),
+                      completionNotes: actionCompletionText
+                    });
+                    setActionCompletionSubmitted(true);
+                    onDataChange({
+                      ...data,
+                      actionCompletionSubmitted: true,
+                      actionCompletionResponse: {
+                        submittedAt: new Date().toISOString(),
+                        completionNotes: actionCompletionText
+                      }
+                    });
+                  }}
+                  disabled={!actionCompletionText.trim()}
+                  className="bg-primary hover:bg-primary/90 text-white px-4 h-auto text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ paddingTop: '6px', paddingBottom: '6px' }}
+                >
+                  Submit Completion
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>}
+        
         {/* Incident Alpha Activation Request Notification */}
         {!incidentActivationResponded && <div
           className="border border-border rounded-lg overflow-hidden"
@@ -1197,7 +1326,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 >
                   <ArrowRightToLine className="w-4 h-4 text-white" />
                 </button>
-              </div>
+                </div>
               </div>
             </div>
 
