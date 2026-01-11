@@ -984,7 +984,7 @@ export function DataLayers({
         </div>
         <div className="flex items-start gap-2 mt-3">
           <div className="flex-1">
-            <Label className="text-white text-xs mb-1 block">Region</Label>
+            <Label className="text-white text-xs mb-1 block">AORs</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -993,7 +993,7 @@ export function DataLayers({
                 >
                   <span className="truncate">
                     {regionFilter.length === 0 || regionFilter.length === 2
-                      ? 'All Regions'
+                      ? 'All AORs'
                       : regionFilter.length === 1
                       ? regionFilter[0] === 'gulf-coast'
                         ? 'Gulf Coast'
@@ -2344,7 +2344,7 @@ export function DataLayers({
                         </div>
                         <div className="flex justify-between">
                           <span className="text-white/70">Region</span>
-                          <span className="text-white">{getLayerRegion(layer.name) === 'gulf-coast' ? 'Gulf Coast Region' : getLayerRegion(layer.name) === 'mid-atlantic' ? 'Mid-Atlantic Region' : 'All Regions'}</span>
+                          <span className="text-white">{getLayerRegion(layer.name) === 'gulf-coast' ? 'Gulf Coast Region' : getLayerRegion(layer.name) === 'mid-atlantic' ? 'Mid-Atlantic Region' : 'All AORs'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-white/70">Incident</span>
@@ -2906,7 +2906,7 @@ export function DataLayers({
 
       {/* Add Layer Modal */}
       <Dialog open={addLayerModalOpen} onOpenChange={setAddLayerModalOpen}>
-        <DialogContent className="bg-[#222529] border-[#6e757c] text-white overflow-y-auto" style={{ maxWidth: '672px', maxHeight: '75vh' }}>
+        <DialogContent className="bg-[#222529] border-[#6e757c] text-white overflow-y-auto" style={{ maxWidth: '1008px', maxHeight: '75vh' }}>
           <DialogHeader>
             <DialogTitle className="text-white text-sm">Add Layer</DialogTitle>
           </DialogHeader>

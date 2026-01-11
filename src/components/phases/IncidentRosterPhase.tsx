@@ -755,20 +755,6 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                 </svg>
               </div>
             </div>
-            <button
-              onClick={openAddMemberSheet}
-              className="bg-[#01669f] h-[22.75px] rounded-[4px] w_[130.625px] hover:bg-[#01669f]/90 transition-colors flex items-center justify-center relative w-[130.625px]"
-            >
-              <div className="absolute left-[16px] size-[13px]">
-                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 13 13">
-                  <g>
-                    <path d="M2.70833 6.5H10.2917" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.08333" />
-                    <path d="M6.5 2.70833V10.2917" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.08333" />
-                  </g>
-                </svg>
-              </div>
-              <p className="caption text-nowrap text-white ml-[21px]">Add AOR</p>
-            </button>
           </div>
           </div>
           {/* Second Row: Area Toggle */}
@@ -920,18 +906,6 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                             >
                               <Map className="w-3 h-3 text-white" />
                             </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); }}
-                              className="p-1 hover:bg-muted/30 rounded transition-colors"
-                            >
-                              <Edit2 className="w-3 h-3 text-white" />
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); }}
-                              className="p-1 hover:bg-muted/30 rounded transition-colors"
-                            >
-                              <Trash2 className="w-3 h-3 text-white" />
-                            </button>
                           </div>
                         </div>
                       </div>
@@ -963,7 +937,7 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
 
                           {/* Assets List */}
                           <div>
-                            <label className="text-white mb-2 block text-xs">Assets ({generateAssetsForSubUnit(sector.id, sector.name).length})</label>
+                            <label className="text-white mb-2 block text-xs">Resources ({generateAssetsForSubUnit(sector.id, sector.name).length})</label>
                             <div className="space-y-2">
                               {generateAssetsForSubUnit(sector.id, sector.name).map((asset) => {
                                 const assetId = `${sectorId}:${asset.id}`;
@@ -994,20 +968,6 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                                             <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                                           )}
                                           <span className="caption text-white">{asset.name}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                          <button
-                                            onClick={(e) => { e.stopPropagation(); }}
-                                            className="p-1 hover:bg-muted/30 rounded transition-colors"
-                                          >
-                                            <Edit2 className="w-3 h-3 text-white" />
-                                          </button>
-                                          <button
-                                            onClick={(e) => { e.stopPropagation(); }}
-                                            className="p-1 hover:bg-muted/30 rounded transition-colors"
-                                          >
-                                            <Trash2 className="w-3 h-3 text-white" />
-                                          </button>
                                         </div>
                                       </div>
                                     </div>
@@ -1094,18 +1054,6 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                     >
                       <Map className="w-3 h-3 text-white" />
                     </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); }}
-                      className="p-1 hover:bg-muted/30 rounded transition-colors"
-                    >
-                      <Edit2 className="w-3 h-3 text-white" />
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); }}
-                      className="p-1 hover:bg-muted/30 rounded transition-colors"
-                    >
-                      <Trash2 className="w-3 h-3 text-white" />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -1117,7 +1065,14 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                   {district.location && (
                     <div>
                       <label className="text-white mb-1 block">Location</label>
-                      <p className="caption text-white">{district.location}</p>
+                      <p className="caption text-white">
+                        {district.location}
+                        {(() => {
+                          const coords = getDistrictCoordinates(district.id);
+                          const [lon, lat] = coords.center.split(',');
+                          return ` (${parseFloat(lat).toFixed(4)}°N, ${Math.abs(parseFloat(lon)).toFixed(4)}°W)`;
+                        })()}
+                      </p>
                     </div>
                   )}
                   
@@ -1185,18 +1140,6 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                                   >
                                     <Map className="w-3 h-3 text-white" />
                                   </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); }}
-                                    className="p-1 hover:bg-muted/30 rounded transition-colors"
-                                  >
-                                    <Edit2 className="w-3 h-3 text-white" />
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); }}
-                                    className="p-1 hover:bg-muted/30 rounded transition-colors"
-                                  >
-                                    <Trash2 className="w-3 h-3 text-white" />
-                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -1238,7 +1181,14 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                                     </div>
                                     <div>
                                       <label className="text-white mb-1 block text-xs">Location</label>
-                                      <p className="caption text-white text-sm">{sector.signedIn ? 'At sea' : 'Station'}</p>
+                                      <p className="caption text-white text-sm">
+                                        {sector.signedIn ? 'At sea' : 'Station'}
+                                        {(() => {
+                                          const coords = getUnitCoordinates(selectedSector || '', sector.id);
+                                          const [lon, lat] = coords.center.split(',');
+                                          return ` (${parseFloat(lat).toFixed(4)}°N, ${Math.abs(parseFloat(lon)).toFixed(4)}°W)`;
+                                        })()}
+                                      </p>
                                     </div>
                                     <div>
                                       <label className="text-white mb-1 block text-xs">Personnel</label>
@@ -1254,7 +1204,14 @@ export function IncidentRosterPhase({ data, onDataChange, onComplete, onPrevious
                                     {sector.location && (
                                       <div>
                                         <label className="text-white mb-1 block text-xs">Location</label>
-                                        <p className="caption text-white text-sm">{sector.location}</p>
+                                        <p className="caption text-white text-sm">
+                                          {sector.location}
+                                          {(() => {
+                                            const coords = getSectorCoordinates(sector.id);
+                                            const [lon, lat] = coords.center.split(',');
+                                            return ` (${parseFloat(lat).toFixed(4)}°N, ${Math.abs(parseFloat(lon)).toFixed(4)}°W)`;
+                                          })()}
+                                        </p>
                                       </div>
                                     )}
                                     <div>

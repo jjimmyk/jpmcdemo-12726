@@ -805,16 +805,19 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                         ? regions.find(r => r.id === selectedRegion)?.name 
                         : incidents.find(i => i.id === selectedIncident)?.name}
                     </Label>
-                    {!sitrepEditMode && filterMode === 'region' && selectedRegion === 'sector-new-york' && (
-                      <Button
-                        onClick={startEditSitrep}
-                        className="bg-transparent border border-white text-white hover:bg-white/10 h-auto px-1.5 py-0.5 flex items-center gap-1"
-                        style={{ fontSize: '9px' }}
-                      >
-                        <Plus className="w-2 h-2" />
-                        Add Draft
-                      </Button>
-                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="caption text-white/70 text-xs block">
+                      Authored by LCDR Sarah Mitchell at 14:30 UTC 19 DEC 2025
+                    </span>
+                    <Button
+                      onClick={() => {}}
+                      className="bg-transparent border border-white text-white hover:bg-white/10 h-auto px-1.5 py-0.5 flex items-center gap-1"
+                      style={{ fontSize: '9px' }}
+                    >
+                      <Plus className="w-2 h-2" />
+                      Add Draft
+                    </Button>
                   </div>
                   {sitrepLastUpdated && (
                     <span className="caption text-white/70 block">

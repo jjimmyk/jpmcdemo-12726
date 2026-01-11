@@ -78,6 +78,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
 
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
+  const [expandedRecipientSections, setExpandedRecipientSections] = useState<Set<string>>(new Set());
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingAlertId, setEditingAlertId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'active' | 'historical' | 'sent'>('active');
@@ -137,8 +138,6 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   );
 
   // State for sent notification search filters
-  const [safetyAssessmentAckSearch, setSafetyAssessmentAckSearch] = useState('');
-  const [safetyAssessmentNotAckSearch, setSafetyAssessmentNotAckSearch] = useState('');
   const [incidentBriefingAckSearch, setIncidentBriefingAckSearch] = useState('');
   const [incidentBriefingNotAckSearch, setIncidentBriefingNotAckSearch] = useState('');
   const [emergencyStandDownAckSearch, setEmergencyStandDownAckSearch] = useState('');
@@ -251,6 +250,10 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   // State for recipient popovers
   const [individualsPopoverOpen, setIndividualsPopoverOpen] = useState(false);
   const [teamsPopoverOpen, setTeamsPopoverOpen] = useState(false);
+  const [associatedIncidentsPopoverOpen, setAssociatedIncidentsPopoverOpen] = useState(false);
+  
+  // State for associated incidents in notification
+  const [associatedIncidents, setAssociatedIncidents] = useState<string[]>([]);
   
   // State for send timing mode
   const [sendTimingMode, setSendTimingMode] = useState<'now' | 'scheduled'>('scheduled');
@@ -262,7 +265,6 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   const [requireAcknowledgement, setRequireAcknowledgement] = useState(false);
   
   // State for accept responses
-  const [acceptResponses, setAcceptResponses] = useState(false);
   const [letRecipientsArchive, setLetRecipientsArchive] = useState(false);
   
   // State for active message tab
@@ -321,6 +323,16 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
     'Field Operations Team',
   ];
 
+  // Available incidents for association
+  const availableIncidents = [
+    'Incident Alpha',
+    'Maritime Emergency - Sector Honolulu',
+    'Hurricane Watch - Pacific Region',
+    'Search and Rescue Operation',
+    'Oil Spill Response',
+    'Port Security Exercise',
+  ];
+
   // Helper functions for recipients
   const toggleRecipient = (recipient: string) => {
     const recipients = formData.recipients || [];
@@ -333,6 +345,19 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
 
   const removeRecipient = (recipient: string) => {
     setFormData({ ...formData, recipients: formData.recipients?.filter(r => r !== recipient) || [] });
+  };
+
+  // Helper functions for associated incidents in notification
+  const toggleAssociatedIncident = (incident: string) => {
+    if (associatedIncidents.includes(incident)) {
+      setAssociatedIncidents(associatedIncidents.filter(i => i !== incident));
+    } else {
+      setAssociatedIncidents([...associatedIncidents, incident]);
+    }
+  };
+
+  const removeAssociatedIncident = (incident: string) => {
+    setAssociatedIncidents(associatedIncidents.filter(i => i !== incident));
   };
 
   const toggleChannel = (channelId: string) => {
@@ -2172,15 +2197,8 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                         <div className="flex items-center gap-3">
                           <span className="caption text-white">Sent: {formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}</span>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1">
-                            <span className="caption text-white font-semibold">38</span>
-                            <span className="caption text-white">acknowledged</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="caption text-white font-semibold">35</span>
-                            <span className="caption text-white">submitted</span>
-                          </div>
+                        <div className="flex items-center gap-1">
+                          <span className="caption text-white">Recipients: Operations Section, Planning Section, Logistics Section</span>
                         </div>
                       </div>
                     )}
@@ -2199,109 +2217,147 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 </div>
 
                 <div>
-                  <label className="text-white mb-2 block">Acknowledgement Status</label>
-                  <p className="caption text-white text-lg font-semibold mb-3">38 / 45 acknowledged (84%)</p>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <p className="caption text-white font-bold mb-2">Acknowledged (38)</p>
-                      <input
-                        type="text"
-                        value={safetyAssessmentAckSearch}
-                        onChange={(e) => setSafetyAssessmentAckSearch(e.target.value)}
-                        placeholder="Search acknowledged..."
-                        className="w-full h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
-                      />
-                      <div className="max-h-[200px] overflow-y-auto">
-                        {(() => {
-                          const acknowledgedUsers = [
-                            { name: 'Jose Martinez', email: 'jose.martinez@uscg.mil' },
-                            { name: 'Sarah Johnson', email: 'sarah.johnson@uscg.mil' },
-                            { name: 'Michael Rodriguez', email: 'michael.rodriguez@uscg.mil' },
-                            { name: 'Karen Williams', email: 'karen.williams@uscg.mil' },
-                            { name: 'Thomas Brown', email: 'thomas.brown@uscg.mil' },
-                            { name: 'Amanda Davis', email: 'amanda.davis@uscg.mil' },
-                            { name: 'Robert Wilson', email: 'robert.wilson@uscg.mil' },
-                            { name: 'Lisa Moore', email: 'lisa.moore@uscg.mil' },
-                            { name: 'Christopher Taylor', email: 'christopher.taylor@uscg.mil' },
-                            { name: 'David Anderson', email: 'david.anderson@uscg.mil' },
-                            { name: 'Patricia Thomas', email: 'patricia.thomas@uscg.mil' },
-                            { name: 'Henry Jackson', email: 'henry.jackson@uscg.mil' },
-                            { name: 'Nancy White', email: 'nancy.white@uscg.mil' },
-                            { name: 'Edward Harris', email: 'edward.harris@uscg.mil' },
-                            { name: 'Barbara Martin', email: 'barbara.martin@uscg.mil' },
-                            { name: 'George Thompson', email: 'george.thompson@uscg.mil' },
-                            { name: 'Victoria Garcia', email: 'victoria.garcia@uscg.mil' },
-                            { name: 'Frank Martinez', email: 'frank.martinez@uscg.mil' },
-                            { name: 'Isabella Robinson', email: 'isabella.robinson@uscg.mil' },
-                            { name: 'Oscar Clark', email: 'oscar.clark@uscg.mil' },
-                            { name: 'Uma Rodriguez', email: 'uma.rodriguez@uscg.mil' },
-                            { name: 'Yolanda Lewis', email: 'yolanda.lewis@uscg.mil' },
-                            { name: 'Quentin Lee', email: 'quentin.lee@uscg.mil' },
-                            { name: 'Walter Walker', email: 'walter.walker@uscg.mil' },
-                            { name: 'Xavier Hall', email: 'xavier.hall@uscg.mil' },
-                            { name: 'Zachary Allen', email: 'zachary.allen@uscg.mil' },
-                            { name: 'Sophia Young', email: 'sophia.young@uscg.mil' },
-                            { name: 'James Hernandez', email: 'james.hernandez@uscg.mil' },
-                            { name: 'Megan King', email: 'megan.king@uscg.mil' },
-                            { name: 'Kevin Wright', email: 'kevin.wright@uscg.mil' },
-                            { name: 'Teresa Lopez', email: 'teresa.lopez@uscg.mil' },
-                            { name: 'Anthony Hill', email: 'anthony.hill@uscg.mil' },
-                            { name: 'Rachel Scott', email: 'rachel.scott@uscg.mil' },
-                            { name: 'Lawrence Green', email: 'lawrence.green@uscg.mil' },
-                            { name: 'Carol Adams', email: 'carol.adams@uscg.mil' },
-                            { name: 'Daniel Baker', email: 'daniel.baker@uscg.mil' },
-                            { name: 'Paula Gonzalez', email: 'paula.gonzalez@uscg.mil' },
-                            { name: 'Harold Nelson', email: 'harold.nelson@uscg.mil' }
-                          ];
-                          
-                          const filteredUsers = acknowledgedUsers.filter(user => {
-                            const searchLower = safetyAssessmentAckSearch.toLowerCase();
-                            return user.name.toLowerCase().includes(searchLower) || user.email.toLowerCase().includes(searchLower);
+                  <label className="text-white mb-2 block">Recipients</label>
+                  <div className="space-y-2">
+                    {/* Operations Section */}
+                    <div className="border border-border rounded">
+                      <div
+                        className="flex items-center gap-2 p-2 cursor-pointer hover:bg-muted/20"
+                        onClick={() => {
+                          const id = 'safety-ops-section';
+                          setExpandedRecipientSections(prev => {
+                            const next = new Set(prev);
+                            if (next.has(id)) next.delete(id); else next.add(id);
+                            return next;
                           });
-                          
-                          return filteredUsers.map((user) => (
-                            <div key={user.email} className="caption text-white text-xs py-1">
-                              {user.name} ({user.email})
-                            </div>
-                          ));
-                        })()}
+                        }}
+                      >
+                        {expandedRecipientSections.has('safety-ops-section') ? (
+                          <ChevronDown className="w-4 h-4 text-white flex-shrink-0" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-white flex-shrink-0" />
+                        )}
+                        <span className="caption text-white">Operations Section (15)</span>
                       </div>
+                      {expandedRecipientSections.has('safety-ops-section') && (
+                        <div className="px-4 pb-2 space-y-1">
+                          {[
+                            'Jose Martinez',
+                            'Sarah Johnson',
+                            'Michael Rodriguez',
+                            'Karen Williams',
+                            'Thomas Brown',
+                            'Amanda Davis',
+                            'Robert Wilson',
+                            'Lisa Moore',
+                            'Christopher Taylor',
+                            'David Anderson',
+                            'Patricia Thomas',
+                            'Henry Jackson',
+                            'Nancy White',
+                            'Edward Harris',
+                            'Barbara Martin'
+                          ].map((name) => (
+                            <div key={name} className="caption text-white/80 text-xs py-0.5">
+                              {name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
-                    <div>
-                      <p className="caption text-white font-bold mb-2">Not Yet Acknowledged (7)</p>
-                      <input
-                        type="text"
-                        value={safetyAssessmentNotAckSearch}
-                        onChange={(e) => setSafetyAssessmentNotAckSearch(e.target.value)}
-                        placeholder="Search not acknowledged..."
-                        className="w-full h-6 bg-transparent border border-[#6e757c] rounded px-2 caption text-white placeholder:text-[#6e757c] focus:outline-none focus:border-accent mb-2"
-                      />
-                      <div>
-                        {(() => {
-                          const notAcknowledgedUsers = [
-                            { name: 'Nathan Carter', email: 'nathan.carter@uscg.mil' },
-                            { name: 'Emily Mitchell', email: 'emily.mitchell@uscg.mil' },
-                            { name: 'Brian Perez', email: 'brian.perez@uscg.mil' },
-                            { name: 'Grace Roberts', email: 'grace.roberts@uscg.mil' },
-                            { name: 'Vincent Turner', email: 'vincent.turner@uscg.mil' },
-                            { name: 'Fiona Phillips', email: 'fiona.phillips@uscg.mil' },
-                            { name: 'Isaac Campbell', email: 'isaac.campbell@uscg.mil' }
-                          ];
-                          
-                          const filteredUsers = notAcknowledgedUsers.filter(user => {
-                            const searchLower = safetyAssessmentNotAckSearch.toLowerCase();
-                            return user.name.toLowerCase().includes(searchLower) || user.email.toLowerCase().includes(searchLower);
+                    {/* Planning Section */}
+                    <div className="border border-border rounded">
+                      <div
+                        className="flex items-center gap-2 p-2 cursor-pointer hover:bg-muted/20"
+                        onClick={() => {
+                          const id = 'safety-planning-section';
+                          setExpandedRecipientSections(prev => {
+                            const next = new Set(prev);
+                            if (next.has(id)) next.delete(id); else next.add(id);
+                            return next;
                           });
-                          
-                          return filteredUsers.map((user) => (
-                            <div key={user.email} className="caption text-white/70 text-xs py-1">
-                              {user.name} ({user.email})
-                            </div>
-                          ));
-                        })()}
+                        }}
+                      >
+                        {expandedRecipientSections.has('safety-planning-section') ? (
+                          <ChevronDown className="w-4 h-4 text-white flex-shrink-0" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-white flex-shrink-0" />
+                        )}
+                        <span className="caption text-white">Planning Section (15)</span>
                       </div>
+                      {expandedRecipientSections.has('safety-planning-section') && (
+                        <div className="px-4 pb-2 space-y-1">
+                          {[
+                            'George Thompson',
+                            'Victoria Garcia',
+                            'Frank Martinez',
+                            'Isabella Robinson',
+                            'Oscar Clark',
+                            'Uma Rodriguez',
+                            'Yolanda Lewis',
+                            'Quentin Lee',
+                            'Walter Walker',
+                            'Xavier Hall',
+                            'Zachary Allen',
+                            'Sophia Young',
+                            'James Hernandez',
+                            'Megan King',
+                            'Kevin Wright'
+                          ].map((name) => (
+                            <div key={name} className="caption text-white/80 text-xs py-0.5">
+                              {name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Logistics Section */}
+                    <div className="border border-border rounded">
+                      <div
+                        className="flex items-center gap-2 p-2 cursor-pointer hover:bg-muted/20"
+                        onClick={() => {
+                          const id = 'safety-logistics-section';
+                          setExpandedRecipientSections(prev => {
+                            const next = new Set(prev);
+                            if (next.has(id)) next.delete(id); else next.add(id);
+                            return next;
+                          });
+                        }}
+                      >
+                        {expandedRecipientSections.has('safety-logistics-section') ? (
+                          <ChevronDown className="w-4 h-4 text-white flex-shrink-0" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-white flex-shrink-0" />
+                        )}
+                        <span className="caption text-white">Logistics Section (15)</span>
+                      </div>
+                      {expandedRecipientSections.has('safety-logistics-section') && (
+                        <div className="px-4 pb-2 space-y-1">
+                          {[
+                            'Teresa Lopez',
+                            'Anthony Hill',
+                            'Rachel Scott',
+                            'Lawrence Green',
+                            'Carol Adams',
+                            'Daniel Baker',
+                            'Paula Gonzalez',
+                            'Harold Nelson',
+                            'Nathan Carter',
+                            'Emily Mitchell',
+                            'Brian Perez',
+                            'Grace Roberts',
+                            'Vincent Turner',
+                            'Fiona Phillips',
+                            'Isaac Campbell'
+                          ].map((name) => (
+                            <div key={name} className="caption text-white/80 text-xs py-0.5">
+                              {name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2771,22 +2827,6 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
               </label>
             </div>
 
-            {/* Accept Responses checkbox */}
-            <div className="flex items-center gap-2 pb-2">
-              <Checkbox
-                id="accept-responses"
-                checked={acceptResponses}
-                onCheckedChange={(checked) => setAcceptResponses(checked as boolean)}
-                className="border-border"
-              />
-              <label
-                htmlFor="accept-responses"
-                className="text-sm cursor-pointer text-foreground"
-              >
-                Accept Responses
-              </label>
-            </div>
-
             {/* Let Recipients Archive checkbox */}
             <div className="flex items-center gap-2 pb-2">
               <Checkbox
@@ -2799,7 +2839,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 htmlFor="let-recipients-archive"
                 className="text-sm cursor-pointer text-foreground"
               >
-                Let Recipients Archive
+                Let Recipients Dismiss
               </label>
             </div>
 
@@ -2932,6 +2972,69 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                             </button>
                           </div>
                         ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Associated Incident(s) Multi-Select Dropdown */}
+                <div className="space-y-2">
+                  <Label className="text-sm text-foreground">Associated Incident(s)</Label>
+                  <Popover open={associatedIncidentsPopoverOpen} onOpenChange={setAssociatedIncidentsPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="w-full flex items-center justify-between bg-input-background border border-border rounded-md px-3 py-2 text-sm hover:bg-accent/5"
+                      >
+                        <span className="text-muted-foreground">
+                          {associatedIncidents.length || 0} selected
+                        </span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0 bg-card border-border" align="start">
+                      <Command className="bg-card">
+                        <CommandInput 
+                          placeholder="Search incidents..." 
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandEmpty>No incident found.</CommandEmpty>
+                          <CommandGroup>
+                            {availableIncidents.map((incident) => (
+                              <CommandItem
+                                key={incident}
+                                value={incident}
+                                onSelect={() => toggleAssociatedIncident(incident)}
+                                className="cursor-pointer"
+                              >
+                                <Checkbox
+                                  checked={associatedIncidents.includes(incident)}
+                                  className="mr-2"
+                                />
+                                {incident}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {/* Selected incidents tags */}
+                  {associatedIncidents.length > 0 && (
+                    <div className="flex flex-wrap gap-2 p-2 bg-input-background border border-border rounded-md">
+                      {associatedIncidents.map((incident) => (
+                        <div 
+                          key={incident}
+                          className="flex items-center gap-1 bg-accent/20 text-accent px-2 py-1 rounded text-xs"
+                        >
+                          <span>{incident}</span>
+                          <button
+                            onClick={() => removeAssociatedIncident(incident)}
+                            className="hover:bg-accent/30 rounded p-0.5"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

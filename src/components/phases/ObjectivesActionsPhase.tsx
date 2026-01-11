@@ -72,19 +72,19 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
   const initialObjectives = data.objectives || [
     {
       id: '1',
-      title: 'Oahu Substation Fire — Kapolei Power Grid',
+      title: 'Oahu Substation Fire',
       type: 'Operational',
       actions: [],
       childIncidents: [
         {
           id: '1a',
-          title: 'Ewa Beach Distribution Network Outage — Secondary Impact',
+          title: 'Ewa Beach Distribution Network Outage',
           type: 'Operational',
           actions: []
         },
         {
           id: '1b',
-          title: 'West Oahu Residential Grid Restoration — Emergency Priority',
+          title: 'West Oahu Residential Grid Restoration',
           type: 'Operational',
           actions: []
         }
@@ -92,13 +92,13 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     },
     {
       id: '2',
-      title: 'Maui Solar Array Inverter Failure — Kahului Energy Complex',
+      title: 'Maui Solar Array Inverter Failure',
       type: 'Operational',
       actions: []
     },
     {
       id: '3',
-      title: 'Big Island Battery Storage Malfunction — Kona Grid',
+      title: 'Big Island Battery Storage Malfunction',
       type: 'Operational',
       actions: [],
       childIncidents: [
@@ -118,19 +118,19 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     },
     {
       id: '4',
-      title: 'Kauai Transmission Line Damage — Hurricane Aftermath',
+      title: 'Kauai Transmission Line Damage',
       type: 'Operational',
       actions: []
     },
     {
       id: '5',
-      title: 'Honolulu Harbor Substation Flooding — Storm Surge Impact',
+      title: 'Honolulu Harbor Substation Flooding',
       type: 'Operational',
       actions: []
     },
     {
       id: '6',
-      title: 'Molokai Wind Farm Emergency Shutdown — Grid Stability',
+      title: 'Molokai Wind Farm Emergency Shutdown',
       type: 'Operational',
       actions: []
     }
@@ -1550,210 +1550,35 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
                         >
                           <p className="caption text-nowrap text-white">Incident Workspace</p>
                         </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsAddIncidentModalOpen(true);
-                          }}
-                          className="bg-[#01669f] h-[22.75px] rounded-[4px] px-4 hover:bg-[#01669f]/90 transition-colors flex items-center justify-center gap-2"
-                        >
-                          <div className="size-[13px]">
-                            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 13 13">
-                              <g>
-                                <path d="M2.70833 6.5H10.2917" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.08333" />
-                                <path d="M6.5 2.70833V10.2917" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.08333" />
-                              </g>
-                            </svg>
-                          </div>
-                          <p className="caption text-nowrap text-white">Add Child Incident</p>
-                        </button>
                       </div>
-                      
-                      {/* Incident Description */}
-                      {d.description && (
-                        <div>
-                          <p className="caption text-white leading-relaxed">{d.description}</p>
-                        </div>
-                      )}
                       
                       {/* Incident Details Grid */}
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="caption text-white/70 mb-1 block">Location</label>
-                          <p className="caption text-white">{d.location}</p>
+                          <label className="caption text-white/70 mb-1 block">Type</label>
+                          <p className="caption text-white">Operational</p>
                         </div>
                         <div>
-                          <label className="caption text-white/70 mb-1 block">Status</label>
-                          <p className="caption text-white">{d.status}</p>
+                          <label className="caption text-white/70 mb-1 block">Current Operational Period</label>
+                          <p className="caption text-white">Period 3</p>
                         </div>
                         <div>
                           <label className="caption text-white/70 mb-1 block">Start Time</label>
                           <p className="caption text-white">{d.startTime}</p>
                         </div>
                         <div>
-                          <label className="caption text-white/70 mb-1 block">Estimated Volume</label>
-                          <p className="caption text-white">{d.estimatedVolume}</p>
-                        </div>
-                        <div>
-                          <label className="caption text-white/70 mb-1 block">Shoreline Impact</label>
-                          <p className="caption text-white">{d.shorelineImpact}</p>
-                        </div>
-                        <div>
-                          <label className="caption text-white/70 mb-1 block">Responsible Party</label>
-                          <p className="caption text-white">{d.responsibleParty}</p>
-                        </div>
-                        <div>
                           <label className="caption text-white/70 mb-1 block">Incident Commander</label>
                           <p className="caption text-white">{d.incidentCommander}</p>
                         </div>
                         <div>
-                          <label className="caption text-white/70 mb-1 block">Last Update</label>
-                          <p className="caption text-white">{d.lastUpdate}</p>
+                          <label className="caption text-white/70 mb-1 block">Location</label>
+                          <p className="caption text-white">{d.location}</p>
+                        </div>
+                        <div>
+                          <label className="caption text-white/70 mb-1 block">Severity</label>
+                          <p className="caption text-white">{getIncidentSeverityHelper(objective.id)}</p>
                         </div>
                       </div>
-
-                      {/* Child Incidents */}
-                      {objective.childIncidents && objective.childIncidents.length > 0 && (
-                        <div className="mt-4">
-                          <label className="caption text-white mb-2 block">Child Incidents</label>
-                          <div className="space-y-3">
-                            {objective.childIncidents.map((child) => {
-                              const isChildExpanded = expandedChildIncidents.has(child.id);
-                              const childDetails = getIncidentDetails(child.id);
-                              const childSeverity = getIncidentSeverity(child.id);
-                              
-                              return (
-                                <div
-                                  key={child.id}
-                                  className="border border-border/50 rounded-lg overflow-hidden"
-                                  style={{ backgroundColor: 'rgba(139, 123, 168, 0.15)' }}
-                                >
-                                  <div className={`p-3 ${isChildExpanded ? 'border-b border-border/50' : ''}`}>
-                                    <div className="flex items-start justify-between">
-                                      <div
-                                        className="flex items-start gap-2 cursor-pointer flex-1"
-                                        onClick={() => toggleChildIncident(child.id)}
-                                      >
-                                        {isChildExpanded ? (
-                                          <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
-                                        ) : (
-                                          <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
-                                        )}
-                                        <div className="flex-1">
-                                          <span className="caption text-white">{child.title}</span>
-                                          {!isChildExpanded && (
-                                            <div className="flex items-center gap-2 mt-1">
-                                              <span 
-                                                className="caption px-2 py-0.5 rounded text-xs"
-                                                style={{ 
-                                                  backgroundColor: `${getSeverityColor(childSeverity)}20`,
-                                                  color: getSeverityColor(childSeverity),
-                                                  border: `1px solid ${getSeverityColor(childSeverity)}60`
-                                                }}
-                                              >
-                                                {childSeverity}
-                                              </span>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center gap-1">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            // Apply data layer filter
-                                            if (onApplyDataLayerFilter) {
-                                              const incident = getIncidentFilterValue(child.id);
-                                              onApplyDataLayerFilter(incident);
-                                            }
-                                          }}
-                                          className="p-1 hover:bg-muted/30 rounded transition-colors"
-                                          title="Filter child incident"
-                                        >
-                                          <Filter className="w-3 h-3 text-white" />
-                                        </button>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (onZoomToLocation) {
-                                              const coords = getIncidentCoordinates(child.id);
-                                              onZoomToLocation(coords.center, coords.scale);
-                                            }
-                                          }}
-                                          className="p-1 hover:bg-muted/30 rounded transition-colors"
-                                          title="Zoom to child incident location"
-                                        >
-                                          <Map className="w-3 h-3 text-white" />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Child Incident Details */}
-                                  {isChildExpanded && (
-                                    <div className="p-3 space-y-3 bg-card/30">
-                                      {/* Child Incident Workspace Button */}
-                                      <div className="mb-3">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                          }}
-                                          className="bg-[#01669f] h-[22.75px] rounded-[4px] px-4 hover:bg-[#01669f]/90 transition-colors flex items-center justify-center"
-                                        >
-                                          <p className="caption text-nowrap text-white">Incident Workspace</p>
-                                        </button>
-                                      </div>
-
-                                      {/* Child Incident Description */}
-                                      {childDetails.description && (
-                                        <div>
-                                          <p className="caption text-white leading-relaxed text-sm">{childDetails.description}</p>
-                                        </div>
-                                      )}
-
-                                      {/* Child Incident Details Grid */}
-                                      <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                          <label className="caption text-white/70 mb-1 block text-xs">Location</label>
-                                          <p className="caption text-white text-sm">{childDetails.location}</p>
-                                        </div>
-                                        <div>
-                                          <label className="caption text-white/70 mb-1 block text-xs">Status</label>
-                                          <p className="caption text-white text-sm">{childDetails.status}</p>
-                                        </div>
-                                        <div>
-                                          <label className="caption text-white/70 mb-1 block text-xs">Start Time</label>
-                                          <p className="caption text-white text-sm">{childDetails.startTime}</p>
-                                        </div>
-                                        <div>
-                                          <label className="caption text-white/70 mb-1 block text-xs">Estimated Volume</label>
-                                          <p className="caption text-white text-sm">{childDetails.estimatedVolume}</p>
-                                        </div>
-                                        <div>
-                                          <label className="caption text-white/70 mb-1 block text-xs">Shoreline Impact</label>
-                                          <p className="caption text-white text-sm">{childDetails.shorelineImpact}</p>
-                                        </div>
-                                        <div>
-                                          <label className="caption text-white/70 mb-1 block text-xs">Responsible Party</label>
-                                          <p className="caption text-white text-sm">{childDetails.responsibleParty}</p>
-                                        </div>
-                                        <div>
-                                          <label className="caption text-white/70 mb-1 block text-xs">Incident Commander</label>
-                                          <p className="caption text-white text-sm">{childDetails.incidentCommander}</p>
-                                        </div>
-                                        <div>
-                                          <label className="caption text-white/70 mb-1 block text-xs">Last Update</label>
-                                          <p className="caption text-white text-sm">{childDetails.lastUpdate}</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
                     </>
                   );
                 })()}

@@ -1015,7 +1015,7 @@ export default function App() {
                {/* Bottom area of left panel: PRATUS AI toggle and chat */}
               <div
                 className="flex-none border-t border-border bg-muted/20 overflow-hidden"
-                 style={{ height: showMapChat && !chatFloatingBottom ? '40%' : 'auto' }}
+                 style={{ height: showMapChat && !chatFloatingBottom ? '60%' : 'auto' }}
               >
                  {showMapChat && !chatFloatingBottom ? (
                   <div className="h-full flex flex-col">
