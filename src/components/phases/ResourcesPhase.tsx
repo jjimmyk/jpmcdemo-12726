@@ -37,48 +37,48 @@ export function ResourcesPhase({ data, onDataChange, onComplete, onPrevious }: R
     data.resources || [
       {
         id: '1',
-        name: 'Mobile Generator Sets (MHE) – Priority Defense/Hospital Sites',
-        description: 'Trailered 60–150 kW gensets with cables and transfer accessories staged for Kaneohe MCBH HQ, hospitals, and water pumping stations.',
-        identifier: 'Mobile Generators',
-        quantity: '12 units',
+        name: 'TSA K9 Explosive Detection Teams – Unit Delta',
+        description: 'Specialized K9 explosive detection teams for enhanced screening operations at MetLife Stadium. 8 handler/dog teams trained in stadium environment screening, crowd management, and rapid deployment protocols for suspicious package response.',
+        identifier: 'K9 Detection Unit',
+        quantity: '8 handler/dog teams',
         dateOrdered: new Date().toISOString(),
-        timeOrdered: '07:30',
+        timeOrdered: '06:20',
         eta: new Date(Date.now() + 2 * 3600000).toISOString(),
         etaTime: 'Next 2h',
         status: 'In Transit'
       },
       {
         id: '2',
-        name: 'Fuel Tankers (ULSD) – Defense & Lifelines Resupply',
-        description: 'Tanker trucks with diesel for generators at MCBH HQ, hospitals, telecom macro sites, and high‑lift pumps; escorted routing via windward access.',
-        identifier: 'Fuel Tankers',
-        quantity: '4 trucks (≈24k gal)',
+        name: 'FBI Joint Terrorism Task Force – Tactical Response Team',
+        description: 'Elite tactical response unit with counter-terrorism expertise for elevated threat response. Includes tactical operators, intelligence analysts, and specialized equipment for rapid intervention and threat neutralization during World Cup operations.',
+        identifier: 'JTTF Tactical Unit',
+        quantity: '12 operators + support',
         dateOrdered: new Date().toISOString(),
-        timeOrdered: '08:15',
+        timeOrdered: '03:45',
         eta: new Date(Date.now() + 4 * 3600000).toISOString(),
         etaTime: 'Next 4h',
         status: 'In Transit'
       },
       {
         id: '3',
-        name: 'Utility Rapid Response Line Crews – Windward Corridors',
-        description: 'Vegetation, spans, and substation inspection crews focused on wind‑exposed 138 kV corridors and priority feeders into windward communities.',
-        identifier: 'Line Crews',
-        quantity: '6 crews',
+        name: 'CBRN Detection Equipment – Mobile Laboratory',
+        description: 'Advanced chemical, biological, radiological, and nuclear detection systems for venue perimeter and entry point monitoring. Includes portable mass spectrometry, radiation detection, and bio-agent identification capabilities.',
+        identifier: 'CBRN Mobile Lab',
+        quantity: '2 mobile units + 6 technicians',
         dateOrdered: new Date().toISOString(),
-        timeOrdered: '08:45',
+        timeOrdered: '08:30',
         eta: new Date().toISOString(),
         etaTime: 'Now',
         status: 'Onsite'
       },
       {
         id: '4',
-        name: 'Telecom Portable Gensets & Battery Trailers – PSAP/Macro Sites',
-        description: 'Portable 20–60 kW generators and battery trailers to sustain 911 PSAPs and macro sites with limited buffer during grid instability.',
-        identifier: 'Telecom Power',
-        quantity: '8 units',
+        name: 'CBP Air & Marine Operations – Surveillance Aircraft',
+        description: 'Multi-mission aircraft for airspace monitoring and TFR enforcement during match operations. Equipped with advanced surveillance systems, thermal imaging, and real-time communication links to Joint Operations Center.',
+        identifier: 'Air Surveillance',
+        quantity: '2 aircraft + aircrews',
         dateOrdered: new Date().toISOString(),
-        timeOrdered: '09:00',
+        timeOrdered: '11:15',
         eta: new Date(Date.now() + 6 * 3600000).toISOString(),
         etaTime: '18:00',
         status: 'Deployed'
@@ -511,22 +511,22 @@ export function ResourcesPhase({ data, onDataChange, onComplete, onPrevious }: R
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Mobile Generators">Mobile Generators</SelectItem>
-                  <SelectItem value="Fuel Tankers">Fuel Tankers</SelectItem>
-                  <SelectItem value="Line Crews">Line Crews</SelectItem>
-                  <SelectItem value="Telecom Power">Telecom Power</SelectItem>
-                  <SelectItem value="Water Pumping Support">Water Pumping Support</SelectItem>
-                  <SelectItem value="Voltage Support">Voltage Support</SelectItem>
-                  <SelectItem value="Logistics Staging">Logistics Staging</SelectItem>
-                  <SelectItem value="Incident Coordination">Incident Coordination</SelectItem>
-                  <SelectItem value="Forensic Toolkit">Forensic Toolkit</SelectItem>
-                  <SelectItem value="Cloud Forensics Access">Cloud Forensics Access</SelectItem>
-                  <SelectItem value="MFA Tokens">MFA Tokens</SelectItem>
-                  <SelectItem value="Backup/Recovery">Backup/Recovery</SelectItem>
-                  <SelectItem value="Gold Images">Gold Images</SelectItem>
-                  <SelectItem value="SIEM Content Pack">SIEM Content Pack</SelectItem>
-                  <SelectItem value="WAF Ruleset">WAF Ruleset</SelectItem>
-                  <SelectItem value="DNS Sinkhole">DNS Sinkhole</SelectItem>
+                  <SelectItem value="Emergency Response Vessel">Emergency Response Vessel</SelectItem>
+                  <SelectItem value="Well Control Team">Well Control Team</SelectItem>
+                  <SelectItem value="ROV Operations">ROV Operations</SelectItem>
+                  <SelectItem value="Helicopter Transport">Helicopter Transport</SelectItem>
+                  <SelectItem value="Supply Vessel">Supply Vessel</SelectItem>
+                  <SelectItem value="Crane Barge">Crane Barge</SelectItem>
+                  <SelectItem value="Dive Support Vessel">Dive Support Vessel</SelectItem>
+                  <SelectItem value="Oil Spill Response">Oil Spill Response</SelectItem>
+                  <SelectItem value="Structural Engineers">Structural Engineers</SelectItem>
+                  <SelectItem value="Platform Maintenance">Platform Maintenance</SelectItem>
+                  <SelectItem value="Subsea Repair">Subsea Repair</SelectItem>
+                  <SelectItem value="Safety Equipment">Safety Equipment</SelectItem>
+                  <SelectItem value="Medical Personnel">Medical Personnel</SelectItem>
+                  <SelectItem value="Environmental Monitoring">Environmental Monitoring</SelectItem>
+                  <SelectItem value="Weather Forecasting">Weather Forecasting</SelectItem>
+                  <SelectItem value="Marine Coordination">Marine Coordination</SelectItem>
                 </SelectContent>
               </Select>
               <button className="text-accent hover:text-accent/80 text-sm mt-2">

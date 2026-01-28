@@ -8,6 +8,7 @@ import { AlertsPhase } from './components/phases/AlertsPhase';
 import { ObjectivesActionsPhase } from './components/phases/ObjectivesActionsPhase';
 import { IncidentRosterPhase } from './components/phases/IncidentRosterPhase';
 import { SafetyAnalysisPhase } from './components/phases/SafetyAnalysisPhase';
+import { ResourcesPhase } from './components/phases/ResourcesPhase';
 import { GenericPhase } from './components/phases/GenericPhase';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
@@ -62,8 +63,9 @@ export default function App() {
   const chatDragStart = useRef<{ x: number; y: number } | null>(null);
   const [chatFloatingBottom, setChatFloatingBottom] = useState(false);
   const [awaitingInfraOverlay, setAwaitingInfraOverlay] = useState(false);
-  const [mapCenter, setMapCenter] = useState<string>('-157.9524328569605,21.435835030873754');
-  const [mapScale, setMapScale] = useState<string>('288895.277144');
+  const [mapCenter, setMapCenter] = useState<string>('-74.03131343667845,40.761717806888804');
+  const [mapScale, setMapScale] = useState<string>('72223.819286');
+  const [mapMarkers, setMapMarkers] = useState<Array<{ id: string; lat: number; lon: number; color: string }>>([]);
 
   // Removed simulated sample resources and related chat helper
 
@@ -324,6 +326,9 @@ export default function App() {
               setMapScale(scale);
             }
           }}
+          onShowMapMarker={(id: string, lat: number, lon: number, color: string) => {
+            setMapMarkers([{ id, lat, lon, color }]);
+          }}
         />;
       case 'overview':
         return <OverviewPhase {...commonProps} />;
@@ -354,7 +359,7 @@ export default function App() {
           }}
         />;
       case 'resources':
-        return <div className="p-4"></div>;
+        return <ResourcesPhase {...commonProps} />;
       case 'safety-analysis':
         return <SafetyAnalysisPhase {...commonProps} />;
       default:
@@ -388,10 +393,10 @@ export default function App() {
         <div className="w-full h-[300px] border border-border rounded-lg overflow-hidden">
           <arcgis-embedded-map
             style={{ height: '100%', width: '100%', display: 'block' }}
-            item-id="9c2dfec70c97418699943fdb96f1b54f"
+            item-id="6cfd425bdabc430789213e791dc6acb9"
             theme="light"
-            center="-157.9524328569605,21.435835030873754"
-            scale="288895.277144"
+            center="-74.03131343667845,40.761717806888804"
+            scale="72223.819286"
             portal-url="https://disastertech.maps.arcgis.com"
           />
         </div>
@@ -565,10 +570,10 @@ export default function App() {
                         <div className="w-full border border-border rounded-lg overflow-hidden bg-card relative" style={{ height: '600px', width: '700px' }}>
                           <arcgis-embedded-map
                             style={{ height: '600px', width: '100%', display: 'block' }}
-                            item-id="9c2dfec70c97418699943fdb96f1b54f"
+                            item-id="6cfd425bdabc430789213e791dc6acb9"
                             theme="light"
-                            center="-157.9524328569605,21.435835030873754"
-                            scale="288895.277144"
+                            center="-74.03131343667845,40.761717806888804"
+                            scale="72223.819286"
                             portal-url="https://disastertech.maps.arcgis.com"
                           />
                         </div>
@@ -686,13 +691,58 @@ export default function App() {
           <div className="absolute inset-0">
             <arcgis-embedded-map
               style={{ height: '100%', width: '100%', display: 'block' }}
-              item-id="9c2dfec70c97418699943fdb96f1b54f"
+              item-id="6cfd425bdabc430789213e791dc6acb9"
               theme="light"
               center={mapCenter}
               scale={mapScale}
               portal-url="https://disastertech.maps.arcgis.com"
             />
           </div>
+          
+          {/* Map Markers Overlay */}
+          {mapMarkers.map(marker => {
+            // Convert lat/lon to screen position
+            // This is a simplified projection calculation
+            const [centerLon, centerLat] = mapCenter.split(',').map(Number);
+            const scale = parseFloat(mapScale);
+            
+            // Approximate pixels per degree at this scale
+            const metersPerPixel = scale / 96 * 0.0254; // Convert scale to meters per pixel
+            const degreesPerMeter = 1 / 111320; // Approximate at equator
+            const pixelsPerDegree = 1 / (metersPerPixel * degreesPerMeter);
+            
+            // Calculate offset from center
+            const deltaLon = marker.lon - centerLon;
+            const deltaLat = marker.lat - centerLat;
+            
+            // Convert to screen coordinates (center of screen is 50%, 50%)
+            const screenX = 50 + (deltaLon * pixelsPerDegree / window.innerWidth * 100);
+            const screenY = 50 - (deltaLat * pixelsPerDegree / window.innerHeight * 100);
+            
+            return (
+              <div
+                key={marker.id}
+                className="absolute pointer-events-none"
+                style={{
+                  left: `${screenX}%`,
+                  top: `${screenY}%`,
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 45,
+                }}
+              >
+                <div
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    backgroundColor: marker.color,
+                    opacity: 0.6,
+                    boxShadow: `0 0 20px ${marker.color}, 0 0 40px ${marker.color}`,
+                  }}
+                />
+              </div>
+            );
+          })}
           
           {/* My Sector and Exit Map Button - positioned above map and data layers */}
           <div className="absolute top-4 right-4 z-40 flex items-center gap-3">
@@ -704,14 +754,14 @@ export default function App() {
                 boxShadow: '0 0 20px rgba(147, 51, 234, 0.2), 0 0 40px rgba(147, 51, 234, 0.1)'
               }}
             >
-              <span>My Sector: Honolulu</span>
+              <span>DHS Sector New York</span>
               <button
                 onClick={() => {
-                  setMapCenter('-157.8581,21.3099');
-                  setMapScale('144447');
+                  setMapCenter('-74.0060,40.7128');
+                  setMapScale('144447.638572');
                 }}
                 className="hover:bg-purple-600/30 rounded p-1 transition-colors"
-                title="Zoom to Honolulu"
+                title="Zoom to New York"
               >
                 <Map className="w-4 h-4" />
               </button>
@@ -986,12 +1036,12 @@ export default function App() {
                               const sitrepArchived = alertsPhase?.data?.sitrepArchived || false;
                               const safetyCheckArchived = alertsPhase?.data?.safetyCheckArchived || false;
                               const incidentActivationResponded = alertsPhase?.data?.incidentActivationResponded || false;
-                              let customNotifications = 4; // boom data layer review, SITREP review, safety check, acknowledgement, incident activation (minus archived/responded)
+                              let customNotifications = 4; // civil disturbance, boom data layer review, SITREP review, safety check, acknowledgement (minus archived/responded)
                               if (boomDataLayerArchived) customNotifications--;
                               if (sitrepArchived) customNotifications--;
                               if (safetyCheckArchived) customNotifications--;
                               if (incidentActivationResponded) customNotifications--;
-                              return (alertsData.length || 3) + customNotifications; // default to 3 dynamic alerts if not loaded
+                              return (alertsData.length || 4) + customNotifications; // default to 4 dynamic alerts if not loaded
                             })()}
                           />
                         </div>
@@ -1209,12 +1259,12 @@ export default function App() {
                         const sitrepArchived = alertsPhase?.data?.sitrepArchived || false;
                         const safetyCheckArchived = alertsPhase?.data?.safetyCheckArchived || false;
                         const incidentActivationResponded = alertsPhase?.data?.incidentActivationResponded || false;
-                        let customNotifications = 4; // boom data layer review, SITREP review, safety check, acknowledgement, incident activation (minus archived/responded)
+                        let customNotifications = 4; // civil disturbance, boom data layer review, SITREP review, safety check, acknowledgement (minus archived/responded)
                         if (boomDataLayerArchived) customNotifications--;
                         if (sitrepArchived) customNotifications--;
                         if (safetyCheckArchived) customNotifications--;
                         if (incidentActivationResponded) customNotifications--;
-                        return (alertsData.length || 3) + customNotifications; // default to 3 dynamic alerts if not loaded
+                        return (alertsData.length || 4) + customNotifications; // default to 4 dynamic alerts if not loaded
                       })()}
                     />
                     <div className="mr-20">

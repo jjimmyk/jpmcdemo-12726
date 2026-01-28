@@ -72,19 +72,19 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
   const initialObjectives = data.objectives || [
     {
       id: '1',
-      title: 'Oahu Substation Fire',
+      title: 'Suspicious Package - MetLife Stadium Gate E',
       type: 'Operational',
       actions: [],
       childIncidents: [
         {
           id: '1a',
-          title: 'Ewa Beach Distribution Network Outage',
+          title: 'Perimeter Evacuation & K9 Sweep',
           type: 'Operational',
           actions: []
         },
         {
           id: '1b',
-          title: 'West Oahu Residential Grid Restoration',
+          title: 'EOD Response & Threat Neutralization',
           type: 'Operational',
           actions: []
         }
@@ -92,25 +92,25 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     },
     {
       id: '2',
-      title: 'Maui Solar Array Inverter Failure',
+      title: 'Credentialing Fraud - Counterfeit FIFA Passes',
       type: 'Operational',
       actions: []
     },
     {
       id: '3',
-      title: 'Big Island Battery Storage Malfunction',
+      title: 'Mass Casualty Incident - NJ Transit Station',
       type: 'Operational',
       actions: [],
       childIncidents: [
         {
           id: '3a',
-          title: 'Kailua-Kona Commercial Sector Power Fluctuation',
+          title: 'EMS Triage & Medical Response',
           type: 'Operational',
           actions: []
         },
         {
           id: '3b',
-          title: 'West Hawaii Renewable Integration Stabilization',
+          title: 'Transit System Rerouting Operations',
           type: 'Operational',
           actions: []
         }
@@ -118,19 +118,19 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     },
     {
       id: '4',
-      title: 'Kauai Transmission Line Damage',
+      title: 'Unauthorized Drone Incursion - Stadium Airspace',
       type: 'Operational',
       actions: []
     },
     {
       id: '5',
-      title: 'Honolulu Harbor Substation Flooding',
+      title: 'Credible Threat Assessment - Domestic Extremist',
       type: 'Operational',
       actions: []
     },
     {
       id: '6',
-      title: 'Molokai Wind Farm Emergency Shutdown',
+      title: 'Cyber Attack - Stadium CCTV Network Disruption',
       type: 'Operational',
       actions: []
     }
@@ -205,51 +205,46 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
   // Get incident type based on objective title
   const getIncidentType = (objective: Objective): string => {
     const title = objective.title.toLowerCase();
-    if (title.includes('pipeline spill') || title.includes('pipeline release')) {
-      return title.includes('release') ? 'Pipeline Release' : 'Pipeline Spill';
-    }
-    if (title.includes('platform') && title.includes('leak')) return 'Platform Leak';
-    if (title.includes('tanker') && title.includes('spill')) return 'Tanker Spill';
-    if (title.includes('barge') && title.includes('collision')) return 'Barge Collision';
-    if (title.includes('sheen')) return 'Sheen/Surface Oil';
-    if (title.includes('vessel')) return 'Vessel Incident';
-    return 'Other';
+    if (title.includes('suspicious package') || title.includes('bomb')) return 'Explosive Threat';
+    if (title.includes('credential') && title.includes('fraud')) return 'Credential Fraud';
+    if (title.includes('mass casualty') || title.includes('medical')) return 'Mass Casualty';
+    if (title.includes('drone') || title.includes('uas')) return 'UAS Incursion';
+    if (title.includes('threat') && title.includes('extremist')) return 'Threat Assessment';
+    if (title.includes('cyber')) return 'Cyber Security';
+    return 'Security Incident';
   };
 
   // Get AOR based on objective title
   const getIncidentAOR = (objective: Objective): string => {
     const title = objective.title.toLowerCase();
-    if (title.includes('gulf coast') || title.includes('louisiana') || title.includes('bayou')) {
-      return 'Gulf Coast Region';
+    if (title.includes('metlife') || title.includes('gate e') || title.includes('stadium')) {
+      return 'MetLife Stadium Complex';
     }
-    if (title.includes('southeast') || title.includes('florida') || title.includes('delaware')) {
-      return 'Southeast Region';
+    if (title.includes('transit') || title.includes('nj transit')) {
+      return 'Transit Security Operations';
     }
-    if (title.includes('northeast') || title.includes('delaware river')) {
-      return 'Northeast Region';
+    if (title.includes('airspace') || title.includes('drone')) {
+      return 'Air Domain Operations';
     }
-    if (title.includes('pacific') || title.includes('washington') || title.includes('oregon')) {
-      return 'Pacific Northwest Region';
+    if (title.includes('cyber') || title.includes('cctv')) {
+      return 'Cyber Security Operations';
     }
-    if (title.includes('alaska')) {
-      return 'Alaska Region';
-    }
-    return 'Gulf Coast Region'; // Default
+    return 'Northeast Region'; // Default
   };
 
   // Get severity level for each incident
   const getIncidentSeverity = (id: string): 'Minor' | 'Moderate' | 'Serious' | 'Severe' | 'Critical' => {
     switch (id) {
-      case '1': return 'Serious'; // Oahu Substation Fire
-      case '1a': return 'Moderate'; // Ewa Beach Distribution Network Outage (child)
-      case '1b': return 'Serious'; // West Oahu Residential Grid Restoration (child)
-      case '2': return 'Moderate'; // Maui Solar Array Inverter Failure
-      case '3': return 'Moderate'; // Big Island Battery Storage Malfunction
-      case '3a': return 'Moderate'; // Kailua-Kona Commercial Sector Power Fluctuation (child)
-      case '3b': return 'Minor'; // West Hawaii Renewable Integration Stabilization (child, preventive)
-      case '4': return 'Minor'; // Kauai Transmission Line Damage
-      case '5': return 'Severe'; // Honolulu Harbor Substation Flooding
-      case '6': return 'Serious'; // Molokai Wind Farm Emergency Shutdown
+      case '1': return 'Serious'; // Suspicious Package - MetLife Stadium
+      case '1a': return 'Moderate'; // Perimeter Evacuation (child)
+      case '1b': return 'Serious'; // EOD Response (child)
+      case '2': return 'Moderate'; // Credentialing Fraud
+      case '3': return 'Moderate'; // Mass Casualty - Transit
+      case '3a': return 'Moderate'; // EMS Triage (child)
+      case '3b': return 'Minor'; // Transit Rerouting (child, support)
+      case '4': return 'Minor'; // Unauthorized Drone
+      case '5': return 'Severe'; // Credible Threat - Domestic Extremist
+      case '6': return 'Serious'; // Cyber Attack - CCTV Network
       default: return 'Moderate';
     }
   };
@@ -281,28 +276,28 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
   // Get map coordinates for each incident location
   const getIncidentCoordinates = (id: string): { center: string; scale: string } => {
     switch (id) {
-      case '1': // Kapolei Power Grid, Oahu
-        return { center: '-158.0581,21.3354', scale: '144447.638572' };
-      case '1a': // Ewa Beach Distribution Network, Oahu (child incident)
-        return { center: '-158.0072,21.3156', scale: '72223.819286' };
-      case '1b': // West Oahu Residential Grid (child incident)
-        return { center: '-158.0400,21.3700', scale: '72223.819286' };
-      case '2': // Kahului Energy Complex, Maui
-        return { center: '-156.4729,20.8893', scale: '144447.638572' };
-      case '3': // Kona Grid, Big Island
-        return { center: '-155.9969,19.6400', scale: '72223.819286' };
-      case '3a': // Kailua-Kona Commercial Sector (child incident)
-        return { center: '-155.9969,19.6400', scale: '36111.909643' };
-      case '3b': // West Hawaii Renewable Integration (child incident)
-        return { center: '-155.9969,19.7297', scale: '144447.638572' };
-      case '4': // Kauai Transmission Line
-        return { center: '-159.3741,21.9812', scale: '144447.638572' };
-      case '5': // Honolulu Harbor Substation
-        return { center: '-157.8671,21.3045', scale: '144447.638572' };
-      case '6': // Molokai Wind Farm
-        return { center: '-157.0226,21.1444', scale: '144447.638572' };
+      case '1': // MetLife Stadium, East Rutherford, NJ
+        return { center: '-74.0742,40.8128', scale: '144447.638572' };
+      case '1a': // Gate E Perimeter, MetLife Stadium (child incident)
+        return { center: '-74.0742,40.8128', scale: '72223.819286' };
+      case '1b': // EOD Response Location (child incident)
+        return { center: '-74.0742,40.8128', scale: '36111.909643' };
+      case '2': // Credentialing Center, Meadowlands Complex
+        return { center: '-74.0785,40.8150', scale: '144447.638572' };
+      case '3': // Secaucus Junction NJ Transit Station
+        return { center: '-74.0726,40.7628', scale: '72223.819286' };
+      case '3a': // EMS Triage Area (child incident)
+        return { center: '-74.0726,40.7628', scale: '36111.909643' };
+      case '3b': // Transit Rerouting Hub (child incident)
+        return { center: '-74.0726,40.7628', scale: '144447.638572' };
+      case '4': // Stadium Airspace
+        return { center: '-74.0742,40.8128', scale: '144447.638572' };
+      case '5': // DHS Northeast Regional Office
+        return { center: '-74.0060,40.7128', scale: '144447.638572' };
+      case '6': // Stadium Security Operations Center
+        return { center: '-74.0742,40.8128', scale: '144447.638572' };
       default:
-        return { center: '-157.8581,21.3099', scale: '72223.819286' }; // Default to Honolulu
+        return { center: '-74.0742,40.8128', scale: '72223.819286' }; // Default to MetLife Stadium
     }
   };
 
@@ -311,19 +306,19 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     // Map incident IDs to their incident filter values
     switch (id) {
       case '1':
-        return 'oahu-substation-fire';
+        return 'suspicious-package-gate-e';
       case '1a':
-        return 'ewa-beach-outage';
+        return 'suspicious-package-gate-e';
       case '1b':
-        return 'west-oahu-restoration';
+        return 'suspicious-package-gate-e';
       case '3':
-        return 'kona-battery-storage';
+        return 'mass-casualty-transit';
       case '3a':
-        return 'kailua-kona-power-quality';
+        return 'mass-casualty-transit';
       case '3b':
-        return 'west-hawaii-renewable';
+        return 'mass-casualty-transit';
       default:
-        return 'oahu-substation-fire';
+        return 'suspicious-package-gate-e';
     }
   };
 
@@ -331,135 +326,135 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
     switch (id) {
       case '1':
         return {
-          description: 'Substation transformer fire impacting West Oahu power grid; mobile substation deployment and emergency restoration operations underway.',
-          location: 'Kapolei, Oahu',
+          description: 'Suspicious unattended package discovered at MetLife Stadium Gate E screening checkpoint; area evacuated and K9 explosive detection teams deployed.',
+          location: 'Gate E Entrance, MetLife Stadium, East Rutherford, NJ',
           status: 'Active',
-          startTime: 'Today 06:40',
-          estimatedVolume: '~45 MW capacity affected',
-          shorelineImpact: 'N/A - Grid infrastructure incident',
-          responsibleParty: 'Hawaiian Electric Company (HECO)',
-          incidentCommander: 'HECO Emergency Operations',
-          lastUpdate: 'Mobile substation en route; backup generators deployed'
+          startTime: 'June 28, 2026 11:45',
+          estimatedVolume: '~450 spectators in affected zone',
+          shorelineImpact: 'Screening operations halted at Gate E',
+          responsibleParty: 'DHS/TSA / FBI Joint Terrorism Task Force',
+          incidentCommander: 'TSA Federal Security Director - Robert Martinez',
+          lastUpdate: 'EOD team arrived on scene; package being assessed with portable X-ray; adjacent gates absorbing diverted crowd flow'
         };
       case '2':
         return {
-          description: 'Solar array inverter failure causing renewable generation loss; grid stability analysis and replacement operations in progress.',
-          location: 'Kahului, Maui',
+          description: 'CBP credential verification detected multiple counterfeit FIFA VIP passes; enhanced screening protocols activated for all credential holders.',
+          location: 'VIP Credentialing Center, American Dream Complex, East Rutherford, NJ',
           status: 'Active',
-          startTime: 'Yesterday 22:15',
-          estimatedVolume: '~12 MW solar capacity offline',
-          shorelineImpact: 'N/A - Renewable energy infrastructure',
-          responsibleParty: 'Maui Electric Company (MECO)',
-          incidentCommander: 'MECO Grid Operations',
-          lastUpdate: 'Replacement inverters arriving; demand response activated'
+          startTime: 'June 28, 2026 09:30',
+          estimatedVolume: '~12 counterfeit passes interdicted',
+          shorelineImpact: 'Credential verification processing slowed',
+          responsibleParty: 'CBP Document Analysis / Secret Service Intelligence Division',
+          incidentCommander: 'CBP Port Director - Jennifer Chen',
+          lastUpdate: 'Suspects detained for questioning; FIFA security liaison coordinating database cross-check; enhanced hologram verification deployed'
         };
       case '3':
         return {
-          description: 'Battery storage system malfunction affecting grid frequency regulation; isolation procedures complete with backup systems engaged.',
-          location: 'Kona, Big Island',
+          description: 'Medical emergency at Secaucus Junction NJ Transit station resulted in mass casualty incident; EMS triage and transport coordination activated.',
+          location: 'Secaucus Junction Station, Secaucus, NJ',
           status: 'Active',
-          startTime: 'Today 05:20',
-          estimatedVolume: '~20 MWh storage capacity',
-          shorelineImpact: 'N/A - Energy storage facility',
-          responsibleParty: 'Hawaii Electric Light Company (HELCO)',
-          incidentCommander: 'HELCO System Operations',
-          lastUpdate: 'System isolated; alternative frequency regulation active'
+          startTime: 'June 28, 2026 12:20',
+          estimatedVolume: '~18 casualties, 3 critical condition',
+          shorelineImpact: 'Station temporarily closed; trains rerouted',
+          responsibleParty: 'DHS/TSA Surface Division / NJ Transit Police / Local EMS',
+          incidentCommander: 'EMS Incident Commander - Station Operations',
+          lastUpdate: 'Triage complete; 15 transported to hospitals; 3 treated and released; station security sweep conducted'
         };
       case '4':
         return {
-          description: 'Hurricane-damaged transmission lines requiring emergency repairs; aerial surveys and line crew deployment in progress.',
-          location: 'North Shore, Kauai',
-          status: 'Monitoring',
-          startTime: 'Today 07:10',
-          estimatedVolume: '~8 transmission towers damaged',
-          shorelineImpact: 'N/A - Transmission infrastructure',
-          responsibleParty: 'Kauai Island Utility Cooperative (KIUC)',
-          incidentCommander: 'KIUC Emergency Response',
-          lastUpdate: 'Damage assessment underway; temporary routing established'
+          description: 'Unauthorized commercial drone detected within stadium TFR airspace; Counter-UAS system activated and drone electronically neutralized.',
+          location: 'MetLife Stadium Airspace, East Rutherford, NJ',
+          status: 'Active',
+          startTime: 'June 28, 2026 13:45',
+          estimatedVolume: '~Single DJI Phantom 4 drone',
+          shorelineImpact: 'Airspace security breach',
+          responsibleParty: 'DHS/CBP Air and Marine Operations / FAA',
+          incidentCommander: 'Air Domain Security Coordinator',
+          lastUpdate: 'Drone forced to land via RF jamming; operator identified via geo-tracking; FBI investigating intent'
         };
       case '5':
         return {
-          description: 'Storm surge flooding at harbor substation; emergency pumping and flood barrier deployment to protect critical equipment.',
-          location: 'Honolulu Harbor, Oahu',
+          description: 'FBI received credible threat intelligence regarding domestic extremist planning disruption of USA vs Mexico match; enhanced security posture implemented.',
+          location: 'MetLife Stadium and Surrounding Area',
           status: 'Active',
-          startTime: 'Today 03:55',
-          estimatedVolume: '~3 feet water depth',
-          shorelineImpact: 'Coastal infrastructure vulnerability',
-          responsibleParty: 'Hawaiian Electric Company (HECO)',
-          incidentCommander: 'HECO Waterfront Operations',
-          lastUpdate: 'Pumping operations active; flood barriers being installed'
+          startTime: 'June 27, 2026 22:15',
+          estimatedVolume: '~Single individual; associates under surveillance',
+          shorelineImpact: 'Elevated threat level - additional screening measures',
+          responsibleParty: 'FBI Joint Terrorism Task Force / DHS Intelligence & Analysis',
+          incidentCommander: 'JTTF Supervisory Special Agent',
+          lastUpdate: 'Suspect under continuous surveillance; tactical teams pre-positioned; real-time intelligence sharing with all security partners'
         };
       case '6':
         return {
-          description: 'Wind farm emergency shutdown impacting island generation; turbine control system resets and backup diesel activation in progress.',
-          location: 'Molokai',
+          description: 'Sophisticated cyber attack targeting stadium CCTV surveillance network; malware detected and network segments isolated to prevent spread.',
+          location: 'MetLife Stadium Security Operations Center',
           status: 'Active',
-          startTime: 'Today 04:30',
-          estimatedVolume: '~6 MW wind capacity offline',
-          shorelineImpact: 'N/A - Wind energy infrastructure',
-          responsibleParty: 'Maui Electric Company (MECO)',
-          incidentCommander: 'MECO Molokai Operations',
-          lastUpdate: 'Turbine restart sequence initiated; diesel backup online'
+          startTime: 'June 28, 2026 08:30',
+          estimatedVolume: '~32 cameras affected in north concourse',
+          shorelineImpact: 'Reduced surveillance coverage - enhanced foot patrols deployed',
+          responsibleParty: 'DHS CISA / FBI Cyber Division / Stadium Security',
+          incidentCommander: 'CISA Cybersecurity Advisor',
+          lastUpdate: 'Isolated infected network segment; backup analog cameras activated; forensic analysis underway; state-sponsored actor suspected'
         };
       case '1a':
         return {
-          description: 'Secondary distribution network outage affecting Ewa Beach area; service restoration prioritized for critical facilities.',
-          location: 'Ewa Beach, Oahu',
+          description: 'Perimeter evacuation of approximately 450 spectators from Gate E area; K9 explosive detection sweep deployed following suspicious package discovery.',
+          location: 'Gate E Perimeter, MetLife Stadium, East Rutherford, NJ',
           status: 'Active',
-          startTime: 'Today 09:15',
-          estimatedVolume: '~15 MW distribution capacity',
-          shorelineImpact: 'N/A - Distribution network',
-          responsibleParty: 'Hawaiian Electric Company (parent incident)',
-          incidentCommander: 'HECO Distribution Operations',
-          lastUpdate: 'Emergency circuits activated; restoration in progress'
+          startTime: 'June 28, 2026 11:50',
+          estimatedVolume: '~450 spectators evacuated to safe distance',
+          shorelineImpact: 'N/A - Public safety operation',
+          responsibleParty: 'TSA/DHS / NJ State Police (parent incident)',
+          incidentCommander: 'TSA Federal Security Director - Area Operations',
+          lastUpdate: 'K9 sweep 70% complete; no additional threats detected; spectators being re-screened at adjacent gates'
         };
       case '1b':
         return {
-          description: 'West Oahu residential grid restoration requiring coordinated switching operations; priority service restoration for hospitals and emergency services.',
-          location: 'West Oahu Region',
+          description: 'EOD (Explosive Ordnance Disposal) team assessment and threat neutralization; package being analyzed with portable X-ray and chemical detection.',
+          location: 'Gate E Screening Area, MetLife Stadium',
           status: 'Active',
-          startTime: 'Today 11:30',
-          estimatedVolume: '~25,000 customers affected',
-          shorelineImpact: 'N/A - Residential grid infrastructure',
-          responsibleParty: 'Hawaiian Electric Company (parent incident)',
-          incidentCommander: 'HECO Emergency Restoration',
-          lastUpdate: 'Critical facilities restored; residential restoration phased approach'
+          startTime: 'June 28, 2026 12:05',
+          estimatedVolume: '~Single unattended backpack',
+          shorelineImpact: 'Area secured - controlled access only',
+          responsibleParty: 'FBI EOD / DHS (parent incident)',
+          incidentCommander: 'FBI EOD Team Leader',
+          lastUpdate: 'X-ray analysis complete - no explosive signature detected; opening package using remote tools; all-clear expected within 15 minutes'
         };
       case '3a':
         return {
-          description: 'Commercial sector power quality issues in Kailua-Kona; voltage stabilization and load balancing operations ongoing.',
-          location: 'Kailua-Kona, Big Island',
+          description: 'EMS mass casualty triage and medical response at Secaucus Junction; coordinated transport to three regional trauma centers.',
+          location: 'Secaucus Junction NJ Transit Station',
           status: 'Active',
-          startTime: 'Today 07:45',
-          estimatedVolume: 'Power quality fluctuations',
-          shorelineImpact: 'N/A - Commercial grid segment',
-          responsibleParty: 'Hawaii Electric Light Company (parent incident)',
-          incidentCommander: 'HELCO Grid Stability Team',
-          lastUpdate: 'Voltage regulation equipment deployed; monitoring continuous'
+          startTime: 'June 28, 2026 12:25',
+          estimatedVolume: '~18 patients; 3 critical, 10 moderate, 5 minor',
+          shorelineImpact: 'Medical response - multi-agency coordination',
+          responsibleParty: 'Hudson County EMS / DHS Surface Division (parent incident)',
+          incidentCommander: 'EMS Battalion Chief',
+          lastUpdate: 'All critical patients transported; moderate injuries being staged for transport; on-site triage complete'
         };
       case '3b':
         return {
-          description: 'Renewable energy integration stabilization measures for West Hawaii grid; frequency and voltage control systems being optimized.',
-          location: 'West Hawaii, Big Island',
+          description: 'NJ Transit system rerouting and schedule adjustments to maintain spectator flow to MetLife Stadium while Secaucus Junction remains closed.',
+          location: 'NJ Transit Operations Center',
           status: 'Monitoring',
-          startTime: 'Today 08:20',
-          estimatedVolume: 'Preventive stabilization',
-          shorelineImpact: 'N/A - Grid integration systems',
-          responsibleParty: 'Hawaii Electric Light Company (parent incident)',
-          incidentCommander: 'HELCO Renewable Integration',
-          lastUpdate: 'Grid stabilization active; renewable output being modulated'
+          startTime: 'June 28, 2026 12:30',
+          estimatedVolume: '~12 trains rerouted; 4,500 passengers affected',
+          shorelineImpact: 'N/A - Transit coordination operation',
+          responsibleParty: 'NJ Transit / TSA Surface Division (parent incident)',
+          incidentCommander: 'NJ Transit Emergency Operations Manager',
+          lastUpdate: 'Alternate routes activated; passenger notifications issued; estimated 20-minute delay impact; station security sweep complete'
         };
       default:
         return {
-          description: 'Grid infrastructure incident requiring emergency response and restoration operations.',
-          location: 'Hawaii',
+          description: 'World Cup security incident requiring DHS response and coordination with federal, state, and local partners.',
+          location: 'MetLife Stadium Complex and Surrounding Area',
           status: 'Active',
-          startTime: 'Today 04:30',
+          startTime: 'June 28, 2026 12:00',
           estimatedVolume: 'TBD',
-          shorelineImpact: 'N/A - Grid infrastructure',
-          responsibleParty: 'Hawaiian Electric Companies',
-          incidentCommander: 'Emergency Operations Center',
-          lastUpdate: 'Response operations in progress'
+          shorelineImpact: 'Under assessment',
+          responsibleParty: 'DHS Northeast Region / FBI Joint Terrorism Task Force',
+          incidentCommander: 'Unified Command - World Cup Security Operations',
+          lastUpdate: 'Response operations in progress; multi-agency coordination active'
         };
     }
   };
@@ -480,216 +475,216 @@ export function ObjectivesActionsPhase({ data = {}, onDataChange, onComplete, on
 
   const getActionsForIncident = (incidentId: string): ActionItem[] => {
     switch (incidentId) {
-      case '1': // Oahu Substation Fire
+      case '1': // Suspicious Package - MetLife Stadium
         return [
           {
-            title: 'Deploy mobile substation to restore power',
-            assignedTo: 'Operations - Grid Response Team',
+            title: 'Establish security perimeter and evacuate Gate E area',
+            assignedTo: 'Operations - TSA Security Team Alpha',
             priority: 'High',
             status: 'In Progress',
-            dueDate: '11/16/2025 18:00',
-            location: 'Kapolei Substation Site, Oahu',
-            description: 'Deploy mobile substation unit to restore power to Kapolei grid. Coordinate with HECO engineering for connection protocols and load balancing.',
+            dueDate: '06/28/2026 12:15',
+            location: 'Gate E, MetLife Stadium',
+            description: 'Create 300-meter security perimeter around suspicious package. Coordinate with NJ State Police to redirect spectators to adjacent gates.',
             taskId: 'ICS-204-A-015',
-            startedAt: '11/15/2025 14:30'
+            startedAt: '06/28/2026 11:48'
           },
           {
-            title: 'Assess fire damage to transformer bank',
-            assignedTo: 'Engineering Unit',
+            title: 'Deploy K9 explosive detection sweep',
+            assignedTo: 'TSA K9 Unit - Handler Team Bravo',
+            priority: 'High',
+            status: 'In Progress',
+            dueDate: '06/28/2026 12:00',
+            location: 'Gate E Screening Area',
+            description: 'Conduct systematic K9 sweep of Gate E area and surrounding concourse. Clear all secondary locations before EOD assessment.',
+            taskId: 'ICS-215-E-022',
+            startedAt: '06/28/2026 11:52'
+          },
+          {
+            title: 'Coordinate EOD response and threat assessment',
+            assignedTo: 'FBI EOD Team - Joint Operations',
             priority: 'High',
             status: 'Pending',
-            dueDate: '11/16/2025 08:00',
-            location: 'Kapolei Power Grid Infrastructure',
-            description: 'Complete comprehensive damage assessment of transformer bank and switching equipment. Document replacement requirements and timeline estimates.',
-            taskId: 'ICS-215-E-022'
-          },
-          {
-            title: 'Mobilize backup power generators for critical facilities',
-            assignedTo: 'Logistics Section',
-            priority: 'Medium',
-            status: 'In Progress',
-            dueDate: '11/15/2025 22:00',
-            location: 'West Oahu Critical Infrastructure',
-            description: 'Transport and install backup generators at hospitals, water pumping stations, and emergency services facilities. Ensure fuel reserves are adequate.',
-            taskId: 'ICS-204-L-008',
-            startedAt: '11/15/2025 16:00'
+            dueDate: '06/28/2026 12:30',
+            location: 'Gate E Hot Zone',
+            description: 'Deploy EOD technicians with portable X-ray and chemical detection. Assess threat level and execute neutralization protocol if needed.',
+            taskId: 'ICS-204-L-008'
           }
         ];
-      case '2': // Maui Solar Array Inverter Failure
+      case '2': // Credentialing Fraud
         return [
           {
-            title: 'Replace failed inverter units',
-            assignedTo: 'Operations - Renewable Energy Team',
+            title: 'Detain suspects and secure counterfeit credentials',
+            assignedTo: 'Operations - CBP Special Agents',
             priority: 'High',
             status: 'In Progress',
-            dueDate: '11/16/2025 12:00',
-            location: 'Kahului Solar Farm, Maui',
-            description: 'Transport and install replacement inverter units at solar array. Ensure all safety protocols and grid synchronization tests are completed.',
+            dueDate: '06/28/2026 10:00',
+            location: 'VIP Credentialing Center, American Dream Complex',
+            description: 'Detain individuals attempting to use counterfeit FIFA passes. Preserve evidence and coordinate with FBI for questioning.',
             taskId: 'ICS-204-O-031',
-            startedAt: '11/15/2025 10:00'
+            startedAt: '06/28/2026 09:35'
           },
           {
-            title: 'Conduct grid stability analysis',
-            assignedTo: 'Engineering Unit - Grid Operations',
-            priority: 'High',
-            status: 'Pending',
-            dueDate: '11/15/2025 16:00',
-            location: 'Maui Energy Control Center',
-            description: 'Execute comprehensive grid stability analysis to assess impact of solar array outage. Develop load redistribution plan.',
-            taskId: 'ICS-215-E-018'
-          },
-          {
-            title: 'Activate demand response program',
-            assignedTo: 'Operations - Load Management',
-            priority: 'Medium',
-            status: 'Completed',
-            dueDate: '11/15/2025 14:00',
-            location: 'Maui County Service Area',
-            description: 'Activate voluntary demand response program to reduce peak load. Coordinate with commercial and industrial customers.',
-            taskId: 'ICS-204-S-012',
-            startedAt: '11/15/2025 08:00',
-            completedAt: '11/15/2025 13:45'
-          }
-        ];
-      case '3': // Big Island Battery Storage Malfunction
-        return [
-          {
-            title: 'Isolate malfunctioning battery modules',
-            assignedTo: 'Operations - Energy Storage Team',
-            priority: 'High',
-            status: 'Completed',
-            dueDate: '11/15/2025 08:00',
-            location: 'Kona Battery Storage Facility',
-            description: 'Isolate affected battery modules from grid to prevent system instability. Verify isolation procedures and safety systems.',
-            taskId: 'ICS-204-M-005',
-            startedAt: '11/15/2025 05:30',
-            completedAt: '11/15/2025 07:50'
-          },
-          {
-            title: 'Deploy backup frequency regulation resources',
-            assignedTo: 'Operations - Grid Stability Team',
+            title: 'Enhance credential verification protocols',
+            assignedTo: 'CBP Document Analysis Unit',
             priority: 'High',
             status: 'In Progress',
-            dueDate: '11/15/2025 18:00',
-            location: 'Big Island Grid Operations',
-            description: 'Activate alternative frequency regulation resources to compensate for battery storage outage. Monitor grid frequency stability continuously.',
-            taskId: 'ICS-204-R-011',
-            startedAt: '11/15/2025 09:00'
+            dueDate: '06/28/2026 10:30',
+            location: 'All Credential Checkpoints',
+            description: 'Deploy enhanced hologram verification and UV scanning at all checkpoints. Coordinate with FIFA security for database cross-referencing.',
+            taskId: 'ICS-215-E-018',
+            startedAt: '06/28/2026 09:40'
           },
           {
-            title: 'Develop battery system repair plan',
-            assignedTo: 'Planning Section - Technical Specialist',
+            title: 'Issue security alert to all checkpoints',
+            assignedTo: 'Operations - Security Communications',
+            priority: 'High',
+            status: 'Completed',
+            dueDate: '06/28/2026 09:45',
+            location: 'All Security Operations',
+            description: 'Distribute photos and characteristics of counterfeit credentials to all screening personnel. Update watch list database.',
+            taskId: 'ICS-204-S-012',
+            startedAt: '06/28/2026 09:32',
+            completedAt: '06/28/2026 09:42'
+          }
+        ];
+      case '3': // Mass Casualty - NJ Transit
+        return [
+          {
+            title: 'Deploy EMS triage and treat casualties',
+            assignedTo: 'Operations - Hudson County EMS',
+            priority: 'High',
+            status: 'In Progress',
+            dueDate: '06/28/2026 12:45',
+            location: 'Secaucus Junction Station',
+            description: 'Establish triage area and assess all casualties. Prioritize critical patients for immediate transport to trauma centers.',
+            taskId: 'ICS-204-M-005',
+            startedAt: '06/28/2026 12:22'
+          },
+          {
+            title: 'Coordinate multi-hospital patient distribution',
+            assignedTo: 'Logistics - Regional EMS Coordination',
+            priority: 'High',
+            status: 'In Progress',
+            dueDate: '06/28/2026 13:00',
+            location: 'Regional Hospital Network',
+            description: 'Coordinate patient transport to Jersey City Medical Center, Hackensack UMC, and Morristown Medical. Confirm bed availability.',
+            taskId: 'ICS-204-R-011',
+            startedAt: '06/28/2026 12:28'
+          },
+          {
+            title: 'Activate alternate transit routing plan',
+            assignedTo: 'Planning Section - NJ Transit Operations',
             priority: 'Medium',
             status: 'Pending',
-            dueDate: '11/15/2025 20:00',
-            location: 'Unified Operations Center',
-            description: 'Work with equipment manufacturer to develop comprehensive repair plan for battery storage system. Review warranty and replacement options.',
+            dueDate: '06/28/2026 13:15',
+            location: 'NJ Transit Operations Center',
+            description: 'Implement pre-planned transit rerouting to maintain spectator flow to stadium. Issue passenger notifications via app and station displays.',
             taskId: 'ICS-215-P-007'
           }
         ];
-      case '4': // Kauai Transmission Line Damage
+      case '4': // Unauthorized Drone
         return [
           {
-            title: 'Conduct damage assessment of transmission towers',
-            assignedTo: 'Engineering Unit - Transmission Team',
+            title: 'Neutralize drone using Counter-UAS system',
+            assignedTo: 'DHS Counter-UAS Operations Team',
             priority: 'High',
             status: 'In Progress',
-            dueDate: '11/15/2025 16:00',
-            location: 'North Shore Transmission Corridor, Kauai',
-            description: 'Inspect transmission towers and lines for hurricane damage. Document structural integrity issues and prioritize repair locations.',
+            dueDate: '06/28/2026 13:50',
+            location: 'Stadium Airspace',
+            description: 'Deploy RF jamming to force drone landing. Track landing location for evidence recovery and operator identification.',
             taskId: 'ICS-215-E-024',
-            startedAt: '11/15/2025 08:00'
+            startedAt: '06/28/2026 13:46'
           },
           {
-            title: 'Deploy line crews for emergency repairs',
-            assignedTo: 'Operations - Transmission Repair',
+            title: 'Locate and apprehend drone operator',
+            assignedTo: 'Operations - FBI Field Response Team',
             priority: 'Medium',
             status: 'In Progress',
-            dueDate: '11/15/2025 15:00',
-            location: 'Kauai Transmission Network',
-            description: 'Deploy line repair crews to priority damage sites. Establish temporary power routing to restore service to critical areas.',
+            dueDate: '06/28/2026 14:15',
+            location: 'Meadowlands Complex Perimeter',
+            description: 'Use geo-tracking data to locate drone operator. Coordinate with local law enforcement for apprehension and questioning.',
             taskId: 'ICS-204-M-019',
-            startedAt: '11/15/2025 10:30'
+            startedAt: '06/28/2026 13:48'
           },
           {
-            title: 'Execute aerial survey of transmission corridor',
-            assignedTo: 'Operations - Aerial Inspection Team',
+            title: 'Issue FAA TFR violation report',
+            assignedTo: 'Operations - FAA Liaison',
             priority: 'High',
             status: 'Pending',
-            dueDate: '11/15/2025 14:00',
-            location: 'Kauai Island-wide',
-            description: 'Deploy drone and helicopter surveys to assess full extent of transmission line damage across the island. Provide imagery for repair planning.',
+            dueDate: '06/28/2026 14:00',
+            location: 'FAA Regional Operations',
+            description: 'Document TFR violation and coordinate with FAA for enforcement action. Preserve drone as evidence for investigation.',
             taskId: 'ICS-204-U-003'
           }
         ];
-      case '5': // Honolulu Harbor Substation Flooding
+      case '5': // Credible Threat Assessment
         return [
           {
-            title: 'Pump water from substation facility',
-            assignedTo: 'Operations - Emergency Response',
+            title: 'Maintain continuous surveillance on suspect',
+            assignedTo: 'Operations - FBI Surveillance Team',
             priority: 'High',
             status: 'In Progress',
-            dueDate: '11/15/2025 20:00',
-            location: 'Honolulu Harbor Substation',
-            description: 'Deploy high-capacity pumps to remove storm surge water from substation. Coordinate with harbor operations and ensure safety protocols.',
+            dueDate: '06/28/2026 15:00',
+            location: 'Suspect Location - Newark Area',
+            description: 'Deploy mobile surveillance teams to maintain eyes-on suspect and known associates. Coordinate with JTTF for tactical support if needed.',
             taskId: 'ICS-204-M-027',
-            startedAt: '11/15/2025 06:00'
+            startedAt: '06/27/2026 23:00'
           },
           {
-            title: 'Install temporary flood barriers',
-            assignedTo: 'Operations - Infrastructure Protection',
+            title: 'Pre-position tactical response teams',
+            assignedTo: 'Operations - FBI HRT / Secret Service CAT',
             priority: 'High',
             status: 'In Progress',
-            dueDate: '11/15/2025 18:00',
-            location: 'Honolulu Harbor Critical Infrastructure',
-            description: 'Establish temporary flood protection barriers around critical electrical equipment to prevent additional storm surge impacts.',
+            dueDate: '06/28/2026 14:00',
+            location: 'Strategic Positions - Stadium Perimeter',
+            description: 'Deploy tactical teams at strategic locations around stadium complex. Establish rapid response protocols if threat materializes.',
             taskId: 'ICS-204-B-014',
-            startedAt: '11/15/2025 08:30'
+            startedAt: '06/28/2026 08:00'
           },
           {
-            title: 'Activate waterfront resilience measures',
-            assignedTo: 'Engineering Unit',
+            title: 'Coordinate real-time intelligence sharing',
+            assignedTo: 'Intelligence & Analysis Division',
             priority: 'High',
             status: 'Pending',
-            dueDate: '11/15/2025 16:00',
-            location: 'Honolulu Harbor Energy Infrastructure',
-            description: 'Implement pre-planned waterfront resilience measures for harbor area substations. Coordinate with Coast Guard and harbor operations.',
+            dueDate: '06/28/2026 12:00',
+            location: 'Joint Operations Center',
+            description: 'Maintain open communication with FBI, NSA, and international partners. Update threat assessment every 30 minutes.',
             taskId: 'ICS-215-E-016'
           }
         ];
-      case '6': // Molokai Wind Farm Emergency Shutdown
+      case '6': // Cyber Attack - CCTV Network
         return [
           {
-            title: 'Reset wind turbine control systems',
-            assignedTo: 'Operations - Wind Energy Team',
+            title: 'Isolate infected network segments',
+            assignedTo: 'Operations - CISA Cyber Response',
             priority: 'High',
             status: 'In Progress',
-            dueDate: '11/15/2025 17:00',
-            location: 'Molokai Wind Farm',
-            description: 'Systematically reset and restart wind turbine control systems following emergency shutdown. Verify all safety systems before reconnecting to grid.',
-            taskId: 'ICS-204-G-022',
-            startedAt: '11/15/2025 09:00'
+            dueDate: '06/28/2026 09:00',
+            location: 'Stadium Security Operations Center',
+            description: 'Isolate compromised CCTV network segments to prevent malware spread. Activate backup analog camera systems for coverage.',
+            taskId: 'ICS-204-M-037',
+            startedAt: '06/28/2026 08:35'
           },
           {
-            title: 'Deploy backup diesel generation',
-            assignedTo: 'Operations - Thermal Generation',
+            title: 'Conduct forensic analysis of malware',
+            assignedTo: 'CISA Cyber Forensics Team',
             priority: 'High',
             status: 'Pending',
-            dueDate: '11/15/2025 19:00',
-            location: 'Molokai Power Station',
-            description: 'Activate backup diesel generators to compensate for wind farm outage. Ensure adequate fuel supply and load distribution.',
+            dueDate: '06/28/2026 11:00',
+            location: 'DHS Cyber Operations Center',
+            description: 'Perform detailed forensic analysis of malware to identify threat actor and attack vector. Coordinate with FBI Cyber Division.',
             taskId: 'ICS-204-R-018'
           },
           {
-            title: 'Conduct grid stability impact assessment',
-            assignedTo: 'Engineering Unit - Grid Analysis',
+            title: 'Deploy enhanced foot patrols to compensate',
+            assignedTo: 'Operations - Stadium Security Patrols',
             priority: 'Medium',
             status: 'In Progress',
-            dueDate: '11/16/2025 10:00',
-            location: 'Molokai Grid Operations',
-            description: 'Assess impact of wind farm shutdown on island grid stability. Develop contingency plans for extended outage scenario.',
+            dueDate: '06/28/2026 09:30',
+            location: 'North Concourse - MetLife Stadium',
+            description: 'Increase roving security patrols in areas with degraded camera coverage. Coordinate with Secret Service for VIP protection zones.',
             taskId: 'ICS-215-W-009',
-            startedAt: '11/15/2025 11:00'
+            startedAt: '06/28/2026 08:40'
           }
         ];
       default:

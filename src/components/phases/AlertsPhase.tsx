@@ -20,6 +20,7 @@ interface AlertsPhaseProps {
   onPrevious?: () => void;
   onZoomToLocation?: (center: string, scale: string) => void;
   onAddAIContext?: (itemName: string) => void;
+  onShowMapMarker?: (id: string, lat: number, lon: number, color: string) => void;
 }
 
 type Severity = 'Info' | 'Advisory' | 'Watch' | 'Warning' | 'Stand Down Safety';
@@ -41,7 +42,7 @@ interface AlertItem {
   location?: string; // Location where alert applies
 }
 
-export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIContext }: AlertsPhaseProps) {
+export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIContext, onShowMapMarker }: AlertsPhaseProps) {
   // Helper functions for notification severity
   const getNotificationSeverity = (notificationId: string): 'Minor' | 'Moderate' | 'Serious' | 'Severe' | 'Critical' => {
     switch (notificationId) {
@@ -125,6 +126,22 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
     completionNotes: data.actionCompletionResponse?.completionNotes || ''
   });
 
+  // State for Create Incident modal
+  const [createIncidentModalOpen, setCreateIncidentModalOpen] = useState(false);
+  const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
+  const [selectedIndividuals, setSelectedIndividuals] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('Civil Disturbance');
+  const [selectedNotificationChannels, setSelectedNotificationChannels] = useState<string[]>([]);
+  const [incidentTeamsPopoverOpen, setIncidentTeamsPopoverOpen] = useState(false);
+  const [incidentIndividualsPopoverOpen, setIncidentIndividualsPopoverOpen] = useState(false);
+  const [incidentCategoriesPopoverOpen, setIncidentCategoriesPopoverOpen] = useState(false);
+  const [incidentNotificationChannelsPopoverOpen, setIncidentNotificationChannelsPopoverOpen] = useState(false);
+  const [incidentAORPopoverOpen, setIncidentAORPopoverOpen] = useState(false);
+  const [initialSitrep, setInitialSitrep] = useState('Social media intelligence indicates emerging civil disturbance near MetLife Stadium main entrance on Route 120 / Paterson Plank Road. Crowd size estimated at 200-300 individuals based on multiple geotagged posts. Social media users describe opposition to the Iranian soccer team playing in a match today at 14:00 EST.');
+  const [initialObjectives, setInitialObjectives] = useState('Deter violence from emerging during the protests.');
+  const [incidentAOR, setIncidentAOR] = useState('Sector New York');
+  const [incidentAddress, setIncidentAddress] = useState('Vicinity of Metlife Stadium');
+
   // State for SITREP review notification
   const [sitrepReviewed, setSitrepReviewed] = useState(data.sitrepReviewed || false);
   const [sitrepArchived, setSitrepArchived] = useState(data.sitrepArchived || false);
@@ -134,7 +151,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
     submittedAt: data.sitrepReviewData?.submittedAt || null
   });
   const [draftSitrepContent] = useState(
-    'SITREP - District East\n\nCurrent Situation: District East maintains elevated readiness posture following Hurricane Delta downgrade. All sectors report normal operations resuming. Port Condition WHISKEY set for Delaware Bay and New York Harbor effective 0800L.\n\nOperational Status: Sector New York has 3 cutters deployed conducting post-storm damage assessment. Sector Delaware Bay reports 2 SAR cases resolved overnight with no casualties. Maritime Safety Zones lifted in outer waters.\n\nResources: 87-ft patrol boats returning to normal patrol schedules. Air Station Atlantic City conducting aerial reconnaissance of affected areas. All facilities report power restored and full operational capability.\n\nSubmitted by: J. Smith (j.smith@uscg.mil)\nSubmitted: 12/19/2025 14:30'
+    'SITREP - FIFA World Cup 2026 Security Operations\n\nCurrent Situation: DHS maintains ELEVATED threat posture for all World Cup venues in the Northeast corridor. 11 stadiums report GREEN security status with enhanced screening protocols active. MetLife Stadium match day operations commence at 0600L with USA vs Mexico quarterfinal kickoff scheduled for 1500L.\n\nOperational Status: TSA screening checkpoints at stadium perimeters report normal throughput. CBP has 47 special agents deployed for credential verification and anti-counterfeiting operations. Secret Service CAT teams positioned at venue outer perimeter. CBRN detection systems operational at all entry points.\n\nResources: 240 DHS personnel on-site including K9 teams, tactical units, and intelligence liaisons. FBI Joint Terrorism Task Force maintains joint operations center. State and local law enforcement report 850 officers deployed in coordinated security posture. Air space restrictions (TFR) in effect 30nm radius. All resources report full operational capability.\n\nSubmitted by: J. Smith (j.smith@hq.dhs.gov)\nSubmitted: 06/28/2026 14:30'
   );
 
   // State for sent notification search filters
@@ -146,63 +163,76 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   const [alerts, setAlerts] = useState<AlertItem[]>(
     data.alerts || [
       {
+        id: 'al0',
+        title: 'Civil Disturbance Emerging Near MetLife Stadium',
+        source: 'Grist Mill via social media',
+        severity: 'Watch',
+        issuedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+        expiresAt: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
+        status: 'Active',
+        description: 'Social media monitoring indicates developing civil disturbance approximately 0.5 miles from MetLife Stadium main entrance. Crowd estimated at 200-300 individuals. Local law enforcement coordinating response. Enhanced security screening recommended for affected entry points.',
+        timeSent: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
+        sentBy: 'intel.fusion@hq.dhs.gov',
+        location: 'Route 120 / Paterson Plank Road - East Rutherford, NJ'
+      },
+      {
         id: 'al1',
-        title: 'Small Craft Advisory – Gale conditions possible',
-        source: 'NOAA/NWS',
+        title: 'Elevated Threat Advisory - FIFA World Cup Venues',
+        source: 'DHS/NTAS',
         severity: 'Advisory',
         issuedAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
         expiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
-        description: 'Sustained winds 25–33 kt and seas 7–10 ft possible in the outer coastal waters. Mariners should exercise caution; consider delaying small craft operations.',
+        description: 'DHS maintains elevated security posture for all World Cup 2026 venues and surrounding areas. Enhanced screening and surveillance protocols are in effect. Personnel should remain vigilant and report suspicious activities immediately.',
         timeSent: new Date(Date.now() - 55 * 60 * 1000).toISOString(),
-        sentBy: 'j.martinez@uscg.mil',
-        location: 'Gulf Coast Outer Waters'
+        sentBy: 'j.martinez@hq.dhs.gov',
+        location: 'Northeast Region World Cup Venues'
       },
       {
         id: 'al2',
-        title: 'Port Condition Yankee – Reduced operations',
-        source: 'USCG COTP',
+        title: 'Temporary Flight Restriction - Match Day Operations',
+        source: 'FAA/TSA',
         severity: 'Watch',
         issuedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
-        description: 'Port Condition YANKEE has been set. Terminal operations are curtailed; ensure vessels are prepared to depart or take safe refuge. Submit updated port status within 2 hours.',
+        description: 'TFR established 30 nautical mile radius around MetLife Stadium. No drone operations permitted within restricted airspace. All aircraft must maintain minimum altitude 3000ft AGL. Duration: Match start minus 1 hour through match end plus 1 hour.',
         timeSent: new Date(Date.now() - 115 * 60 * 1000).toISOString(),
-        sentBy: 'm.rodriguez@uscg.mil',
-        location: 'Houston Ship Channel'
+        sentBy: 'm.rodriguez@tsa.dhs.gov',
+        location: 'MetLife Stadium - East Rutherford, NJ'
       },
       {
         id: 'al3',
-        title: 'Air Quality Alert – Sensitive groups affected',
-        source: 'State Environmental Agency',
+        title: 'Mass Transit Security Alert - Fan Movement Operations',
+        source: 'TSA Surface Division',
         severity: 'Info',
         issuedAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         status: 'Active',
-        description: 'PM2.5 levels elevated near industrial corridors and along the waterfront. Sensitive groups should limit prolonged outdoor exertion.',
+        description: 'Increased screening at major transit hubs serving World Cup venues. NJ Transit, PATH, and Amtrak stations implementing enhanced K9 patrols and VIPR team deployments. Expect increased passenger processing times. Fans should arrive 90 minutes early.',
         timeSent: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-        sentBy: 's.johnson@uscg.mil',
-        location: 'LA/Long Beach Port Area'
+        sentBy: 's.johnson@tsa.dhs.gov',
+        location: 'NY/NJ Metro Transit System'
       }
     ]
   );
 
   // Available incidents for filtering
   const incidents = [
-    'Grid Outage Alpha - Oahu Substation Failure',
-    'Solar Array Integration - Maui County',
-    'Typhoon Olivia Grid Hardening Response',
-    'Battery Storage System Beta - Big Island',
-    'Transmission Line Repair - Kauai Emergency',
-    'Wind Farm Emergency Shutdown - Molokai'
+    'World Cup 2026 - MetLife Stadium Operations',
+    'World Cup 2026 - Gillette Stadium Operations',
+    'World Cup 2026 - Lincoln Financial Field Operations',
+    'Credentialing and Access Control - All Venues',
+    'Counter-UAS Operations - Northeast Region',
+    'Mass Gathering Security - Fan Zones'
   ];
 
   // Available AORs for filtering
   const aors = [
-    'District East',
-    'District West',
-    'Sector New York',
-    'Sector Delaware Bay',
-    'Sector Galveston',
+    'Northeast Region',
+    'MetLife Stadium Complex',
+    'NYC Metro Area',
+    'TSA Screening Operations',
+    'CBP Entry Points',
   ];
 
   // Handler for incident selection
@@ -224,6 +254,90 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
       prev.includes(aor) 
         ? prev.filter(a => a !== aor)
         : [...prev, aor]
+    );
+  };
+
+  // Available teams and individuals for Create Incident modal
+  const incidentAvailableTeams = [
+    { name: 'IMT Alpha', type: 'Type 1', people: 45, available: true },
+    { name: 'IMT Bravo', type: 'Type 1', people: 42, available: true },
+    { name: 'IMT Charlie', type: 'Type 2', people: 28, available: false },
+    { name: 'IMT Delta', type: 'Type 2', people: 31, available: true },
+    { name: 'IMT Echo', type: 'Type 3', people: 18, available: false },
+    { name: 'IMT Foxtrot', type: 'Type 3', people: 22, available: true }
+  ];
+
+  const incidentAvailableIndividuals = [
+    'Sarah Chen - Incident Commander',
+    'Marcus Johnson - Planning Section Chief',
+    'Jennifer Martinez - Operations Section Chief',
+    'David Kim - Logistics Section Chief',
+    'Rachel Thompson - Finance/Admin Section Chief',
+    'Robert Garcia - Safety Officer',
+    'Emily Rodriguez - Intelligence Officer',
+    'Michael Brown - Public Information Officer',
+    'Amanda Wilson - Liaison Officer',
+    'James Taylor - Situation Unit Leader'
+  ];
+
+  const incidentAvailableCategories = [
+    'Civil Disturbance',
+    'Terrorism Threat',
+    'Mass Casualty Event',
+    'Security Breach',
+    'Infrastructure Disruption',
+    'Cyber Attack',
+    'CBRN Incident',
+    'Venue Security'
+  ];
+
+  const incidentAvailableAORs = [
+    'Sector New York',
+    'Sector Boston',
+    'Sector Delaware Bay',
+    'Sector Long Island Sound',
+    'Sector Northern New England'
+  ];
+
+  const incidentAvailableNotificationChannels = [
+    'PRATUS',
+    'Microsoft Teams',
+    'SMS',
+    'Call'
+  ];
+
+  // Toggle functions for Create Incident modal
+  const toggleTeam = (team: string) => {
+    setSelectedTeams(prev => 
+      prev.includes(team) 
+        ? prev.filter(t => t !== team)
+        : [...prev, team]
+    );
+  };
+
+  const toggleIndividual = (individual: string) => {
+    setSelectedIndividuals(prev => 
+      prev.includes(individual) 
+        ? prev.filter(i => i !== individual)
+        : [...prev, individual]
+    );
+  };
+
+  const selectCategory = (category: string) => {
+    setSelectedCategory(category);
+    setIncidentCategoriesPopoverOpen(false);
+  };
+
+  const selectAOR = (aor: string) => {
+    setIncidentAOR(aor);
+    setIncidentAORPopoverOpen(false);
+  };
+
+  const toggleNotificationChannel = (channel: string) => {
+    setSelectedNotificationChannels(prev => 
+      prev.includes(channel) 
+        ? prev.filter(c => c !== channel)
+        : [...prev, channel]
     );
   };
 
@@ -372,6 +486,8 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   // Get map coordinates for each alert based on alert type and content
   const getAlertCoordinates = (alertId: string): { center: string; scale: string } => {
     switch (alertId) {
+      case 'civil-disturbance-grist': // Civil Disturbance - MetLife Stadium
+        return { center: '-74.0742,40.8128', scale: '72223.819286' }; // MetLife Stadium, East Rutherford, NJ
       case 'al1': // Small Craft Advisory - outer coastal waters
         return { center: '-74.2,40.5', scale: '288895.277144' }; // New York/New Jersey coastal waters
       case 'al2': // Port Condition Yankee - major port
@@ -738,6 +854,111 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
       {viewMode === 'active' && (
         <div className="space-y-4">
         
+        {/* Civil Disturbance Alert - Grist Mill Social Media */}
+        <div
+          className="border border-border rounded-lg overflow-hidden"
+          style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
+        >
+          <div className={`p-3 ${expandedAlerts.has('civil-disturbance-grist') ? 'border-b border-border' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div
+                className="flex items-start gap-2 flex-1 cursor-pointer"
+                onClick={() => {
+                  const id = 'civil-disturbance-grist';
+                  setExpandedAlerts(prev => {
+                    const next = new Set(prev);
+                    if (next.has(id)) next.delete(id); else next.add(id);
+                    return next;
+                  });
+                }}
+              >
+                {expandedAlerts.has('civil-disturbance-grist') ? (
+                  <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="caption text-white">Civil Disturbance Emerging Near MetLife Stadium</span>
+                    <span 
+                      className="caption px-2 py-0.5 rounded text-xs"
+                      style={{ 
+                        backgroundColor: `${getSeverityColor('Critical')}20`,
+                        color: getSeverityColor('Critical'),
+                        border: `1px solid ${getSeverityColor('Critical')}60`
+                      }}
+                    >
+                      Critical
+                    </span>
+                  </div>
+                  {!expandedAlerts.has('civil-disturbance-grist') && (
+                    <div className="space-y-2 mt-1">
+                      <div className="flex items-center gap-3">
+                        <span className="caption text-white">Grist Mill via social media</span>
+                        <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 20 * 60 * 1000).toISOString())}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Zoom to MetLife Stadium area and show marker
+                    if (onZoomToLocation) {
+                      const coords = getAlertCoordinates('civil-disturbance-grist');
+                      onZoomToLocation(coords.center, coords.scale);
+                    }
+                    // Show red marker at MetLife Stadium
+                    if (onShowMapMarker) {
+                      onShowMapMarker('civil-disturbance-metlife', 40.8128, -74.0742, 'rgba(220, 38, 38, 0.8)');
+                    }
+                  }}
+                  className="p-1 hover:bg-muted/30 rounded transition-colors"
+                  title="Zoom to alert location"
+                >
+                  <Map className="w-3 h-3 text-white" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {expandedAlerts.has('civil-disturbance-grist') && (
+            <div className="p-4 space-y-4 bg-card/50">
+              <div>
+                <label className="text-white mb-1 block">Civil Disturbance Alert</label>
+                <p className="caption text-white">
+                  Social media intelligence indicates emerging civil disturbance near MetLife Stadium main entrance on Route 120 / Paterson Plank Road. Crowd size estimated at 200-300 individuals based on multiple geotagged posts. Social media users describe opposition to the Iranian soccer team playing in a match today at 14:00 EST.
+                </p>
+              </div>
+
+              <div>
+                <label className="text-white mb-1 block">Data Source</label>
+                <p className="caption text-white">Grist Mill via social media</p>
+              </div>
+
+              <div>
+                <label className="text-white mb-1 block">Location</label>
+                <p className="caption text-white">Vicinity of Metlife Stadium</p>
+              </div>
+
+              <div>
+                <label className="text-white mb-1 block">Recommended Actions</label>
+                <Button
+                  onClick={() => {
+                    setCreateIncidentModalOpen(true);
+                  }}
+                  className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
+                  style={{ paddingTop: '4px', paddingBottom: '4px' }}
+                >
+                  Create Incident & Activate IMT
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+        
         {/* Action Assignment Notification */}
         {!actionCompletionSubmitted && <div
           className="border border-border rounded-lg overflow-hidden"
@@ -859,203 +1080,6 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
           )}
         </div>}
         
-        {/* Incident Alpha Activation Request Notification */}
-        {!incidentActivationResponded && <div
-          className="border border-border rounded-lg overflow-hidden"
-          style={{ background: 'linear-gradient(90deg, rgba(104, 118, 238, 0.08) 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(90deg, rgb(20, 23, 26) 0%, rgb(20, 23, 26) 100%)' }}
-        >
-          <div className={`p-3 ${expandedAlerts.has('incident-activation-request') ? 'border-b border-border' : ''}`}>
-            <div className="flex items-start justify-between">
-              <div
-                className="flex items-start gap-2 flex-1 cursor-pointer"
-                onClick={() => {
-                  const id = 'incident-activation-request';
-                  setExpandedAlerts(prev => {
-                    const next = new Set(prev);
-                    if (next.has(id)) next.delete(id); else next.add(id);
-                    return next;
-                  });
-                }}
-              >
-                {expandedAlerts.has('incident-activation-request') ? (
-                  <ChevronDown className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
-                )}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="caption text-white">Incident Alpha Activation Request</span>
-                    <span 
-                      className="caption px-2 py-0.5 rounded text-xs"
-            style={{ 
-                        backgroundColor: `${getSeverityColor(getNotificationSeverity('incident-activation-request'))}20`,
-                        color: getSeverityColor(getNotificationSeverity('incident-activation-request')),
-                        border: `1px solid ${getSeverityColor(getNotificationSeverity('incident-activation-request'))}60`
-                      }}
-                    >
-                      {getNotificationSeverity('incident-activation-request')}
-                    </span>
-                  </div>
-                  {!expandedAlerts.has('incident-activation-request') && (
-                    <div className="space-y-2 mt-1">
-                      <div className="flex items-center gap-3">
-                        <span className="caption text-white">District Command</span>
-                        <span className="caption text-white">{formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}</span>
-                      </div>
-                      {!incidentActivationAccepted ? (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIncidentActivationAccepted(true);
-                              onDataChange({
-                                ...data,
-                                incidentActivationAccepted: true
-                              });
-                            }}
-                            className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
-                            style={{ paddingTop: '4px', paddingBottom: '4px' }}
-                          >
-                            Accept
-                          </Button>
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIncidentActivationResponse({
-                                decision: 'declined',
-                                submittedAt: new Date().toISOString()
-                              });
-                              setIncidentActivationResponded(true);
-                              onDataChange({
-                                ...data,
-                                incidentActivationResponded: true,
-                                incidentActivationResponse: {
-                                  decision: 'declined',
-                                  submittedAt: new Date().toISOString()
-                                }
-                              });
-                            }}
-                            variant="outline"
-                            className="border-border text-white px-3 h-auto text-xs"
-                            style={{ paddingTop: '4px', paddingBottom: '4px' }}
-                          >
-                            Decline
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIncidentActivationResponse({
-                              decision: 'accepted',
-                              submittedAt: new Date().toISOString()
-                            });
-                            setIncidentActivationResponded(true);
-                            onDataChange({
-                              ...data,
-                              incidentActivationResponded: true,
-                              incidentActivationResponse: {
-                                decision: 'accepted',
-                                submittedAt: new Date().toISOString()
-                              }
-                            });
-                          }}
-                          className="bg-primary hover:bg-primary/90 text-white px-3 h-auto text-xs"
-                          style={{ paddingTop: '4px', paddingBottom: '4px' }}
-                        >
-                          Enter Incident Workspace
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {expandedAlerts.has('incident-activation-request') && (
-            <div className="p-4 space-y-4 bg-card/50">
-              <div>
-                <label className="text-white mb-1 block">Incident Alpha Activation Request</label>
-                <p className="caption text-white mb-3">
-                  Requested by: District Command at {formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}
-                </p>
-                <p className="caption text-white font-semibold">
-                  Your Incident Seat: Situation Unit Leader
-                </p>
-                <div style={{ height: '1rem' }}></div>
-                <p className="caption text-white">
-                  District Command is requesting activation of Incident Alpha due to elevated threat assessment in the operational area. Review the request details and respond with Accept or Decline.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {!incidentActivationAccepted ? (
-                  <>
-                    <Button
-                      onClick={() => {
-                        setIncidentActivationAccepted(true);
-                        onDataChange({
-                          ...data,
-                          incidentActivationAccepted: true
-                        });
-                      }}
-                      className="bg-primary hover:bg-primary/90 text-white px-4 h-auto text-xs"
-                      style={{ paddingTop: '6px', paddingBottom: '6px' }}
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setIncidentActivationResponse({
-                          decision: 'declined',
-                          submittedAt: new Date().toISOString()
-                        });
-                        setIncidentActivationResponded(true);
-                        onDataChange({
-                          ...data,
-                          incidentActivationResponded: true,
-                          incidentActivationResponse: {
-                            decision: 'declined',
-                            submittedAt: new Date().toISOString()
-                          }
-                        });
-                      }}
-                      variant="outline"
-                      className="border-border text-white px-4 h-auto text-xs"
-                      style={{ paddingTop: '6px', paddingBottom: '6px' }}
-                    >
-                      Decline
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    onClick={() => {
-                      setIncidentActivationResponse({
-                        decision: 'accepted',
-                        submittedAt: new Date().toISOString()
-                      });
-                      setIncidentActivationResponded(true);
-                      onDataChange({
-                        ...data,
-                        incidentActivationResponded: true,
-                        incidentActivationResponse: {
-                          decision: 'accepted',
-                          submittedAt: new Date().toISOString()
-                        }
-                      });
-                    }}
-                    className="bg-primary hover:bg-primary/90 text-white px-4 h-auto text-xs"
-                    style={{ paddingTop: '6px', paddingBottom: '6px' }}
-                  >
-                    Enter Incident Workspace
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>}
-        
         {/* Boom Data Layer Review Notification - Only show if not archived */}
         {!boomDataLayerArchived && <div
           className="border border-border rounded-lg overflow-hidden"
@@ -1081,7 +1105,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   )}
                   <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="caption text-white">Review Requested of Update to Incident Alpha: Boom Data Layer</span>
+                    <span className="caption text-white">Review Requested: Stadium Perimeter Security Zone Update - MetLife Stadium</span>
                     <span 
                       className="caption px-2 py-0.5 rounded text-xs"
                       style={{ 
@@ -1140,7 +1164,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
               {!boomDataLayerReviewed ? (
                 <>
                   <div>
-                    <label className="text-white mb-1 block">Incident Alpha Boom Data Layer Update</label>
+                    <label className="text-white mb-1 block">MetLife Stadium Security Perimeter Update</label>
                     <p className="caption text-white mb-3">
                       Submitted by: M. Rodriguez at {formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}
                     </p>
@@ -1152,14 +1176,14 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                       className="bg-primary hover:bg-primary/90 text-white px-4 h-auto text-xs"
                       style={{ paddingTop: '6px', paddingBottom: '6px', marginTop: '8px' }}
                     >
-                      Preview Proposed Data Layer
+                      Preview Proposed Security Zones
                     </Button>
                     
                     {/* Legend Section */}
                     <div className="mt-4">
                       <label className="text-white mb-2 block text-xs">Legend</label>
                       <div className="flex items-center gap-3">
-                        <span className="caption text-white">Proposed Boom</span>
+                        <span className="caption text-white">Proposed Security Zone</span>
                         <div 
                           style={{ 
                             width: '16px', 
@@ -1362,7 +1386,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 <div>
                   <label className="text-white mb-1 block">Description</label>
                   <p className="caption text-white">
-                      Please complete this safety status form to confirm your current condition and location.
+                      Please complete this safety status form to confirm your current condition, location, and operational readiness for World Cup match day operations.
                     </p>
                   </div>
 
@@ -1493,7 +1517,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 )}
                 <div className="flex-1">
                     <div className="flex items-center gap-2">
-                    <span className="caption text-white">Review Requested of SITREP for District East</span>
+                    <span className="caption text-white">Review Requested of SITREP for World Cup Security Operations</span>
                     <span 
                       className="caption px-2 py-0.5 rounded text-xs"
                       style={{ 
@@ -1688,7 +1712,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 )}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="caption text-white">Acknowledgement Required - Incident Briefing Review</span>
+                    <span className="caption text-white">Acknowledgement Required - World Cup Security Briefing Review</span>
                     <span 
                       className="caption px-2 py-0.5 rounded text-xs"
                       style={{ 
@@ -1736,7 +1760,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
               <div>
                 <label className="text-white mb-1 block">Description</label>
                 <p className="caption text-white">
-                  Please acknowledge receipt of the incident briefing documentation and confirm your review of all operational procedures.
+                  Please acknowledge receipt of the World Cup security briefing documentation and confirm your review of all match day operational procedures and threat assessments.
                 </p>
               </div>
 
@@ -1959,7 +1983,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
-                    <span className="caption text-white">Review Requested of Update to Incident Alpha: Boom Data Layer</span>
+                    <span className="caption text-white">Review Requested: Stadium Perimeter Security Zone Update - MetLife Stadium</span>
                     {!expandedAlerts.has('boom-data-layer-review-historical') && (
                       <div className="space-y-2 mt-1">
                         <div className="flex items-center gap-3">
@@ -1991,7 +2015,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   </div>
                 )}
                 <div>
-                  <label className="text-white mb-1 block">Incident Alpha Boom Data Layer Update</label>
+                  <label className="text-white mb-1 block">MetLife Stadium Security Perimeter Update</label>
                   <p className="caption text-white mb-3">
                     Submitted by: M. Rodriguez at {formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}
                   </p>
@@ -2024,7 +2048,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
-                    <span className="caption text-white">Review Requested of SITREP for District East</span>
+                    <span className="caption text-white">Review Requested of SITREP for World Cup Security Operations</span>
                     {!expandedAlerts.has('sitrep-review-historical') && (
                       <div className="space-y-2 mt-1">
                         <div className="flex items-center gap-3">
@@ -2074,7 +2098,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                   </>
                 ) : (
                   <div>
-                    <label className="text-white mb-1 block">District East SITREP</label>
+                    <label className="text-white mb-1 block">World Cup Security Operations SITREP</label>
                     <p className="caption text-white mb-3">
                       Drafted by: J. Smith at {formatMilitaryTimeUTC(new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())}
                     </p>
@@ -2191,14 +2215,14 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
-                    <span className="caption text-white font-semibold">Safety Assessment - Personnel Status Check</span>
+                    <span className="caption text-white font-semibold">Match Day Personnel Status and Readiness Check</span>
                     {!expandedAlerts.has('sent-safety-assessment') && (
                       <div className="space-y-2 mt-1">
                         <div className="flex items-center gap-3">
                           <span className="caption text-white">Sent: {formatMilitaryTimeUTC(new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="caption text-white">Recipients: Operations Section, Planning Section, Logistics Section</span>
+                          <span className="caption text-white">Recipients: Security Operations, Screening Operations, Intelligence Division</span>
                         </div>
                       </div>
                     )}
@@ -2212,14 +2236,14 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 <div>
                   <label className="text-white mb-1 block">Message</label>
                   <p className="caption text-white">
-                    Please complete this safety status form to confirm your current condition and location.
+                    All DHS personnel assigned to World Cup match day operations: Please complete this readiness assessment to confirm your deployment status, current location, and operational capability for today's USA vs Mexico quarterfinal match.
                   </p>
                 </div>
 
                 <div>
                   <label className="text-white mb-2 block">Recipients</label>
                   <div className="space-y-2">
-                    {/* Operations Section */}
+                    {/* Security Operations */}
                     <div className="border border-border rounded">
                       <div
                         className="flex items-center gap-2 p-2 cursor-pointer hover:bg-muted/20"
@@ -2237,7 +2261,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                         ) : (
                           <ChevronRight className="w-4 h-4 text-white flex-shrink-0" />
                         )}
-                        <span className="caption text-white">Operations Section (15)</span>
+                        <span className="caption text-white">Security Operations (15)</span>
                       </div>
                       {expandedRecipientSections.has('safety-ops-section') && (
                         <div className="px-4 pb-2 space-y-1">
@@ -2266,7 +2290,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                       )}
                     </div>
 
-                    {/* Planning Section */}
+                    {/* Screening Operations */}
                     <div className="border border-border rounded">
                       <div
                         className="flex items-center gap-2 p-2 cursor-pointer hover:bg-muted/20"
@@ -2284,7 +2308,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                         ) : (
                           <ChevronRight className="w-4 h-4 text-white flex-shrink-0" />
                         )}
-                        <span className="caption text-white">Planning Section (15)</span>
+                        <span className="caption text-white">Screening Operations (15)</span>
                       </div>
                       {expandedRecipientSections.has('safety-planning-section') && (
                         <div className="px-4 pb-2 space-y-1">
@@ -2313,7 +2337,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                       )}
                     </div>
 
-                    {/* Logistics Section */}
+                    {/* Intelligence Division */}
                     <div className="border border-border rounded">
                       <div
                         className="flex items-center gap-2 p-2 cursor-pointer hover:bg-muted/20"
@@ -2331,7 +2355,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                         ) : (
                           <ChevronRight className="w-4 h-4 text-white flex-shrink-0" />
                         )}
-                        <span className="caption text-white">Logistics Section (15)</span>
+                        <span className="caption text-white">Intelligence Division (15)</span>
                       </div>
                       {expandedRecipientSections.has('safety-logistics-section') && (
                         <div className="px-4 pb-2 space-y-1">
@@ -2389,7 +2413,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
-                    <span className="caption text-white font-semibold">Incident Briefing - ICS-201 Review Required</span>
+                    <span className="caption text-white font-semibold">World Cup Security Briefing - Match Day Operations Review Required</span>
                     {!expandedAlerts.has('sent-incident-briefing') && (
                       <div className="space-y-2 mt-1">
                         <div className="flex items-center gap-3">
@@ -2413,7 +2437,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 <div>
                   <label className="text-white mb-1 block">Message</label>
                   <p className="caption text-white">
-                    Please review and acknowledge receipt of the ICS-201 Incident Briefing documentation.
+                    Please review and acknowledge receipt of the World Cup Security Operations briefing documentation for USA vs Mexico quarterfinal match operations.
                   </p>
                 </div>
 
@@ -2434,31 +2458,31 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                       <div className="max-h-[200px] overflow-y-auto">
                         {(() => {
                           const acknowledgedUsers = [
-                            { name: 'Jose Martinez', email: 'jose.martinez@uscg.mil' },
-                            { name: 'Sarah Johnson', email: 'sarah.johnson@uscg.mil' },
-                            { name: 'Michael Rodriguez', email: 'michael.rodriguez@uscg.mil' },
-                            { name: 'Karen Williams', email: 'karen.williams@uscg.mil' },
-                            { name: 'Thomas Brown', email: 'thomas.brown@uscg.mil' },
-                            { name: 'Amanda Davis', email: 'amanda.davis@uscg.mil' },
-                            { name: 'Robert Wilson', email: 'robert.wilson@uscg.mil' },
-                            { name: 'Lisa Moore', email: 'lisa.moore@uscg.mil' },
-                            { name: 'Christopher Taylor', email: 'christopher.taylor@uscg.mil' },
-                            { name: 'David Anderson', email: 'david.anderson@uscg.mil' },
-                            { name: 'Patricia Thomas', email: 'patricia.thomas@uscg.mil' },
-                            { name: 'Henry Jackson', email: 'henry.jackson@uscg.mil' },
-                            { name: 'Nancy White', email: 'nancy.white@uscg.mil' },
-                            { name: 'Edward Harris', email: 'edward.harris@uscg.mil' },
-                            { name: 'Barbara Martin', email: 'barbara.martin@uscg.mil' },
-                            { name: 'George Thompson', email: 'george.thompson@uscg.mil' },
-                            { name: 'Victoria Garcia', email: 'victoria.garcia@uscg.mil' },
-                            { name: 'Frank Martinez', email: 'frank.martinez@uscg.mil' },
-                            { name: 'Isabella Robinson', email: 'isabella.robinson@uscg.mil' },
-                            { name: 'Oscar Clark', email: 'oscar.clark@uscg.mil' },
-                            { name: 'Uma Rodriguez', email: 'uma.rodriguez@uscg.mil' },
-                            { name: 'Yolanda Lewis', email: 'yolanda.lewis@uscg.mil' },
-                            { name: 'Quentin Lee', email: 'quentin.lee@uscg.mil' },
-                            { name: 'Walter Walker', email: 'walter.walker@uscg.mil' },
-                            { name: 'Xavier Hall', email: 'xavier.hall@uscg.mil' }
+                            { name: 'Jose Martinez', email: 'jose.martinez@hq.dhs.gov' },
+                            { name: 'Sarah Johnson', email: 'sarah.johnson@hq.dhs.gov' },
+                            { name: 'Michael Rodriguez', email: 'michael.rodriguez@hq.dhs.gov' },
+                            { name: 'Karen Williams', email: 'karen.williams@hq.dhs.gov' },
+                            { name: 'Thomas Brown', email: 'thomas.brown@hq.dhs.gov' },
+                            { name: 'Amanda Davis', email: 'amanda.davis@hq.dhs.gov' },
+                            { name: 'Robert Wilson', email: 'robert.wilson@hq.dhs.gov' },
+                            { name: 'Lisa Moore', email: 'lisa.moore@hq.dhs.gov' },
+                            { name: 'Christopher Taylor', email: 'christopher.taylor@hq.dhs.gov' },
+                            { name: 'David Anderson', email: 'david.anderson@hq.dhs.gov' },
+                            { name: 'Patricia Thomas', email: 'patricia.thomas@hq.dhs.gov' },
+                            { name: 'Henry Jackson', email: 'henry.jackson@hq.dhs.gov' },
+                            { name: 'Nancy White', email: 'nancy.white@hq.dhs.gov' },
+                            { name: 'Edward Harris', email: 'edward.harris@hq.dhs.gov' },
+                            { name: 'Barbara Martin', email: 'barbara.martin@hq.dhs.gov' },
+                            { name: 'George Thompson', email: 'george.thompson@hq.dhs.gov' },
+                            { name: 'Victoria Garcia', email: 'victoria.garcia@hq.dhs.gov' },
+                            { name: 'Frank Martinez', email: 'frank.martinez@hq.dhs.gov' },
+                            { name: 'Isabella Robinson', email: 'isabella.robinson@hq.dhs.gov' },
+                            { name: 'Oscar Clark', email: 'oscar.clark@hq.dhs.gov' },
+                            { name: 'Uma Rodriguez', email: 'uma.rodriguez@hq.dhs.gov' },
+                            { name: 'Yolanda Lewis', email: 'yolanda.lewis@hq.dhs.gov' },
+                            { name: 'Quentin Lee', email: 'quentin.lee@hq.dhs.gov' },
+                            { name: 'Walter Walker', email: 'walter.walker@hq.dhs.gov' },
+                            { name: 'Xavier Hall', email: 'xavier.hall@hq.dhs.gov' }
                           ];
                           
                           const filteredUsers = acknowledgedUsers.filter(user => {
@@ -2487,11 +2511,11 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                       <div>
                         {(() => {
                           const notAcknowledgedUsers = [
-                            { name: 'Zachary Allen', email: 'zachary.allen@uscg.mil' },
-                            { name: 'Sophia Young', email: 'sophia.young@uscg.mil' },
-                            { name: 'James Hernandez', email: 'james.hernandez@uscg.mil' },
-                            { name: 'Megan King', email: 'megan.king@uscg.mil' },
-                            { name: 'Kevin Wright', email: 'kevin.wright@uscg.mil' }
+                            { name: 'Zachary Allen', email: 'zachary.allen@hq.dhs.gov' },
+                            { name: 'Sophia Young', email: 'sophia.young@hq.dhs.gov' },
+                            { name: 'James Hernandez', email: 'james.hernandez@hq.dhs.gov' },
+                            { name: 'Megan King', email: 'megan.king@hq.dhs.gov' },
+                            { name: 'Kevin Wright', email: 'kevin.wright@hq.dhs.gov' }
                           ];
                           
                           const filteredUsers = notAcknowledgedUsers.filter(user => {
@@ -2537,7 +2561,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                     <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
-                    <span className="caption text-white font-semibold">Emergency Stand Down - Immediate Action Required</span>
+                    <span className="caption text-white font-semibold">Security Alert Stand Down - All Clear Issued</span>
                     {!expandedAlerts.has('sent-emergency-standdown') && (
                       <div className="space-y-2 mt-1">
                         <div className="flex items-center gap-3">
@@ -2565,7 +2589,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 <div>
                   <label className="text-white mb-1 block">Message</label>
                   <p className="caption text-white">
-                    IMMEDIATE STAND DOWN. All personnel cease current operations and report to designated safe areas. This is not a drill.
+                    ALL CLEAR. Security threat has been resolved. All DHS personnel may resume normal World Cup security operations. Maintain heightened awareness and report any suspicious activity.
                   </p>
                 </div>
 
@@ -2586,51 +2610,51 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                       <div className="max-h-[200px] overflow-y-auto">
                         {(() => {
                           const acknowledgedUsers = [
-                            { name: 'Jose Martinez', email: 'jose.martinez@uscg.mil' },
-                            { name: 'Sarah Johnson', email: 'sarah.johnson@uscg.mil' },
-                            { name: 'Michael Rodriguez', email: 'michael.rodriguez@uscg.mil' },
-                            { name: 'Karen Williams', email: 'karen.williams@uscg.mil' },
-                            { name: 'Thomas Brown', email: 'thomas.brown@uscg.mil' },
-                            { name: 'Amanda Davis', email: 'amanda.davis@uscg.mil' },
-                            { name: 'Robert Wilson', email: 'robert.wilson@uscg.mil' },
-                            { name: 'Lisa Moore', email: 'lisa.moore@uscg.mil' },
-                            { name: 'Christopher Taylor', email: 'christopher.taylor@uscg.mil' },
-                            { name: 'David Anderson', email: 'david.anderson@uscg.mil' },
-                            { name: 'Patricia Thomas', email: 'patricia.thomas@uscg.mil' },
-                            { name: 'Henry Jackson', email: 'henry.jackson@uscg.mil' },
-                            { name: 'Nancy White', email: 'nancy.white@uscg.mil' },
-                            { name: 'Edward Harris', email: 'edward.harris@uscg.mil' },
-                            { name: 'Barbara Martin', email: 'barbara.martin@uscg.mil' },
-                            { name: 'George Thompson', email: 'george.thompson@uscg.mil' },
-                            { name: 'Victoria Garcia', email: 'victoria.garcia@uscg.mil' },
-                            { name: 'Frank Martinez', email: 'frank.martinez@uscg.mil' },
-                            { name: 'Isabella Robinson', email: 'isabella.robinson@uscg.mil' },
-                            { name: 'Oscar Clark', email: 'oscar.clark@uscg.mil' },
-                            { name: 'Uma Rodriguez', email: 'uma.rodriguez@uscg.mil' },
-                            { name: 'Yolanda Lewis', email: 'yolanda.lewis@uscg.mil' },
-                            { name: 'Quentin Lee', email: 'quentin.lee@uscg.mil' },
-                            { name: 'Walter Walker', email: 'walter.walker@uscg.mil' },
-                            { name: 'Xavier Hall', email: 'xavier.hall@uscg.mil' },
-                            { name: 'Zachary Allen', email: 'zachary.allen@uscg.mil' },
-                            { name: 'Sophia Young', email: 'sophia.young@uscg.mil' },
-                            { name: 'James Hernandez', email: 'james.hernandez@uscg.mil' },
-                            { name: 'Megan King', email: 'megan.king@uscg.mil' },
-                            { name: 'Kevin Wright', email: 'kevin.wright@uscg.mil' },
-                            { name: 'Teresa Lopez', email: 'teresa.lopez@uscg.mil' },
-                            { name: 'Anthony Hill', email: 'anthony.hill@uscg.mil' },
-                            { name: 'Rachel Scott', email: 'rachel.scott@uscg.mil' },
-                            { name: 'Lawrence Green', email: 'lawrence.green@uscg.mil' },
-                            { name: 'Carol Adams', email: 'carol.adams@uscg.mil' },
-                            { name: 'Daniel Baker', email: 'daniel.baker@uscg.mil' },
-                            { name: 'Paula Gonzalez', email: 'paula.gonzalez@uscg.mil' },
-                            { name: 'Harold Nelson', email: 'harold.nelson@uscg.mil' },
-                            { name: 'Nathan Carter', email: 'nathan.carter@uscg.mil' },
-                            { name: 'Emily Mitchell', email: 'emily.mitchell@uscg.mil' },
-                            { name: 'Brian Perez', email: 'brian.perez@uscg.mil' },
-                            { name: 'Grace Roberts', email: 'grace.roberts@uscg.mil' },
-                            { name: 'Vincent Turner', email: 'vincent.turner@uscg.mil' },
-                            { name: 'Fiona Phillips', email: 'fiona.phillips@uscg.mil' },
-                            { name: 'Isaac Campbell', email: 'isaac.campbell@uscg.mil' }
+                            { name: 'Jose Martinez', email: 'jose.martinez@hq.dhs.gov' },
+                            { name: 'Sarah Johnson', email: 'sarah.johnson@hq.dhs.gov' },
+                            { name: 'Michael Rodriguez', email: 'michael.rodriguez@hq.dhs.gov' },
+                            { name: 'Karen Williams', email: 'karen.williams@hq.dhs.gov' },
+                            { name: 'Thomas Brown', email: 'thomas.brown@hq.dhs.gov' },
+                            { name: 'Amanda Davis', email: 'amanda.davis@hq.dhs.gov' },
+                            { name: 'Robert Wilson', email: 'robert.wilson@hq.dhs.gov' },
+                            { name: 'Lisa Moore', email: 'lisa.moore@hq.dhs.gov' },
+                            { name: 'Christopher Taylor', email: 'christopher.taylor@hq.dhs.gov' },
+                            { name: 'David Anderson', email: 'david.anderson@hq.dhs.gov' },
+                            { name: 'Patricia Thomas', email: 'patricia.thomas@hq.dhs.gov' },
+                            { name: 'Henry Jackson', email: 'henry.jackson@hq.dhs.gov' },
+                            { name: 'Nancy White', email: 'nancy.white@hq.dhs.gov' },
+                            { name: 'Edward Harris', email: 'edward.harris@hq.dhs.gov' },
+                            { name: 'Barbara Martin', email: 'barbara.martin@hq.dhs.gov' },
+                            { name: 'George Thompson', email: 'george.thompson@hq.dhs.gov' },
+                            { name: 'Victoria Garcia', email: 'victoria.garcia@hq.dhs.gov' },
+                            { name: 'Frank Martinez', email: 'frank.martinez@hq.dhs.gov' },
+                            { name: 'Isabella Robinson', email: 'isabella.robinson@hq.dhs.gov' },
+                            { name: 'Oscar Clark', email: 'oscar.clark@hq.dhs.gov' },
+                            { name: 'Uma Rodriguez', email: 'uma.rodriguez@hq.dhs.gov' },
+                            { name: 'Yolanda Lewis', email: 'yolanda.lewis@hq.dhs.gov' },
+                            { name: 'Quentin Lee', email: 'quentin.lee@hq.dhs.gov' },
+                            { name: 'Walter Walker', email: 'walter.walker@hq.dhs.gov' },
+                            { name: 'Xavier Hall', email: 'xavier.hall@hq.dhs.gov' },
+                            { name: 'Zachary Allen', email: 'zachary.allen@hq.dhs.gov' },
+                            { name: 'Sophia Young', email: 'sophia.young@hq.dhs.gov' },
+                            { name: 'James Hernandez', email: 'james.hernandez@hq.dhs.gov' },
+                            { name: 'Megan King', email: 'megan.king@hq.dhs.gov' },
+                            { name: 'Kevin Wright', email: 'kevin.wright@hq.dhs.gov' },
+                            { name: 'Teresa Lopez', email: 'teresa.lopez@hq.dhs.gov' },
+                            { name: 'Anthony Hill', email: 'anthony.hill@hq.dhs.gov' },
+                            { name: 'Rachel Scott', email: 'rachel.scott@hq.dhs.gov' },
+                            { name: 'Lawrence Green', email: 'lawrence.green@hq.dhs.gov' },
+                            { name: 'Carol Adams', email: 'carol.adams@hq.dhs.gov' },
+                            { name: 'Daniel Baker', email: 'daniel.baker@hq.dhs.gov' },
+                            { name: 'Paula Gonzalez', email: 'paula.gonzalez@hq.dhs.gov' },
+                            { name: 'Harold Nelson', email: 'harold.nelson@hq.dhs.gov' },
+                            { name: 'Nathan Carter', email: 'nathan.carter@hq.dhs.gov' },
+                            { name: 'Emily Mitchell', email: 'emily.mitchell@hq.dhs.gov' },
+                            { name: 'Brian Perez', email: 'brian.perez@hq.dhs.gov' },
+                            { name: 'Grace Roberts', email: 'grace.roberts@hq.dhs.gov' },
+                            { name: 'Vincent Turner', email: 'vincent.turner@hq.dhs.gov' },
+                            { name: 'Fiona Phillips', email: 'fiona.phillips@hq.dhs.gov' },
+                            { name: 'Isaac Campbell', email: 'isaac.campbell@hq.dhs.gov' }
                           ];
                           
                           const filteredUsers = acknowledgedUsers.filter(user => {
@@ -3204,6 +3228,294 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
               className="bg-primary hover:bg-primary/90 text-white"
             >
               Confirm Archive
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Incident Modal */}
+      <Dialog open={createIncidentModalOpen} onOpenChange={setCreateIncidentModalOpen}>
+        <DialogContent className="bg-[#222529] border-[#6e757c] text-white" style={{ maxWidth: '1344px', fontSize: '90%' }}>
+          <DialogHeader>
+            <DialogTitle className="text-white">Create Incident & Activate IMT</DialogTitle>
+            <DialogDescription className="text-white/70">
+              Select the teams, individuals, and incident categories to activate for this incident.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Initial Situation Report (SITREP) */}
+            <div className="space-y-3">
+              <Label className="text-white">Initial Situation Report (SITREP)</Label>
+              <Textarea
+                value={initialSitrep}
+                onChange={(e) => setInitialSitrep(e.target.value)}
+                className="min-h-[120px] bg-[#14171a] border-[#6e757c] text-white resize-none"
+                placeholder="Enter initial situation report..."
+              />
+            </div>
+
+            {/* Initial Objectives */}
+            <div className="space-y-3">
+              <Label className="text-white">Initial Objectives</Label>
+              <Textarea
+                value={initialObjectives}
+                onChange={(e) => setInitialObjectives(e.target.value)}
+                className="min-h-[80px] bg-[#14171a] border-[#6e757c] text-white resize-none"
+                placeholder="Enter initial objectives..."
+              />
+            </div>
+
+            {/* Incident Location */}
+            <div className="space-y-3">
+              <Label className="text-white">Incident Location</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white text-sm">AOR</Label>
+                  <Popover open={incidentAORPopoverOpen} onOpenChange={setIncidentAORPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="w-full flex items-center justify-between bg-[#14171a] border border-[#6e757c] rounded-md px-3 py-2 text-sm hover:bg-[#1a1d21] text-white"
+                      >
+                        <span className="text-white">
+                          {incidentAOR}
+                        </span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+                      <Command className="bg-[#222529]">
+                        <CommandInput 
+                          placeholder="Search AORs..." 
+                          className="h-9 text-white"
+                        />
+                        <CommandList>
+                          <CommandEmpty className="text-white/70 p-2">No AOR found.</CommandEmpty>
+                          <CommandGroup>
+                            {incidentAvailableAORs.map((aor) => (
+                              <CommandItem
+                                key={aor}
+                                value={aor}
+                                onSelect={() => selectAOR(aor)}
+                                className="text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
+                              >
+                                {aor}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white text-sm">Address</Label>
+                  <Input
+                    value={incidentAddress}
+                    onChange={(e) => setIncidentAddress(e.target.value)}
+                    className="bg-[#14171a] border-[#6e757c] text-white"
+                    placeholder="Enter address..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Teams and Individuals in a grid layout */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Team(s) to Activate */}
+              <div className="space-y-3">
+                <Label className="text-white">Team(s) to Activate</Label>
+                <Popover open={incidentTeamsPopoverOpen} onOpenChange={setIncidentTeamsPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="w-full flex items-center justify-between bg-[#14171a] border border-[#6e757c] rounded-md px-3 py-2 text-sm hover:bg-[#1a1d21] text-white"
+                    >
+                      <span className={selectedTeams.length === 0 ? "text-white/70" : "text-white truncate pr-2"}>
+                        {selectedTeams.length === 0 
+                          ? 'Select teams...' 
+                          : selectedTeams.join(', ')}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[650px] p-0 bg-[#222529] border-[#6e757c]" align="start" side="bottom" avoidCollisions={false} sideOffset={5}>
+                    <Command className="bg-[#222529]">
+                      <CommandInput 
+                        placeholder="Search teams..." 
+                        className="h-9 text-white"
+                      />
+                      <CommandList>
+                        <CommandEmpty className="text-white/70 p-2">No team found.</CommandEmpty>
+                        <CommandGroup>
+                          {incidentAvailableTeams.map((team) => (
+                            <CommandItem
+                              key={team.name}
+                              value={team.name}
+                              onSelect={() => toggleTeam(team.name)}
+                              className="text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
+                            >
+                              <Checkbox
+                                checked={selectedTeams.includes(team.name)}
+                                className="mr-2 border-white/30"
+                              />
+                              <span className="flex-1">{team.name}</span>
+                              <span className="text-white/50 text-xs ml-4">{team.type}</span>
+                              <span className={team.available ? "text-green-500 text-xs ml-4" : "text-red-500 text-xs ml-4"}>
+                                {team.available ? 'Available' : 'Unavailable'}
+                              </span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Individuals to Activate */}
+              <div className="space-y-3">
+                <Label className="text-white">Individuals to Activate</Label>
+                <Popover open={incidentIndividualsPopoverOpen} onOpenChange={setIncidentIndividualsPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="w-full flex items-center justify-between bg-[#14171a] border border-[#6e757c] rounded-md px-3 py-2 text-sm hover:bg-[#1a1d21] text-white"
+                    >
+                      <span className={selectedIndividuals.length === 0 ? "text-white/70" : "text-white truncate pr-2"}>
+                        {selectedIndividuals.length === 0 
+                          ? 'Select individuals...' 
+                          : selectedIndividuals.join(', ')}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[500px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+                    <Command className="bg-[#222529]">
+                      <CommandInput 
+                        placeholder="Search individuals..." 
+                        className="h-9 text-white"
+                      />
+                      <CommandList>
+                        <CommandEmpty className="text-white/70 p-2">No individual found.</CommandEmpty>
+                        <CommandGroup>
+                          {incidentAvailableIndividuals.map((individual) => (
+                            <CommandItem
+                              key={individual}
+                              value={individual}
+                              onSelect={() => toggleIndividual(individual)}
+                              className="text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
+                            >
+                              <Checkbox
+                                checked={selectedIndividuals.includes(individual)}
+                                className="mr-2 border-white/30"
+                              />
+                              {individual}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            {/* Notification Channels - Left-aligned */}
+            <div className="space-y-3">
+              <Label className="text-white">Notification Channels</Label>
+              <Popover open={incidentNotificationChannelsPopoverOpen} onOpenChange={setIncidentNotificationChannelsPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    className="w-full flex items-center justify-between bg-[#14171a] border border-[#6e757c] rounded-md px-3 py-2 text-sm hover:bg-[#1a1d21] text-white"
+                  >
+                    <span className={selectedNotificationChannels.length === 0 ? "text-white/70" : "text-white truncate pr-2"}>
+                      {selectedNotificationChannels.length === 0 
+                        ? 'Select channels...' 
+                        : selectedNotificationChannels.join(', ')}
+                    </span>
+                    <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[500px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+                  <Command className="bg-[#222529]">
+                    <CommandInput 
+                      placeholder="Search channels..." 
+                      className="h-9 text-white"
+                    />
+                    <CommandList>
+                      <CommandEmpty className="text-white/70 p-2">No channel found.</CommandEmpty>
+                      <CommandGroup>
+                        {incidentAvailableNotificationChannels.map((channel) => (
+                          <CommandItem
+                            key={channel}
+                            value={channel}
+                            onSelect={() => toggleNotificationChannel(channel)}
+                            className="text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
+                          >
+                            <Checkbox
+                              checked={selectedNotificationChannels.includes(channel)}
+                              className="mr-2 border-white/30"
+                            />
+                            {channel}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-3">
+            <Button
+              onClick={() => {
+                setCreateIncidentModalOpen(false);
+                setSelectedTeams([]);
+                setSelectedIndividuals([]);
+                setSelectedNotificationChannels([]);
+                setIncidentTeamsPopoverOpen(false);
+                setIncidentIndividualsPopoverOpen(false);
+                setIncidentNotificationChannelsPopoverOpen(false);
+                setIncidentAORPopoverOpen(false);
+                setInitialSitrep('Social media intelligence indicates emerging civil disturbance near MetLife Stadium main entrance on Route 120 / Paterson Plank Road. Crowd size estimated at 200-300 individuals based on multiple geotagged posts. Social media users describe opposition to the Iranian soccer team playing in a match today at 14:00 EST.');
+                setInitialObjectives('Deter violence from emerging during the protests.');
+                setIncidentAOR('Sector New York');
+                setIncidentAddress('Vicinity of Metlife Stadium');
+              }}
+              variant="outline"
+              className="border-border text-white hover:bg-white/10"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Handle incident creation
+                console.log('Creating incident with:', {
+                  sitrep: initialSitrep,
+                  objectives: initialObjectives,
+                  teams: selectedTeams,
+                  individuals: selectedIndividuals,
+                  notificationChannels: selectedNotificationChannels,
+                  aor: incidentAOR,
+                  address: incidentAddress
+                });
+                setCreateIncidentModalOpen(false);
+                // Reset selections
+                setSelectedTeams([]);
+                setSelectedIndividuals([]);
+                setSelectedNotificationChannels([]);
+                setIncidentTeamsPopoverOpen(false);
+                setIncidentIndividualsPopoverOpen(false);
+                setIncidentNotificationChannelsPopoverOpen(false);
+                setIncidentAORPopoverOpen(false);
+                setInitialSitrep('Social media intelligence indicates emerging civil disturbance near MetLife Stadium main entrance on Route 120 / Paterson Plank Road. Crowd size estimated at 200-300 individuals based on multiple geotagged posts. Social media users describe opposition to the Iranian soccer team playing in a match today at 14:00 EST.');
+                setInitialObjectives('Deter violence from emerging during the protests.');
+                setIncidentAOR('Sector New York');
+                setIncidentAddress('Vicinity of Metlife Stadium');
+              }}
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              Create Incident
             </Button>
           </DialogFooter>
         </DialogContent>

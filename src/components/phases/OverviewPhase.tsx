@@ -8,6 +8,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import svgPaths from '../../imports/svg-7hg6d30srz';
 
 interface OverviewPhaseProps {
@@ -41,7 +42,7 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingSourceId, setEditingSourceId] = useState<string | null>(null);
   const [filterMode, setFilterMode] = useState<'region' | 'incident'>('region');
-  const [selectedRegion, setSelectedRegion] = useState<string>('gulf-coast');
+  const [selectedRegion, setSelectedRegion] = useState<string>('sector-new-york');
   const [selectedIncident, setSelectedIncident] = useState<string>('oil-spill-alpha');
   const [regionPopoverOpen, setRegionPopoverOpen] = useState(false);
   const [incidentPopoverOpen, setIncidentPopoverOpen] = useState(false);
@@ -52,7 +53,7 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
   const [sitrepLastUpdatedBy, setSitrepLastUpdatedBy] = useState<string>(data.sitrepLastUpdatedBy || 'John Smith');
   const [filterEditMode, setFilterEditMode] = useState(false);
   const [filterModeDraft, setFilterModeDraft] = useState<'region' | 'incident'>('region');
-  const [selectedRegionDraft, setSelectedRegionDraft] = useState<string>('gulf-coast');
+  const [selectedRegionDraft, setSelectedRegionDraft] = useState<string>('sector-new-york');
   const [selectedIncidentDraft, setSelectedIncidentDraft] = useState<string>('oil-spill-alpha');
   const [sitrepViewMode, setSitrepViewMode] = useState<'latest' | 'historical' | 'drafts'>('latest');
   
@@ -91,7 +92,22 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
     }
   ]);
   const [isAddingDraft, setIsAddingDraft] = useState(false);
-  const [newDraftContent, setNewDraftContent] = useState('');
+  
+  // SITREP tabs state
+  const [activeSitrepTab, setActiveSitrepTab] = useState<number>(1);
+  const [activeDraftTab, setActiveDraftTab] = useState<number>(1);
+  
+  // Draft content for each tab
+  const [draftTabContents, setDraftTabContents] = useState<Record<number, string>>({
+    1: '',
+    2: '',
+    3: '',
+    4: '',
+    5: ''
+  });
+  
+  // Template selection state
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
   // Region options
   const regions = [
@@ -105,11 +121,11 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
 
   // Incident options
   const incidents = [
-    { id: 'grid-outage-alpha', name: 'Grid Outage Alpha - Oahu Substation Failure' },
-    { id: 'renewable-integration', name: 'Solar Array Integration - Maui County' },
-    { id: 'typhoon-resilience', name: 'Typhoon Olivia Grid Hardening Response' },
-    { id: 'battery-storage-beta', name: 'Battery Storage System Beta - Big Island' },
-    { id: 'transmission-repair', name: 'Transmission Line Repair - Kauai Emergency' }
+    { id: 'platform-shutdown-alpha', name: 'Platform Alpha Emergency Shutdown - Block 847' },
+    { id: 'pipeline-leak-response', name: 'Subsea Pipeline Leak Response - Deepwater Corridor' },
+    { id: 'hurricane-preparedness', name: 'Hurricane Delta Production Shutdown Protocol' },
+    { id: 'well-control-incident', name: 'Well Control Event - Mobile Drilling Unit Genesis' },
+    { id: 'vessel-collision-response', name: 'Supply Vessel Collision - Platform Bravo' }
   ];
 
   // Function to generate data based on region and incident
@@ -807,18 +823,50 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                     </Label>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="caption text-white/70 text-xs block">
-                      Authored by LCDR Sarah Mitchell at 14:30 UTC 19 DEC 2025
-                    </span>
-                    <Button
-                      onClick={() => {}}
-                      className="bg-transparent border border-white text-white hover:bg-white/10 h-auto px-1.5 py-0.5 flex items-center gap-1"
-                      style={{ fontSize: '9px' }}
+                    <div className="space-y-1">
+                      <span className="caption text-white/70 text-xs block">
+                        Authored by LCDR Sarah Mitchell at 14:30 UTC 19 DEC 2025
+                      </span>
+                      <span className="caption text-white/70 text-xs block">
+                        Approved by CDR Thomas Bradley at 15:00 UTC 19 DEC 2025
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSitrepViewMode('drafts');
+                        setIsAddingDraft(true);
+                      }}
+                      className="bg-[#01669f] h-[22.75px] rounded-[4px] px-3 hover:bg-[#01669f]/90 transition-colors flex items-center justify-center gap-1"
                     >
-                      <Plus className="w-2 h-2" />
-                      Add Draft
-                    </Button>
+                      <span className="text-white text-xs">+</span>
+                      <span className="caption text-white">Add Draft</span>
+                    </button>
                   </div>
+                  
+                  {/* SITREP Tabs */}
+                  <div className="flex items-center gap-1 mt-3 border-b border-border">
+                    {[1, 2, 3, 4, 5].map((tabNum) => {
+                      const isActive = tabNum === activeSitrepTab;
+                      return (
+                        <button
+                          key={tabNum}
+                          onClick={() => setActiveSitrepTab(tabNum)}
+                          className={`relative px-4 py-2 transition-colors whitespace-nowrap ${
+                            isActive
+                              ? 'text-accent'
+                              : 'text-foreground hover:text-accent'
+                          }`}
+                        >
+                          <span className="caption">Tab {tabNum}</span>
+                          {/* Active indicator line */}
+                          {isActive && (
+                            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
                   {sitrepLastUpdated && (
                     <span className="caption text-white/70 block">
                       Last updated {sitrepLastUpdated} by {sitrepLastUpdatedBy}
@@ -830,7 +878,7 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                         Written by: CAPT Jennifer Morrison at 08:45 UTC 19 DEC 2025
                       </p>
                       <p className="caption text-white/70 text-xs">
-                        Approved by: RADM Thomas Bradley at 09:30 UTC 19 DEC 2025
+                        Approved by: CDR Thomas Bradley at 09:30 UTC 19 JUN 2026
                       </p>
                     </div>
                   )}
@@ -843,7 +891,7 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                       value={sitrepDraft}
                       onChange={(e) => setSitrepDraft(e.target.value)}
                       placeholder="Enter situation report..."
-                      className="bg-input-background border-border min-h-[120px] resize-none"
+                      className="bg-input-background border-border min-h-[240px] resize-none"
                     />
                     <div className="flex gap-3">
                       <Button
@@ -864,27 +912,122 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
                     </div>
                   </>
                 ) : (
-                  <div className="bg-input-background border border-border rounded p-3 min-h-[120px]">
+                  <>
                     {filterMode === 'region' && selectedRegion === 'west-coast' ? (
-                      <p className="caption text-white whitespace-pre-wrap">
-                        SITREP - West Coast Region
-
-Current Situation: West Coast Region maintains normal operational readiness across all districts. Weather conditions are favorable with moderate seas and clear visibility. All ports report normal commercial and recreational vessel traffic patterns. No active weather advisories or marine hazards at this time.
-
-Operational Status: District 11 has 4 cutters conducting routine patrol operations off Southern California. District 13 reports 3 active SAR cases resolved in the past 24 hours with no casualties. All Port Security Units are at normal readiness levels. Maritime Safety Zones are in effect around major port facilities.
-
-Resources: All districts report full operational capability with no significant equipment degradation. Air stations are conducting scheduled training operations and maintaining SAR alert posture. Port State Control boarding teams continue routine vessel inspections with no major deficiencies noted.
-
-Notable Events: Completed joint exercise with Navy and CBP in San Diego operational area. Conducted port security assessment at Port of Oakland with positive results. All scheduled maintenance and logistics operations proceeding on schedule.
-                      </p>
+                      <div className="bg-input-background border border-border rounded p-3 min-h-[240px]">
+                        <div className="caption text-white whitespace-pre-wrap">
+                          {activeSitrepTab === 1 && (
+                            <div>
+                              <p className="font-semibold mb-2">Part 1: Executive Summary</p>
+                              <p>This is placeholder content for Part 1 of the SITREP. This section would typically contain an executive summary of the situation report, providing a high-level overview of the current operational status, key developments, and critical information for decision-makers.</p>
+                            </div>
+                          )}
+                          {activeSitrepTab === 2 && (
+                            <div>
+                              <p className="font-semibold mb-2">Part 2: Current Situation</p>
+                              <p>This is placeholder content for Part 2 of the SITREP. This section would detail the current operational situation including weather conditions, vessel traffic, port status, and any active incidents or concerns affecting the area of responsibility.</p>
+                            </div>
+                          )}
+                          {activeSitrepTab === 3 && (
+                            <div>
+                              <p className="font-semibold mb-2">Part 3: Operational Status</p>
+                              <p>This is placeholder content for Part 3 of the SITREP. This section would provide detailed information about unit deployments, ongoing operations, search and rescue activities, and the operational readiness of all assets in the region.</p>
+                            </div>
+                          )}
+                          {activeSitrepTab === 4 && (
+                            <div>
+                              <p className="font-semibold mb-2">Part 4: Resources & Assets</p>
+                              <p>This is placeholder content for Part 4 of the SITREP. This section would outline available resources, asset allocation, equipment status, personnel readiness, and any resource constraints or logistical considerations.</p>
+                            </div>
+                          )}
+                          {activeSitrepTab === 5 && (
+                            <div>
+                              <p className="font-semibold mb-2">Part 5: Notable Events & Next Steps</p>
+                              <p>This is placeholder content for Part 5 of the SITREP. This section would highlight significant events from the operational period, completed exercises or assessments, and outline planned activities and next operational steps.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     ) : (
-                      <p className="caption text-white whitespace-pre-wrap">
-                        {filterMode === 'region' && selectedRegion === 'sector-new-york' 
-                          ? (sitrepContent || 'There is no SITREP for this AOR yet. Click Add Draft to create one and submit it for review.')
-                          : 'SITREP editing is only available for Sector Honolulu.'}
-                      </p>
+                      <div className="bg-input-background border border-border rounded p-3 min-h-[480px]">
+                        <p className="caption text-white whitespace-pre-wrap">
+                          {filterMode === 'region' && selectedRegion === 'sector-new-york' 
+                            ? (sitrepContent || `SITUATION REPORT - SECTOR NEW YORK
+DHS World Cup Security Operations - NYC Metro Area
+DTG: 281430Z JUN 2026
+
+EXECUTIVE SUMMARY:
+Sector New York maintains elevated security posture for FIFA World Cup 2026 operations. All maritime security zones active around NYC waterfront venues. Enhanced port security protocols in effect. Coordination with NYPD, Port Authority, and international maritime partners operating at full capacity. No credible maritime threats identified in past 24 hours.
+
+CURRENT SITUATION:
+- Weather: Partly cloudy, seas 2-3 ft, winds SW 10-15 kts, visibility 8+ nm
+- Maritime Security Zones: 7 of 7 active (Hudson River, East River, NY Harbor)
+- Vessel Traffic: 127 commercial vessels monitored, 18 spectator vessels permitted
+- Personnel: 85 DHS maritime agents, 12 USCG vessels on patrol, 240 NYPD Harbor Unit
+- Air Support: 2 CBP helicopters on station, 1 USCG MH-65 on standby
+
+OPERATIONAL STATUS:
+Port Security Operations: All ferry terminals implementing enhanced screening. Cargo operations proceeding normally with additional CBP inspections. No delays reported at major terminals.
+
+Maritime Patrol Operations: USCG cutters maintaining continuous presence in Upper Bay and East River. Small boat teams positioned at stadium-adjacent waterways. AIS monitoring 100% of vessel traffic.
+
+Waterborne Spectator Management: Permitted spectator vessels (18) checked in and escorted to designated viewing areas. No unauthorized vessels within restricted zones. Harbor Police enforcing 500-meter security perimeter.
+
+CBRN Maritime Detection: Radiation detection buoys deployed at key chokepoints. Mobile CBRN teams aboard patrol vessels. All readings within normal parameters.
+
+NOTABLE EVENTS:
+- Completed pre-match maritime security sweep (all zones clear)
+- Interdicted 3 unauthorized recreational vessels attempting to enter security zone
+- Coordinated VIP yacht arrival for FIFA delegation at Pier 79
+- Joint exercise with NYPD Harbor Unit demonstrated rapid response capability
+
+NEXT 4 HOURS:
+- Monitor increased ferry traffic during match conclusion
+- Maintain security zones through post-match dispersal
+- Coordinate with TSA for waterfront transit security
+- Prepare for evening VIP yacht departures
+
+POC: Sector New York Command Center +1-212-668-7000 | sectny.ops@uscg.mil`)
+                            : `SITUATION REPORT - FIFA WORLD CUP 2026 SECURITY OPERATIONS
+DHS Northeast Region - MetLife Stadium Complex
+DTG: 281400Z JUN 2026
+
+EXECUTIVE SUMMARY:
+All security checkpoints operational for USA vs Mexico quarterfinal match. Enhanced threat posture maintained with no credible threats identified in past 24 hours. Screening operations proceeding on schedule. 68,000 spectators expected. Coordination with state/local law enforcement and international partners remains strong.
+
+CURRENT SITUATION:
+- Weather: Clear skies, temp 78°F, winds light and variable, excellent visibility
+- Security Checkpoints: 24 of 24 operational (100% capacity)
+- Screening Rate: 2,400 persons/hour average across all entry points
+- Personnel: 240 DHS agents on-site, 850 state/local LEO coordinated
+- Air Space: TFR active 30nm radius, 2 CBP Air interdiction assets overhead
+
+OPERATIONAL STATUS:
+TSA Screening Operations: All 16 magnetometer lanes operational. Enhanced explosive trace detection deployed. K-9 teams positioned at primary screening zones. Average wait time 18 minutes.
+
+CBP Credential Verification: Document authentication teams processing international spectators and credentialed personnel. 2,847 credentials verified, 3 counterfeit documents interdicted.
+
+Secret Service Protection Detail: CAT teams positioned at venue perimeter. Counter-sniper teams deployed at elevated positions. POTUS/VIP arrivals scheduled for 1445L.
+
+CBRN Detection Network: 12 radiation portal monitors active at all entry points. Bio-detection systems operational in HVAC systems. All readings nominal.
+
+NOTABLE EVENTS:
+- Completed pre-match security sweep (all public areas clear)
+- Successfully processed early entry VIP delegation of 150 FIFA officials
+- Counter-UAS system detected and neutralized 2 unauthorized drone incursions
+- Joint Terrorism Task Force maintains real-time intelligence sharing with FBI
+
+NEXT 4 HOURS:
+- Monitor crowd arrival surge (peak expected 1300-1430L)
+- Coordinate mass transit security with TSA Surface Division
+- Maintain elevated surveillance posture through match conclusion
+- Prepare for post-match egress security operations
+
+POC: DHS Operations Center +1-202-282-8000 | worldcup.ops@hq.dhs.gov`}
+                        </p>
+                      </div>
                     )}
-                  </div>
+                  </>
                 )}
               </>
             ) : sitrepViewMode === 'historical' ? (
@@ -912,7 +1055,7 @@ Notable Events: Completed joint exercise with Navy and CBP in San Diego operatio
                       ))}
                     </div>
                   ) : (
-                    <div className="bg-input-background border border-border rounded p-3 min-h-[120px] flex items-center justify-center">
+                    <div className="bg-input-background border border-border rounded p-3 min-h-[240px] flex items-center justify-center">
                       <p className="caption text-white/70">
                         No historical SITREPs available.
                       </p>
@@ -941,45 +1084,88 @@ Notable Events: Completed joint exercise with Navy and CBP in San Diego operatio
                   {/* Add Draft Form */}
                   {isAddingDraft && (
                     <div className="space-y-3 p-3 bg-background/50 border border-border rounded">
-                      {/* Header with Generate Button */}
+                      {/* Header with Template Selector and Generate Button */}
                       <div className="flex items-center justify-between">
                         <Label className="text-white text-sm">New Draft SITREP</Label>
-                        <button
-                          onClick={() => {
-                            // Generate AI draft content (placeholder for now)
-                            console.log('Generate draft clicked');
-                          }}
-                          className="bg-white hover:bg-gray-100 text-black border border-white h-[28px] rounded-[4px] px-4 transition-colors flex items-center justify-center gap-2"
-                        >
-                          <svg 
-                            className="w-4 h-4" 
-                            fill="none" 
-                            viewBox="0 0 24 24" 
-                            stroke="currentColor"
+                        <div className="flex items-center gap-3">
+                          <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                            <SelectTrigger className="w-[200px] h-[28px] bg-input-background border-border text-white">
+                              <SelectValue placeholder="Select template" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="standard">Standard SITREP</SelectItem>
+                              <SelectItem value="emergency">Emergency Response</SelectItem>
+                              <SelectItem value="weather">Weather Event</SelectItem>
+                              <SelectItem value="sar">Search and Rescue</SelectItem>
+                              <SelectItem value="port-security">Port Security</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <button
+                            onClick={() => {
+                              // Generate AI draft content (placeholder for now)
+                              console.log('Generate draft clicked');
+                            }}
+                            className="bg-white hover:bg-gray-100 text-black border border-white h-[28px] rounded-[4px] px-4 transition-colors flex items-center justify-center gap-2"
                           >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth={2} 
-                              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" 
-                            />
-                          </svg>
-                          <span className="text-xs font-medium">Generate</span>
-                        </button>
+                            <svg 
+                              className="w-4 h-4" 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth={2} 
+                                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" 
+                              />
+                            </svg>
+                            <span className="text-xs font-medium">Generate</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Draft SITREP Tabs */}
+                      <div className="flex items-center gap-1 border-b border-border">
+                        {[1, 2, 3, 4, 5].map((tabNum) => {
+                          const isActive = tabNum === activeDraftTab;
+                          return (
+                            <button
+                              key={tabNum}
+                              onClick={() => setActiveDraftTab(tabNum)}
+                              className={`relative px-4 py-2 transition-colors whitespace-nowrap ${
+                                isActive
+                                  ? 'text-accent'
+                                  : 'text-foreground hover:text-accent'
+                              }`}
+                            >
+                              <span className="caption">Tab {tabNum}</span>
+                              {/* Active indicator line */}
+                              {isActive && (
+                                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent" />
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
 
                       <Textarea
-                        value={newDraftContent}
-                        onChange={(e) => setNewDraftContent(e.target.value)}
-                        placeholder="Enter draft situation report..."
-                        className="bg-input-background border-border min-h-[120px] resize-none"
+                        value={draftTabContents[activeDraftTab]}
+                        onChange={(e) => setDraftTabContents({
+                          ...draftTabContents,
+                          [activeDraftTab]: e.target.value
+                        })}
+                        placeholder={`Enter content for Tab ${activeDraftTab}...`}
+                        className="bg-input-background border-border min-h-[960px] resize-none"
                       />
                       <div className="flex gap-3">
                         <Button
                           onClick={() => {
                             // Save draft logic would go here
                             setIsAddingDraft(false);
-                            setNewDraftContent('');
+                            setDraftTabContents({ 1: '', 2: '', 3: '', 4: '', 5: '' });
+                            setActiveDraftTab(1);
+                            setSelectedTemplate('');
                           }}
                           className="bg-primary hover:bg-primary/90 px-6 py-0.5 h-auto text-sm"
                         >
@@ -988,7 +1174,9 @@ Notable Events: Completed joint exercise with Navy and CBP in San Diego operatio
                         <Button
                           onClick={() => {
                             setIsAddingDraft(false);
-                            setNewDraftContent('');
+                            setDraftTabContents({ 1: '', 2: '', 3: '', 4: '', 5: '' });
+                            setActiveDraftTab(1);
+                            setSelectedTemplate('');
                           }}
                           variant="outline"
                           className="border-border px-6 py-0.5 h-auto text-sm"
@@ -1035,7 +1223,7 @@ Notable Events: Completed joint exercise with Navy and CBP in San Diego operatio
                       ))}
                     </div>
                   ) : (
-                    <div className="bg-input-background border border-border rounded p-3 min-h-[120px] flex items-center justify-center">
+                    <div className="bg-input-background border border-border rounded p-3 min-h-[240px] flex items-center justify-center">
                       <p className="caption text-white/70">
                         No draft SITREPs. Click "+ Add Draft" to create one.
                       </p>
@@ -1166,14 +1354,14 @@ Notable Events: Completed joint exercise with Navy and CBP in San Diego operatio
                                 <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                               )}
                               <div className="flex-1">
-                                <span className="caption text-white">Oahu Substation Fire — Kapolei Power Grid</span>
+                                <span className="caption text-white">Platform Charlie Gas Leak — Block 892 Production Facility</span>
                                 {!expandedChildIncidents.has('child-incident-1') && (
                                   <div className="flex items-center gap-3 mt-1">
                                     <div className="flex items-center gap-2">
                                       <div className="w-2 h-2 rounded-full bg-red-500" />
                                       <span className="caption text-red-500">Critical</span>
                                     </div>
-                                    <span className="caption text-white/70">Emergency Restoration</span>
+                                    <span className="caption text-white/70">Emergency Response Active</span>
                                   </div>
                                 )}
                               </div>
@@ -1185,7 +1373,7 @@ Notable Events: Completed joint exercise with Navy and CBP in San Diego operatio
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Incident Type</label>
-                                  <p className="caption text-white">Grid Infrastructure Failure</p>
+                                  <p className="caption text-white">Offshore Production Facility Leak</p>
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Severity</label>
@@ -1196,11 +1384,11 @@ Notable Events: Completed joint exercise with Navy and CBP in San Diego operatio
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Status</label>
-                                  <p className="caption text-white">Emergency Restoration</p>
+                                  <p className="caption text-white">Emergency Response Active</p>
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Incident Commander</label>
-                                  <p className="caption text-white">Sarah Nakamura, HECO</p>
+                                  <p className="caption text-white">Robert Martinez, ExxonMobil</p>
                                 </div>
                               </div>
                             </div>
@@ -1223,14 +1411,14 @@ Notable Events: Completed joint exercise with Navy and CBP in San Diego operatio
                                 <ChevronRight className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                               )}
                               <div className="flex-1">
-                                <span className="caption text-white">Maui Wind Farm Turbine Failure — Kahului Energy Complex</span>
+                                <span className="caption text-white">Subsea Pipeline Inspection — Deepwater Export Line 7</span>
                                 {!expandedChildIncidents.has('child-incident-2') && (
                                   <div className="flex items-center gap-3 mt-1">
                                     <div className="flex items-center gap-2">
                                       <div className="w-2 h-2 rounded-full bg-orange-500" />
                                       <span className="caption text-orange-500">Major</span>
                                     </div>
-                                    <span className="caption text-white/70">Repair Operations</span>
+                                    <span className="caption text-white/70">ROV Survey in Progress</span>
                                   </div>
                                 )}
                               </div>
@@ -1242,7 +1430,7 @@ Notable Events: Completed joint exercise with Navy and CBP in San Diego operatio
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Incident Type</label>
-                                  <p className="caption text-white">Renewable Energy Infrastructure</p>
+                                  <p className="caption text-white">Subsea Infrastructure Anomaly</p>
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Severity</label>
@@ -1253,11 +1441,11 @@ Notable Events: Completed joint exercise with Navy and CBP in San Diego operatio
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Status</label>
-                                  <p className="caption text-white">Repair Operations</p>
+                                  <p className="caption text-white">ROV Survey in Progress</p>
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Incident Commander</label>
-                                  <p className="caption text-white">David Tanaka, MECO</p>
+                                  <p className="caption text-white">Jennifer Chen, ExxonMobil</p>
                                 </div>
                               </div>
                             </div>
