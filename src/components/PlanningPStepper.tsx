@@ -14,7 +14,7 @@ interface PlanningPStepperProps {
 export function PlanningPStepper({ phases, currentPhaseId, onPhaseSelect, operationalPeriodNumber = 0, showHeader = true, notificationCount = 0 }: PlanningPStepperProps) {
   
   return (
-    <div className="px-6 bg-card border-b border-border">
+    <div className="px-4 bg-card border-b border-border">
       {/* Horizontal Tab Navigation */}
       <div className="flex items-center justify-center gap-1 overflow-x-auto">
         {phases.map((phase) => {

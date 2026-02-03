@@ -60,5 +60,11 @@ export const OPERATIONAL_PERIOD_PHASES: Omit<DisasterPhase, 'completed' | 'data'
     name: 'Resources',
     shortName: 'Resources',
     description: 'Resource management and allocation'
+  },
+  {
+    id: 'layers',
+    name: 'Layers',
+    shortName: 'Layers',
+    description: 'Data layers and map overlays'
   }
 ];

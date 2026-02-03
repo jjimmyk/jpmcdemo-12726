@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import { toast } from 'sonner';
 import { Checkbox } from '../ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
@@ -128,6 +129,7 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
 
   // State for Create Incident modal
   const [createIncidentModalOpen, setCreateIncidentModalOpen] = useState(false);
+  const [createIncidentModalStep, setCreateIncidentModalStep] = useState(1);
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [selectedIndividuals, setSelectedIndividuals] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('Civil Disturbance');
@@ -137,10 +139,14 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   const [incidentCategoriesPopoverOpen, setIncidentCategoriesPopoverOpen] = useState(false);
   const [incidentNotificationChannelsPopoverOpen, setIncidentNotificationChannelsPopoverOpen] = useState(false);
   const [incidentAORPopoverOpen, setIncidentAORPopoverOpen] = useState(false);
+  const [hoveredTeam, setHoveredTeam] = useState<string | null>(null);
+  const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
   const [initialSitrep, setInitialSitrep] = useState('Social media intelligence indicates emerging civil disturbance near MetLife Stadium main entrance on Route 120 / Paterson Plank Road. Crowd size estimated at 200-300 individuals based on multiple geotagged posts. Social media users describe opposition to the Iranian soccer team playing in a match today at 14:00 EST.');
   const [initialObjectives, setInitialObjectives] = useState('Deter violence from emerging during the protests.');
   const [incidentAOR, setIncidentAOR] = useState('Sector New York');
   const [incidentAddress, setIncidentAddress] = useState('Vicinity of Metlife Stadium');
+  const [incidentStartTime, setIncidentStartTime] = useState('');
+  const [incidentLocationType, setIncidentLocationType] = useState('Point');
 
   // State for SITREP review notification
   const [sitrepReviewed, setSitrepReviewed] = useState(data.sitrepReviewed || false);
@@ -259,12 +265,78 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
 
   // Available teams and individuals for Create Incident modal
   const incidentAvailableTeams = [
-    { name: 'IMT Alpha', type: 'Type 1', people: 45, available: true },
-    { name: 'IMT Bravo', type: 'Type 1', people: 42, available: true },
-    { name: 'IMT Charlie', type: 'Type 2', people: 28, available: false },
-    { name: 'IMT Delta', type: 'Type 2', people: 31, available: true },
-    { name: 'IMT Echo', type: 'Type 3', people: 18, available: false },
-    { name: 'IMT Foxtrot', type: 'Type 3', people: 22, available: true }
+    { 
+      name: 'IMT Alpha', 
+      type: 'Type 1', 
+      people: 45, 
+      available: true,
+      members: [
+        { name: 'Sarah Chen', role: 'Incident Commander', available: true },
+        { name: 'Marcus Johnson', role: 'Planning Section Chief', available: true },
+        { name: 'Jennifer Martinez', role: 'Operations Section Chief', available: true },
+        { name: 'David Kim', role: 'Logistics Section Chief', available: true },
+        { name: 'Rachel Thompson', role: 'Finance/Admin Chief', available: true }
+      ]
+    },
+    { 
+      name: 'IMT Bravo', 
+      type: 'Type 1', 
+      people: 42, 
+      available: true,
+      members: [
+        { name: 'Robert Garcia', role: 'Incident Commander', available: true },
+        { name: 'Emily Rodriguez', role: 'Planning Section Chief', available: true },
+        { name: 'Michael Brown', role: 'Operations Section Chief', available: false },
+        { name: 'Amanda Wilson', role: 'Logistics Section Chief', available: true },
+        { name: 'James Taylor', role: 'Finance/Admin Chief', available: true }
+      ]
+    },
+    { 
+      name: 'IMT Charlie', 
+      type: 'Type 2', 
+      people: 28, 
+      available: false,
+      members: [
+        { name: 'Lisa Anderson', role: 'Incident Commander', available: false },
+        { name: 'Daniel White', role: 'Planning Section Chief', available: false },
+        { name: 'Maria Lopez', role: 'Operations Section Chief', available: true },
+        { name: 'Thomas Harris', role: 'Logistics Section Chief', available: false }
+      ]
+    },
+    { 
+      name: 'IMT Delta', 
+      type: 'Type 2', 
+      people: 31, 
+      available: true,
+      members: [
+        { name: 'Christopher Lee', role: 'Incident Commander', available: true },
+        { name: 'Patricia Moore', role: 'Planning Section Chief', available: true },
+        { name: 'Kevin Clark', role: 'Operations Section Chief', available: true },
+        { name: 'Nancy Martinez', role: 'Logistics Section Chief', available: true }
+      ]
+    },
+    { 
+      name: 'IMT Echo', 
+      type: 'Type 3', 
+      people: 18, 
+      available: false,
+      members: [
+        { name: 'Steven Wright', role: 'Incident Commander', available: false },
+        { name: 'Michelle King', role: 'Planning Section Chief', available: true },
+        { name: 'Brian Scott', role: 'Operations Section Chief', available: false }
+      ]
+    },
+    { 
+      name: 'IMT Foxtrot', 
+      type: 'Type 3', 
+      people: 22, 
+      available: true,
+      members: [
+        { name: 'Rebecca Adams', role: 'Incident Commander', available: true },
+        { name: 'Charles Baker', role: 'Planning Section Chief', available: true },
+        { name: 'Jessica Turner', role: 'Operations Section Chief', available: true }
+      ]
+    }
   ];
 
   const incidentAvailableIndividuals = [
@@ -307,11 +379,33 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
   ];
 
   // Toggle functions for Create Incident modal
-  const toggleTeam = (team: string) => {
+  const toggleTeam = (teamName: string) => {
+    const team = incidentAvailableTeams.find(t => t.name === teamName);
+    const isCurrentlySelected = selectedTeams.includes(teamName);
+    
     setSelectedTeams(prev => 
-      prev.includes(team) 
-        ? prev.filter(t => t !== team)
-        : [...prev, team]
+      isCurrentlySelected
+        ? prev.filter(t => t !== teamName)
+        : [...prev, teamName]
+    );
+    
+    // Toggle all team members
+    if (team) {
+      const memberIds = team.members.map(m => `${teamName}:${m.name}`);
+      setSelectedTeamMembers(prev => 
+        isCurrentlySelected
+          ? prev.filter(id => !memberIds.includes(id))
+          : [...prev, ...memberIds]
+      );
+    }
+  };
+  
+  const toggleTeamMember = (teamName: string, memberName: string) => {
+    const memberId = `${teamName}:${memberName}`;
+    setSelectedTeamMembers(prev => 
+      prev.includes(memberId)
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
     );
   };
 
@@ -3234,227 +3328,162 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
       </Dialog>
 
       {/* Create Incident Modal */}
-      <Dialog open={createIncidentModalOpen} onOpenChange={setCreateIncidentModalOpen}>
+      <Dialog open={createIncidentModalOpen} onOpenChange={(open) => {
+        setCreateIncidentModalOpen(open);
+        if (!open) setCreateIncidentModalStep(1);
+      }}>
         <DialogContent className="bg-[#222529] border-[#6e757c] text-white" style={{ maxWidth: '1344px', fontSize: '90%' }}>
           <DialogHeader>
             <DialogTitle className="text-white">Create Incident & Activate IMT</DialogTitle>
-            <DialogDescription className="text-white/70">
-              Select the teams, individuals, and incident categories to activate for this incident.
-            </DialogDescription>
           </DialogHeader>
+
+          {/* Stepper Indicator */}
+          <div className="flex items-center gap-4 py-4">
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full text-white font-medium`} style={createIncidentModalStep === 1 ? { backgroundColor: '#60a5fa', boxShadow: '0 0 0 4px rgba(96, 165, 250, 0.3)' } : createIncidentModalStep > 1 ? { backgroundColor: '#16a34a' } : { backgroundColor: '#6b7280' }}>
+                {createIncidentModalStep > 1 ? '✓' : '1'}
+              </div>
+              <span className={`text-sm ${createIncidentModalStep === 1 ? 'text-white font-medium' : 'text-white/70'}`}>Incident Details</span>
+            </div>
+            <div className="flex-[0.3] h-[2px] bg-border"></div>
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full text-white font-medium`} style={createIncidentModalStep === 2 ? { backgroundColor: '#60a5fa', boxShadow: '0 0 0 4px rgba(96, 165, 250, 0.3)' } : createIncidentModalStep > 2 ? { backgroundColor: '#16a34a' } : { backgroundColor: '#6b7280' }}>
+                {createIncidentModalStep > 2 ? '✓' : '2'}
+              </div>
+              <span className={`text-sm ${createIncidentModalStep === 2 ? 'text-white font-medium' : 'text-white/70'}`}>Incident Location</span>
+            </div>
+            <div className="flex-[0.3] h-[2px] bg-border"></div>
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full text-white font-medium`} style={createIncidentModalStep === 3 ? { backgroundColor: '#60a5fa', boxShadow: '0 0 0 4px rgba(96, 165, 250, 0.3)' } : { backgroundColor: '#6b7280' }}>
+                3
+              </div>
+              <span className={`text-sm ${createIncidentModalStep === 3 ? 'text-white font-medium' : 'text-white/70'}`}>Activate Teams</span>
+            </div>
+          </div>
           
           <div className="space-y-6 py-4">
-            {/* Initial Situation Report (SITREP) */}
-            <div className="space-y-3">
-              <Label className="text-white">Initial Situation Report (SITREP)</Label>
-              <Textarea
-                value={initialSitrep}
-                onChange={(e) => setInitialSitrep(e.target.value)}
-                className="min-h-[120px] bg-[#14171a] border-[#6e757c] text-white resize-none"
-                placeholder="Enter initial situation report..."
-              />
-            </div>
-
-            {/* Initial Objectives */}
-            <div className="space-y-3">
-              <Label className="text-white">Initial Objectives</Label>
-              <Textarea
-                value={initialObjectives}
-                onChange={(e) => setInitialObjectives(e.target.value)}
-                className="min-h-[80px] bg-[#14171a] border-[#6e757c] text-white resize-none"
-                placeholder="Enter initial objectives..."
-              />
-            </div>
-
-            {/* Incident Location */}
-            <div className="space-y-3">
-              <Label className="text-white">Incident Location</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-white text-sm">AOR</Label>
-                  <Popover open={incidentAORPopoverOpen} onOpenChange={setIncidentAORPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <button
-                        className="w-full flex items-center justify-between bg-[#14171a] border border-[#6e757c] rounded-md px-3 py-2 text-sm hover:bg-[#1a1d21] text-white"
-                      >
-                        <span className="text-white">
-                          {incidentAOR}
-                        </span>
-                        <ChevronDown className="h-4 w-4 opacity-50" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0 bg-[#222529] border-[#6e757c]" align="start">
-                      <Command className="bg-[#222529]">
-                        <CommandInput 
-                          placeholder="Search AORs..." 
-                          className="h-9 text-white"
-                        />
-                        <CommandList>
-                          <CommandEmpty className="text-white/70 p-2">No AOR found.</CommandEmpty>
-                          <CommandGroup>
-                            {incidentAvailableAORs.map((aor) => (
-                              <CommandItem
-                                key={aor}
-                                value={aor}
-                                onSelect={() => selectAOR(aor)}
-                                className="text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
-                              >
-                                {aor}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white text-sm">Address</Label>
-                  <Input
-                    value={incidentAddress}
-                    onChange={(e) => setIncidentAddress(e.target.value)}
-                    className="bg-[#14171a] border-[#6e757c] text-white"
-                    placeholder="Enter address..."
+            {/* Step 1: Incident Details */}
+            {createIncidentModalStep === 1 && (
+              <>
+                {/* Initial Situation Report (SITREP) */}
+                <div className="space-y-3">
+                  <Label className="text-white">Initial Situation Report (SITREP)</Label>
+                  <Textarea
+                    value={initialSitrep}
+                    onChange={(e) => setInitialSitrep(e.target.value)}
+                    className="min-h-[120px] bg-[#14171a] border-[#6e757c] text-white resize-none"
+                    placeholder="Enter initial situation report..."
                   />
                 </div>
+
+                {/* Incident Start Time */}
+                <div className="space-y-3">
+                  <Label className="text-white">Incident Start Time</Label>
+                  <Input
+                    type="datetime-local"
+                    value={incidentStartTime}
+                    onChange={(e) => setIncidentStartTime(e.target.value)}
+                    className="bg-[#14171a] border-[#6e757c] text-white"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Step 2: Incident Location */}
+            {createIncidentModalStep === 2 && (
+              <div className="grid grid-cols-2 gap-6">
+                {/* Left side - Form fields */}
+                <div className="space-y-6">
+                  {/* Incident Location */}
+                  <div className="space-y-3">
+                    <Label className="text-white">Incident Location</Label>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-white text-sm">Incident Location</Label>
+                        <Select value={incidentLocationType} onValueChange={setIncidentLocationType}>
+                          <SelectTrigger className="w-full bg-[#14171a] border-[#6e757c] text-white">
+                            <SelectValue placeholder="Select location type" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#222529] border-[#6e757c]">
+                            <SelectItem value="Point" className="text-white">Point</SelectItem>
+                            <SelectItem value="Polygon" className="text-white">Polygon</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-white text-sm">AOR</Label>
+                        <Popover open={incidentAORPopoverOpen} onOpenChange={setIncidentAORPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <button className="w-full flex items-center justify-between bg-[#14171a] border border-[#6e757c] rounded-md px-3 py-2 text-sm hover:bg-[#1a1d21] text-white">
+                              <span className="text-white">{incidentAOR}</span>
+                              <ChevronDown className="h-4 w-4 opacity-50" />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[400px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+                            <Command className="bg-[#222529]">
+                              <CommandInput placeholder="Search AORs..." className="h-9 text-white" />
+                              <CommandList>
+                                <CommandEmpty className="text-white/70 p-2">No AOR found.</CommandEmpty>
+                                <CommandGroup>
+                                  {incidentAvailableAORs.map((aor) => (
+                                    <CommandItem key={aor} value={aor} onSelect={() => selectAOR(aor)} className="text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]">
+                                      {aor}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right side - Map placeholder */}
+                <div className="flex items-center justify-center bg-[#14171a] border border-[#6e757c] rounded-md min-h-[400px]">
+                  <span className="text-white/50">[placeholder for map component]</span>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Teams and Individuals */}
+            {createIncidentModalStep === 3 && (
+              <>
+            {/* IMT List */}
+            <div className="space-y-2">
+              <div className="px-4 py-2 bg-[#14171a] border border-[#6e757c] rounded-md text-white">
+                IMT Alpha
+              </div>
+              <div className="px-4 py-2 bg-[#14171a] border border-[#6e757c] rounded-md text-white">
+                IMT Bravo
+              </div>
+              <div className="px-4 py-2 bg-[#14171a] border border-[#6e757c] rounded-md text-white">
+                IMT Charlie
               </div>
             </div>
-
-            {/* Teams and Individuals in a grid layout */}
-            <div className="grid grid-cols-2 gap-6">
-              {/* Team(s) to Activate */}
-              <div className="space-y-3">
-                <Label className="text-white">Team(s) to Activate</Label>
-                <Popover open={incidentTeamsPopoverOpen} onOpenChange={setIncidentTeamsPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="w-full flex items-center justify-between bg-[#14171a] border border-[#6e757c] rounded-md px-3 py-2 text-sm hover:bg-[#1a1d21] text-white"
-                    >
-                      <span className={selectedTeams.length === 0 ? "text-white/70" : "text-white truncate pr-2"}>
-                        {selectedTeams.length === 0 
-                          ? 'Select teams...' 
-                          : selectedTeams.join(', ')}
-                      </span>
-                      <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[650px] p-0 bg-[#222529] border-[#6e757c]" align="start" side="bottom" avoidCollisions={false} sideOffset={5}>
-                    <Command className="bg-[#222529]">
-                      <CommandInput 
-                        placeholder="Search teams..." 
-                        className="h-9 text-white"
-                      />
-                      <CommandList>
-                        <CommandEmpty className="text-white/70 p-2">No team found.</CommandEmpty>
-                        <CommandGroup>
-                          {incidentAvailableTeams.map((team) => (
-                            <CommandItem
-                              key={team.name}
-                              value={team.name}
-                              onSelect={() => toggleTeam(team.name)}
-                              className="text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
-                            >
-                              <Checkbox
-                                checked={selectedTeams.includes(team.name)}
-                                className="mr-2 border-white/30"
-                              />
-                              <span className="flex-1">{team.name}</span>
-                              <span className="text-white/50 text-xs ml-4">{team.type}</span>
-                              <span className={team.available ? "text-green-500 text-xs ml-4" : "text-red-500 text-xs ml-4"}>
-                                {team.available ? 'Available' : 'Unavailable'}
-                              </span>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {/* Individuals to Activate */}
-              <div className="space-y-3">
-                <Label className="text-white">Individuals to Activate</Label>
-                <Popover open={incidentIndividualsPopoverOpen} onOpenChange={setIncidentIndividualsPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="w-full flex items-center justify-between bg-[#14171a] border border-[#6e757c] rounded-md px-3 py-2 text-sm hover:bg-[#1a1d21] text-white"
-                    >
-                      <span className={selectedIndividuals.length === 0 ? "text-white/70" : "text-white truncate pr-2"}>
-                        {selectedIndividuals.length === 0 
-                          ? 'Select individuals...' 
-                          : selectedIndividuals.join(', ')}
-                      </span>
-                      <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[500px] p-0 bg-[#222529] border-[#6e757c]" align="start">
-                    <Command className="bg-[#222529]">
-                      <CommandInput 
-                        placeholder="Search individuals..." 
-                        className="h-9 text-white"
-                      />
-                      <CommandList>
-                        <CommandEmpty className="text-white/70 p-2">No individual found.</CommandEmpty>
-                        <CommandGroup>
-                          {incidentAvailableIndividuals.map((individual) => (
-                            <CommandItem
-                              key={individual}
-                              value={individual}
-                              onSelect={() => toggleIndividual(individual)}
-                              className="text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
-                            >
-                              <Checkbox
-                                checked={selectedIndividuals.includes(individual)}
-                                className="mr-2 border-white/30"
-                              />
-                              {individual}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-
-            {/* Notification Channels - Left-aligned */}
+            
+            {/* Notification Channels */}
             <div className="space-y-3">
               <Label className="text-white">Notification Channels</Label>
               <Popover open={incidentNotificationChannelsPopoverOpen} onOpenChange={setIncidentNotificationChannelsPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <button
-                    className="w-full flex items-center justify-between bg-[#14171a] border border-[#6e757c] rounded-md px-3 py-2 text-sm hover:bg-[#1a1d21] text-white"
-                  >
+                  <button className="w-full flex items-center justify-between bg-[#14171a] border border-[#6e757c] rounded-md px-3 py-2 text-sm hover:bg-[#1a1d21] text-white">
                     <span className={selectedNotificationChannels.length === 0 ? "text-white/70" : "text-white truncate pr-2"}>
-                      {selectedNotificationChannels.length === 0 
-                        ? 'Select channels...' 
-                        : selectedNotificationChannels.join(', ')}
+                      {selectedNotificationChannels.length === 0 ? 'Select channels...' : selectedNotificationChannels.join(', ')}
                     </span>
                     <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[500px] p-0 bg-[#222529] border-[#6e757c]" align="start">
                   <Command className="bg-[#222529]">
-                    <CommandInput 
-                      placeholder="Search channels..." 
-                      className="h-9 text-white"
-                    />
+                    <CommandInput placeholder="Search channels..." className="h-9 text-white" />
                     <CommandList>
                       <CommandEmpty className="text-white/70 p-2">No channel found.</CommandEmpty>
                       <CommandGroup>
                         {incidentAvailableNotificationChannels.map((channel) => (
-                          <CommandItem
-                            key={channel}
-                            value={channel}
-                            onSelect={() => toggleNotificationChannel(channel)}
-                            className="text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]"
-                          >
-                            <Checkbox
-                              checked={selectedNotificationChannels.includes(channel)}
-                              className="mr-2 border-white/30"
-                            />
+                          <CommandItem key={channel} value={channel} onSelect={() => toggleNotificationChannel(channel)} className="text-white cursor-pointer hover:bg-[#14171a] data-[selected=true]:bg-[#14171a]">
+                            <Checkbox checked={selectedNotificationChannels.includes(channel)} className="mr-2 border-white/30" />
                             {channel}
                           </CommandItem>
                         ))}
@@ -3464,59 +3493,105 @@ export function AlertsPhase({ data, onDataChange, onZoomToLocation, onAddAIConte
                 </PopoverContent>
               </Popover>
             </div>
+            </>
+            )}
           </div>
 
           <DialogFooter className="flex gap-3">
-            <Button
-              onClick={() => {
-                setCreateIncidentModalOpen(false);
-                setSelectedTeams([]);
-                setSelectedIndividuals([]);
-                setSelectedNotificationChannels([]);
-                setIncidentTeamsPopoverOpen(false);
-                setIncidentIndividualsPopoverOpen(false);
-                setIncidentNotificationChannelsPopoverOpen(false);
-                setIncidentAORPopoverOpen(false);
-                setInitialSitrep('Social media intelligence indicates emerging civil disturbance near MetLife Stadium main entrance on Route 120 / Paterson Plank Road. Crowd size estimated at 200-300 individuals based on multiple geotagged posts. Social media users describe opposition to the Iranian soccer team playing in a match today at 14:00 EST.');
-                setInitialObjectives('Deter violence from emerging during the protests.');
-                setIncidentAOR('Sector New York');
-                setIncidentAddress('Vicinity of Metlife Stadium');
-              }}
-              variant="outline"
-              className="border-border text-white hover:bg-white/10"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                // Handle incident creation
-                console.log('Creating incident with:', {
-                  sitrep: initialSitrep,
-                  objectives: initialObjectives,
-                  teams: selectedTeams,
-                  individuals: selectedIndividuals,
-                  notificationChannels: selectedNotificationChannels,
-                  aor: incidentAOR,
-                  address: incidentAddress
-                });
-                setCreateIncidentModalOpen(false);
-                // Reset selections
-                setSelectedTeams([]);
-                setSelectedIndividuals([]);
-                setSelectedNotificationChannels([]);
-                setIncidentTeamsPopoverOpen(false);
-                setIncidentIndividualsPopoverOpen(false);
-                setIncidentNotificationChannelsPopoverOpen(false);
-                setIncidentAORPopoverOpen(false);
-                setInitialSitrep('Social media intelligence indicates emerging civil disturbance near MetLife Stadium main entrance on Route 120 / Paterson Plank Road. Crowd size estimated at 200-300 individuals based on multiple geotagged posts. Social media users describe opposition to the Iranian soccer team playing in a match today at 14:00 EST.');
-                setInitialObjectives('Deter violence from emerging during the protests.');
-                setIncidentAOR('Sector New York');
-                setIncidentAddress('Vicinity of Metlife Stadium');
-              }}
-              className="bg-primary hover:bg-primary/90 text-white"
-            >
-              Create Incident
-            </Button>
+            {createIncidentModalStep === 1 ? (
+              <>
+                <Button
+                  onClick={() => {
+                    setCreateIncidentModalOpen(false);
+                    setCreateIncidentModalStep(1);
+                    setSelectedTeams([]);
+                    setSelectedIndividuals([]);
+                    setSelectedTeamMembers([]);
+                    setSelectedNotificationChannels([]);
+                    setIncidentTeamsPopoverOpen(false);
+                    setIncidentIndividualsPopoverOpen(false);
+                    setIncidentNotificationChannelsPopoverOpen(false);
+                    setIncidentAORPopoverOpen(false);
+                    setInitialSitrep('Social media intelligence indicates emerging civil disturbance near MetLife Stadium main entrance on Route 120 / Paterson Plank Road. Crowd size estimated at 200-300 individuals based on multiple geotagged posts. Social media users describe opposition to the Iranian soccer team playing in a match today at 14:00 EST.');
+                    setInitialObjectives('Deter violence from emerging during the protests.');
+                    setIncidentAOR('Sector New York');
+                    setIncidentAddress('Vicinity of Metlife Stadium');
+                    setIncidentStartTime('');
+                    setIncidentLocationType('Point');
+                  }}
+                  variant="outline"
+                  className="border-border text-white hover:bg-white/10"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => setCreateIncidentModalStep(2)}
+                  className="bg-primary hover:bg-primary/90 text-white"
+                >
+                  Next
+                </Button>
+              </>
+            ) : createIncidentModalStep === 2 ? (
+              <>
+                <Button
+                  onClick={() => setCreateIncidentModalStep(1)}
+                  variant="outline"
+                  className="border-border text-white hover:bg-white/10"
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={() => setCreateIncidentModalStep(3)}
+                  className="bg-primary hover:bg-primary/90 text-white"
+                >
+                  Next
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={() => setCreateIncidentModalStep(2)}
+                  variant="outline"
+                  className="border-border text-white hover:bg-white/10"
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={() => {
+                    console.log('Creating incident with:', {
+                      sitrep: initialSitrep,
+                      objectives: initialObjectives,
+                      teams: selectedTeams,
+                      teamMembers: selectedTeamMembers,
+                      individuals: selectedIndividuals,
+                      notificationChannels: selectedNotificationChannels,
+                      aor: incidentAOR,
+                      address: incidentAddress
+                    });
+                    toast.success('Incident Created');
+                    setCreateIncidentModalOpen(false);
+                    setCreateIncidentModalStep(1);
+                    setSelectedTeams([]);
+                    setSelectedIndividuals([]);
+                    setSelectedTeamMembers([]);
+                    setSelectedNotificationChannels([]);
+                    setIncidentTeamsPopoverOpen(false);
+                    setIncidentIndividualsPopoverOpen(false);
+                    setIncidentNotificationChannelsPopoverOpen(false);
+                    setIncidentAORPopoverOpen(false);
+                    setInitialSitrep('Social media intelligence indicates emerging civil disturbance near MetLife Stadium main entrance on Route 120 / Paterson Plank Road. Crowd size estimated at 200-300 individuals based on multiple geotagged posts. Social media users describe opposition to the Iranian soccer team playing in a match today at 14:00 EST.');
+                    setInitialObjectives('Deter violence from emerging during the protests.');
+                    setIncidentAOR('Sector New York');
+                    setIncidentAddress('Vicinity of Metlife Stadium');
+                    setIncidentStartTime('');
+                    setIncidentLocationType('Point');
+                  }}
+                  className="bg-primary hover:bg-primary/90 text-white"
+                >
+                  Create Incident & Activate
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { ChevronDown, ChevronRight, Edit2, Trash2, RefreshCw, Check, Download, Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Trash2, RefreshCw, Check, Download, Plus, ExternalLink } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import { Checkbox } from '../ui/checkbox';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -92,10 +94,61 @@ export function OverviewPhase({ data, onDataChange, onAddAIContext }: OverviewPh
     }
   ]);
   const [isAddingDraft, setIsAddingDraft] = useState(false);
+  const [isDraftModalOpen, setIsDraftModalOpen] = useState(false);
+  const [modalDraftTab, setModalDraftTab] = useState<number>(1);
+  const [modalDraftContents, setModalDraftContents] = useState<Record<number, string>>({
+    1: '',
+    2: '',
+    3: '',
+    4: '',
+    5: ''
+  });
+  const [draftDataSources, setDraftDataSources] = useState<string[]>([]);
+  const [dataSourcesOpen, setDataSourcesOpen] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const [filesSubmenuOpen, setFilesSubmenuOpen] = useState(false);
+  const filesItemRef = useRef<HTMLDivElement>(null);
+  const [submenuPosition, setSubmenuPosition] = useState<{ top: number; left: number } | null>(null);
+  const [filePreviewModal, setFilePreviewModal] = useState<string | null>(null);
+  
+  // Modal-specific data sources state
+  const [modalDataSourcesOpen, setModalDataSourcesOpen] = useState(false);
+  const [modalSelectedFiles, setModalSelectedFiles] = useState<string[]>([]);
+  const [modalFilesSubmenuOpen, setModalFilesSubmenuOpen] = useState(false);
+  const modalFilesItemRef = useRef<HTMLDivElement>(null);
+  const [modalSubmenuPosition, setModalSubmenuPosition] = useState<{ top: number; left: number } | null>(null);
   
   // SITREP tabs state
   const [activeSitrepTab, setActiveSitrepTab] = useState<number>(1);
   const [activeDraftTab, setActiveDraftTab] = useState<number>(1);
+  
+  // Handle click outside to close menus
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (filesSubmenuOpen && filesItemRef.current && !filesItemRef.current.contains(target)) {
+        // Check if click is outside both the Files item and the submenu
+        const submenuElement = document.querySelector('[data-submenu="files"]');
+        if (submenuElement && !submenuElement.contains(target)) {
+          setFilesSubmenuOpen(false);
+        }
+      }
+      if (modalFilesSubmenuOpen && modalFilesItemRef.current && !modalFilesItemRef.current.contains(target)) {
+        // Check if click is outside both the Files item and the submenu (modal version)
+        const submenuElement = document.querySelector('[data-submenu="files-modal"]');
+        if (submenuElement && !submenuElement.contains(target)) {
+          setModalFilesSubmenuOpen(false);
+        }
+      }
+    };
+
+    if (filesSubmenuOpen || modalFilesSubmenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [filesSubmenuOpen, modalFilesSubmenuOpen]);
   
   // Draft content for each tab
   const [draftTabContents, setDraftTabContents] = useState<Record<number, string>>({
@@ -1073,7 +1126,7 @@ POC: DHS Operations Center +1-202-282-8000 | worldcup.ops@hq.dhs.gov`}
                       My Draft SITREPs
                     </Label>
                     <button
-                      onClick={() => setIsAddingDraft(true)}
+                      onClick={() => setIsDraftModalOpen(true)}
                       className="bg-[#01669f] h-[22.75px] rounded-[4px] px-3 hover:bg-[#01669f]/90 transition-colors flex items-center justify-center gap-1"
                     >
                       <span className="text-white text-xs">+</span>
@@ -1084,45 +1137,9 @@ POC: DHS Operations Center +1-202-282-8000 | worldcup.ops@hq.dhs.gov`}
                   {/* Add Draft Form */}
                   {isAddingDraft && (
                     <div className="space-y-3 p-3 bg-background/50 border border-border rounded">
-                      {/* Header with Template Selector and Generate Button */}
+                      {/* Header */}
                       <div className="flex items-center justify-between">
                         <Label className="text-white text-sm">New Draft SITREP</Label>
-                        <div className="flex items-center gap-3">
-                          <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                            <SelectTrigger className="w-[200px] h-[28px] bg-input-background border-border text-white">
-                              <SelectValue placeholder="Select template" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="standard">Standard SITREP</SelectItem>
-                              <SelectItem value="emergency">Emergency Response</SelectItem>
-                              <SelectItem value="weather">Weather Event</SelectItem>
-                              <SelectItem value="sar">Search and Rescue</SelectItem>
-                              <SelectItem value="port-security">Port Security</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <button
-                            onClick={() => {
-                              // Generate AI draft content (placeholder for now)
-                              console.log('Generate draft clicked');
-                            }}
-                            className="bg-white hover:bg-gray-100 text-black border border-white h-[28px] rounded-[4px] px-4 transition-colors flex items-center justify-center gap-2"
-                          >
-                            <svg 
-                              className="w-4 h-4" 
-                              fill="none" 
-                              viewBox="0 0 24 24" 
-                              stroke="currentColor"
-                            >
-                              <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth={2} 
-                                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" 
-                              />
-                            </svg>
-                            <span className="text-xs font-medium">Generate</span>
-                          </button>
-                        </div>
                       </div>
 
                       {/* Draft SITREP Tabs */}
@@ -1149,6 +1166,173 @@ POC: DHS Operations Center +1-202-282-8000 | worldcup.ops@hq.dhs.gov`}
                         })}
                       </div>
 
+                      {/* Generate Button and Data Sources */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            // Generate AI draft content (placeholder for now)
+                            console.log('Generate draft clicked');
+                          }}
+                          className="bg-white hover:bg-gray-100 text-black border border-white h-[28px] rounded-[4px] px-4 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <svg 
+                            className="w-4 h-4" 
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor"
+                          >
+                            <path 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              strokeWidth={2} 
+                              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" 
+                            />
+                          </svg>
+                          <span className="text-xs font-medium">Generate Draft: Tab {activeDraftTab}</span>
+                        </button>
+                        
+                        {/* Data Sources Multi-Select */}
+                        <Popover open={dataSourcesOpen} onOpenChange={setDataSourcesOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-[28px] justify-start text-left font-normal bg-input-background border-border text-white"
+                            >
+                              {draftDataSources.length > 0 
+                                ? `${draftDataSources.length} source${draftDataSources.length > 1 ? 's' : ''} selected` 
+                                : 'Select data sources'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent align="start" className="w-[200px] p-0 bg-[#222529] border-[#6e757c]" style={{ zIndex: 9999 }}>
+                            <Command className="bg-[#222529]">
+                              <CommandList>
+                                <CommandEmpty className="text-white">No sources found.</CommandEmpty>
+                                <CommandGroup>
+                                  {['Web', 'USCG Organization Data', 'Incident Data'].map((source) => (
+                                    <CommandItem
+                                      key={source}
+                                      onSelect={() => {
+                                        setDraftDataSources(prev =>
+                                          prev.includes(source)
+                                            ? prev.filter(s => s !== source)
+                                            : [...prev, source]
+                                        );
+                                      }}
+                                      className="text-white"
+                                    >
+                                      <Checkbox
+                                        checked={draftDataSources.includes(source)}
+                                        className="mr-2"
+                                      />
+                                      {source}
+                                    </CommandItem>
+                                  ))}
+                                  
+                                  {/* Files Item */}
+                                  <div ref={filesItemRef}>
+                                    <CommandItem
+                                      onSelect={(e) => {
+                                        e.preventDefault();
+                                      }}
+                                      onMouseEnter={() => {
+                                        if (filesItemRef.current) {
+                                          const rect = filesItemRef.current.getBoundingClientRect();
+                                          setSubmenuPosition({
+                                            top: rect.top,
+                                            left: rect.right + 4
+                                          });
+                                        }
+                                        setFilesSubmenuOpen(true);
+                                      }}
+                                      className="text-white cursor-pointer"
+                                    >
+                                      <Checkbox
+                                        checked={selectedFiles.length > 0}
+                                        className="mr-2"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const checked = selectedFiles.length === 0;
+                                          if (checked) {
+                                            setSelectedFiles(['File Alpha', 'File Bravo', 'File Charlie', 'File Delta', 'File Echo']);
+                                            if (!draftDataSources.includes('Files')) {
+                                              setDraftDataSources(prev => [...prev, 'Files']);
+                                            }
+                                          } else {
+                                            setSelectedFiles([]);
+                                            setDraftDataSources(prev => prev.filter(s => s !== 'Files'));
+                                          }
+                                        }}
+                                      />
+                                      <span className="flex-1">Files</span>
+                                      <ChevronRight className="w-4 h-4 ml-auto" />
+                                    </CommandItem>
+                                  </div>
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        
+                        {/* Files Submenu - Rendered Outside */}
+                        {filesSubmenuOpen && submenuPosition && (
+                          <div 
+                            data-submenu="files"
+                            className="fixed w-[200px] bg-[#222529] border border-[#6e757c] rounded-md shadow-lg"
+                            style={{ 
+                              zIndex: 10001,
+                              left: `${submenuPosition.left}px`,
+                              top: `${submenuPosition.top}px`
+                            }}
+                          >
+                            <Command className="bg-[#222529]">
+                              <CommandList>
+                                <CommandGroup>
+                                  {['File Alpha', 'File Bravo', 'File Charlie', 'File Delta', 'File Echo'].map((file) => (
+                                    <CommandItem
+                                      key={file}
+                                      onSelect={() => {
+                                        setSelectedFiles(prev => {
+                                          const newFiles = prev.includes(file)
+                                            ? prev.filter(f => f !== file)
+                                            : [...prev, file];
+                                          
+                                          // Update data sources based on file selection
+                                          if (newFiles.length > 0 && !draftDataSources.includes('Files')) {
+                                            setDraftDataSources(prevSources => [...prevSources, 'Files']);
+                                          } else if (newFiles.length === 0) {
+                                            setDraftDataSources(prevSources => prevSources.filter(s => s !== 'Files'));
+                                          }
+                                          
+                                          return newFiles;
+                                        });
+                                      }}
+                                      className="text-white"
+                                    >
+                                      <Checkbox
+                                        checked={selectedFiles.includes(file)}
+                                        className="mr-2"
+                                      />
+                                      <span className="flex-1">{file}</span>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setFilePreviewModal(file);
+                                        }}
+                                        className="ml-2 p-1 hover:bg-muted/50 rounded transition-colors"
+                                        title="Open in modal"
+                                      >
+                                        <ExternalLink className="w-3 h-3 text-white" />
+                                      </button>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </div>
+                        )}
+                      </div>
+
                       <Textarea
                         value={draftTabContents[activeDraftTab]}
                         onChange={(e) => setDraftTabContents({
@@ -1156,7 +1340,8 @@ POC: DHS Operations Center +1-202-282-8000 | worldcup.ops@hq.dhs.gov`}
                           [activeDraftTab]: e.target.value
                         })}
                         placeholder={`Enter content for Tab ${activeDraftTab}...`}
-                        className="bg-input-background border-border min-h-[960px] resize-none"
+                        className="bg-input-background border-border resize-none"
+                        style={{ minHeight: '240px', height: '240px' }}
                       />
                       <div className="flex gap-3">
                         <Button
@@ -1316,27 +1501,31 @@ POC: DHS Operations Center +1-202-282-8000 | worldcup.ops@hq.dhs.gov`}
 
               {isExpanded && (
                 <div className="p-4 space-y-4 bg-card/50">
-                  {source.description && (
-                    <div>
-                      <label className="text-white mb-1 block">Description</label>
-                      <p className="caption text-white">{source.description}</p>
-                    </div>
-                  )}
-                  <div>
-                    <label className="text-white mb-1 block">Last Updated</label>
-                    <p className="caption text-white">{source.lastUpdated}</p>
-                  </div>
-                  {source.dataSources && (
-                    <div>
-                      <label className="text-white mb-1 block">Data Sources</label>
-                      <p className="caption text-white">{source.dataSources}</p>
-                    </div>
+                  {/* Only show these sections for non-Active Incidents items */}
+                  {source.id !== 'src0' && (
+                    <>
+                      {source.description && (
+                        <div>
+                          <label className="text-white mb-1 block">Description</label>
+                          <p className="caption text-white">{source.description}</p>
+                        </div>
+                      )}
+                      <div>
+                        <label className="text-white mb-1 block">Last Updated</label>
+                        <p className="caption text-white">{source.lastUpdated}</p>
+                      </div>
+                      {source.dataSources && (
+                        <div>
+                          <label className="text-white mb-1 block">Data Sources</label>
+                          <p className="caption text-white">{source.dataSources}</p>
+                        </div>
+                      )}
+                    </>
                   )}
                   
                   {/* Child Incidents - Only for Active Incidents item */}
                   {source.id === 'src0' && (
                     <div className="mt-4">
-                      <label className="caption text-white mb-2 block">Active Incidents</label>
                       <div className="space-y-3">
                         {/* Child Incident 1 */}
                         <div
@@ -1372,23 +1561,20 @@ POC: DHS Operations Center +1-202-282-8000 | worldcup.ops@hq.dhs.gov`}
                             <div className="p-3 space-y-3 bg-card/30">
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                  <label className="caption text-white/70 mb-1 block">Incident Type</label>
-                                  <p className="caption text-white">Offshore Production Facility Leak</p>
+                                  <label className="caption text-white/70 mb-1 block">Incident Category</label>
+                                  <p className="caption text-white">Offshore Production Facility Emergency</p>
                                 </div>
                                 <div>
-                                  <label className="caption text-white/70 mb-1 block">Severity</label>
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-red-500" />
-                                    <span className="caption text-red-500">Critical</span>
-                                  </div>
-                                </div>
-                                <div>
-                                  <label className="caption text-white/70 mb-1 block">Status</label>
-                                  <p className="caption text-white">Emergency Response Active</p>
+                                  <label className="caption text-white/70 mb-1 block">Operational Period</label>
+                                  <p className="caption text-white">OP-4: 12/20/2025 06:00 - 12/20/2025 18:00</p>
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Incident Commander</label>
                                   <p className="caption text-white">Robert Martinez, ExxonMobil</p>
+                                </div>
+                                <div>
+                                  <label className="caption text-white/70 mb-1 block">SITREP</label>
+                                  <p className="caption text-white">SITREP #8 - Published 12/20/2025 13:45</p>
                                 </div>
                               </div>
                             </div>
@@ -1429,23 +1615,20 @@ POC: DHS Operations Center +1-202-282-8000 | worldcup.ops@hq.dhs.gov`}
                             <div className="p-3 space-y-3 bg-card/30">
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                  <label className="caption text-white/70 mb-1 block">Incident Type</label>
-                                  <p className="caption text-white">Subsea Infrastructure Anomaly</p>
+                                  <label className="caption text-white/70 mb-1 block">Incident Category</label>
+                                  <p className="caption text-white">Subsea Infrastructure Inspection</p>
                                 </div>
                                 <div>
-                                  <label className="caption text-white/70 mb-1 block">Severity</label>
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-orange-500" />
-                                    <span className="caption text-orange-500">Major</span>
-                                  </div>
-                                </div>
-                                <div>
-                                  <label className="caption text-white/70 mb-1 block">Status</label>
-                                  <p className="caption text-white">ROV Survey in Progress</p>
+                                  <label className="caption text-white/70 mb-1 block">Operational Period</label>
+                                  <p className="caption text-white">OP-4: 12/20/2025 06:00 - 12/20/2025 18:00</p>
                                 </div>
                                 <div>
                                   <label className="caption text-white/70 mb-1 block">Incident Commander</label>
                                   <p className="caption text-white">Jennifer Chen, ExxonMobil</p>
+                                </div>
+                                <div>
+                                  <label className="caption text-white/70 mb-1 block">SITREP</label>
+                                  <p className="caption text-white">SITREP #5 - Published 12/20/2025 12:15</p>
                                 </div>
                               </div>
                             </div>
@@ -1511,6 +1694,358 @@ POC: DHS Operations Center +1-202-282-8000 | worldcup.ops@hq.dhs.gov`}
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Draft SITREP Modal */}
+      <Dialog open={isDraftModalOpen} onOpenChange={setIsDraftModalOpen}>
+        <DialogContent className="bg-[#222529] border-[#6e757c] text-white overflow-hidden flex flex-col" style={{ maxWidth: '71vw', maxHeight: '71vh', width: '71vw' }}>
+          <DialogHeader>
+            <DialogTitle className="text-white">New Draft SITREP: AOR Alpha</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-4 py-4">
+            {/* Draft SITREP Tabs */}
+            <div className="flex items-center gap-1 border-b border-border">
+              {[1, 2, 3, 4, 5].map((tabNum) => {
+                const isActive = tabNum === modalDraftTab;
+                const tabNames: { [key: number]: string } = {
+                  1: 'Contact Info',
+                  2: 'Executive Summary',
+                  3: 'Tab 3',
+                  4: 'Tab 4',
+                  5: 'Tab 5'
+                };
+                return (
+                  <button
+                    key={tabNum}
+                    onClick={() => setModalDraftTab(tabNum)}
+                    className={`relative px-4 py-2 transition-colors whitespace-nowrap ${
+                      isActive
+                        ? 'text-accent'
+                        : 'text-foreground hover:text-accent'
+                    }`}
+                  >
+                    <span className="caption">{tabNames[tabNum]}</span>
+                    {/* Active indicator line */}
+                    {isActive && (
+                      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent" />
+                    )}
+                  </button>
+                );
+              })}
+              
+              {/* Add Section Button */}
+              <button
+                onClick={() => {
+                  // Placeholder - does nothing for now
+                  console.log('Add section clicked');
+                }}
+                className="px-3 py-2 text-white/70 hover:text-white transition-colors flex items-center gap-1 whitespace-nowrap"
+              >
+                <span className="text-lg leading-none">+</span>
+                <span className="caption text-xs">Add Section</span>
+              </button>
+            </div>
+
+            {/* Data Sources and Generate Button */}
+            <div className="flex gap-3">
+              {/* Data Sources Multi-Select */}
+              <Popover open={modalDataSourcesOpen} onOpenChange={setModalDataSourcesOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-[28px] justify-start text-left font-normal bg-input-background border-border text-white"
+                  >
+                    {draftDataSources.length > 0 
+                      ? `${draftDataSources.length} source${draftDataSources.length > 1 ? 's' : ''} selected` 
+                      : '+ Select data sources'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-[200px] p-0 bg-[#222529] border-[#6e757c]" style={{ zIndex: 9999 }}>
+                  <Command className="bg-[#222529]">
+                    <CommandList>
+                      <CommandEmpty className="text-white">No sources found.</CommandEmpty>
+                      <CommandGroup>
+                        {['Web', 'USCG Organization Data', 'Incident Data'].map((source) => (
+                          <CommandItem
+                            key={source}
+                            onSelect={() => {
+                              setDraftDataSources(prev =>
+                                prev.includes(source)
+                                  ? prev.filter(s => s !== source)
+                                  : [...prev, source]
+                              );
+                            }}
+                            className="text-white"
+                          >
+                            <Checkbox
+                              checked={draftDataSources.includes(source)}
+                              className="mr-2"
+                            />
+                            {source}
+                          </CommandItem>
+                        ))}
+                        
+                        {/* Files Item */}
+                        <div ref={modalFilesItemRef}>
+                          <CommandItem
+                            onSelect={(e) => {
+                              e.preventDefault();
+                            }}
+                            onMouseEnter={() => {
+                              if (modalFilesItemRef.current) {
+                                const rect = modalFilesItemRef.current.getBoundingClientRect();
+                                setModalSubmenuPosition({
+                                  top: rect.top,
+                                  left: rect.right + 4
+                                });
+                              }
+                              setModalFilesSubmenuOpen(true);
+                            }}
+                            className="text-white cursor-pointer"
+                          >
+                            <Checkbox
+                              checked={modalSelectedFiles.length > 0}
+                              className="mr-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const checked = modalSelectedFiles.length === 0;
+                                if (checked) {
+                                  setModalSelectedFiles(['File Alpha', 'File Bravo', 'File Charlie', 'File Delta', 'File Echo']);
+                                  if (!draftDataSources.includes('Files')) {
+                                    setDraftDataSources(prev => [...prev, 'Files']);
+                                  }
+                                } else {
+                                  setModalSelectedFiles([]);
+                                  setDraftDataSources(prev => prev.filter(s => s !== 'Files'));
+                                }
+                              }}
+                            />
+                            <span className="flex-1">Files</span>
+                            <ChevronRight className="w-4 h-4 ml-auto" />
+                          </CommandItem>
+                        </div>
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+
+              {/* Generate Button */}
+              <button
+                onClick={() => {
+                  // Generate AI draft content (placeholder for now)
+                  console.log('Generate draft clicked');
+                }}
+                className="bg-white hover:bg-gray-100 text-black border border-white h-[28px] rounded-[4px] px-4 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg 
+                  className="w-4 h-4" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" 
+                  />
+                </svg>
+                <span className="text-xs font-medium">Generate Draft: {
+                  modalDraftTab === 1 ? 'Contact Info' :
+                  modalDraftTab === 2 ? 'Executive Summary' :
+                  `Tab ${modalDraftTab}`
+                }</span>
+              </button>
+              
+              {/* Files Submenu - Rendered Outside */}
+              {modalFilesSubmenuOpen && modalSubmenuPosition && (
+                <div 
+                  data-submenu="files-modal"
+                  className="fixed w-[200px] bg-[#222529] border border-[#6e757c] rounded-md shadow-lg"
+                  style={{ 
+                    zIndex: 10001,
+                    left: `${modalSubmenuPosition.left}px`,
+                    top: `${modalSubmenuPosition.top}px`
+                  }}
+                >
+                  <Command className="bg-[#222529]">
+                    <CommandList>
+                      <CommandGroup>
+                        {['File Alpha', 'File Bravo', 'File Charlie', 'File Delta', 'File Echo'].map((file) => (
+                          <CommandItem
+                            key={file}
+                            onSelect={() => {
+                              setModalSelectedFiles(prev => {
+                                const newFiles = prev.includes(file)
+                                  ? prev.filter(f => f !== file)
+                                  : [...prev, file];
+                                
+                                // Update data sources based on file selection
+                                if (newFiles.length > 0 && !draftDataSources.includes('Files')) {
+                                  setDraftDataSources(prevSources => [...prevSources, 'Files']);
+                                } else if (newFiles.length === 0) {
+                                  setDraftDataSources(prevSources => prevSources.filter(s => s !== 'Files'));
+                                }
+                                
+                                return newFiles;
+                              });
+                            }}
+                            className="text-white"
+                          >
+                            <Checkbox
+                              checked={modalSelectedFiles.includes(file)}
+                              className="mr-2"
+                            />
+                            <span className="flex-1">{file}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFilePreviewModal(file);
+                              }}
+                              className="ml-2 p-1 hover:bg-muted/50 rounded transition-colors"
+                              title="Open in modal"
+                            >
+                              <ExternalLink className="w-3 h-3 text-white" />
+                            </button>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </div>
+              )}
+            </div>
+
+            {/* Text Styler/Editor Placeholder */}
+            <div className="text-white/50 text-sm">
+              [placeholder for text styler/editor component eg tinyMCE]
+            </div>
+
+            <div className="relative">
+              <Textarea
+                value={modalDraftContents[modalDraftTab]}
+                onChange={(e) => setModalDraftContents({
+                  ...modalDraftContents,
+                  [modalDraftTab]: e.target.value
+                })}
+                placeholder={`Enter content for ${
+                  modalDraftTab === 1 ? 'Contact Info' :
+                  modalDraftTab === 2 ? 'Executive Summary' :
+                  `Tab ${modalDraftTab}`
+                }...`}
+                className="bg-input-background border-border text-white resize-none"
+                style={{ minHeight: '20vh' }}
+              />
+              <div className="absolute bottom-2 right-2 text-white/50 text-xs">
+                Word Limit {modalDraftTab === 2 ? '250' : '100'}
+              </div>
+            </div>
+            
+            {/* Attach Files Button */}
+            <div className="flex gap-3 items-center">
+              <button
+                onClick={() => {
+                  // Attach files logic (placeholder for now)
+                  console.log('Attach files clicked');
+                }}
+                className="text-white hover:text-white border border-white rounded-[4px] px-3 py-1.5 transition-colors flex items-center gap-1"
+              >
+                <span className="text-lg leading-none">+</span>
+                <span className="text-sm">Attach Files to Section: {
+                  modalDraftTab === 1 ? 'Contact Info' :
+                  modalDraftTab === 2 ? 'Executive Summary' :
+                  `Tab ${modalDraftTab}`
+                }</span>
+              </button>
+              
+              {/* Attached File Placeholder */}
+              <button
+                onClick={() => {
+                  // Placeholder - does nothing for now
+                  console.log('Document Alpha.pdf clicked');
+                }}
+                className="text-white bg-[#14171a] border border-[#6e757c] rounded-[4px] px-3 py-1.5 hover:bg-[#1a1d21] transition-colors"
+              >
+                <span className="text-sm">Document Alpha.pdf</span>
+              </button>
+            </div>
+            
+            {/* Preview Approval Workflow */}
+            <div className="space-y-3">
+              <Label className="text-white text-sm">Preview Approval Workflow</Label>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="flex items-center justify-center w-8 h-8 rounded-full text-white font-medium text-sm"
+                    style={{ backgroundColor: '#60a5fa' }}
+                  >
+                    1
+                  </div>
+                  <span className="text-sm text-white font-medium">Draft Creation</span>
+                </div>
+                <div className="flex-1 h-[2px] bg-border"></div>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="flex items-center justify-center w-8 h-8 rounded-full text-white font-medium text-sm"
+                    style={{ backgroundColor: '#6b7280' }}
+                  >
+                    2
+                  </div>
+                  <span className="text-sm text-white/70">Section Chief</span>
+                </div>
+                <div className="flex-1 h-[2px] bg-border"></div>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="flex items-center justify-center w-8 h-8 rounded-full text-white font-medium text-sm"
+                    style={{ backgroundColor: '#6b7280' }}
+                  >
+                    3
+                  </div>
+                  <span className="text-sm text-white/70">Incident Commander</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button
+                onClick={() => {
+                  // Save draft logic would go here
+                  setIsDraftModalOpen(false);
+                  setModalDraftContents({ 1: '', 2: '', 3: '', 4: '', 5: '' });
+                  setModalDraftTab(1);
+                }}
+                className="bg-primary hover:bg-primary/90 px-6 py-0.5 h-auto text-sm"
+              >
+                Save Draft
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsDraftModalOpen(false);
+                  setModalDraftContents({ 1: '', 2: '', 3: '', 4: '', 5: '' });
+                  setModalDraftTab(1);
+                }}
+                variant="outline"
+                className="border-border px-6 py-0.5 h-auto text-sm"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* File Preview Modal */}
+      <Dialog open={filePreviewModal !== null} onOpenChange={() => setFilePreviewModal(null)}>
+        <DialogContent className="bg-[#222529] border-[#6e757c] text-white">
+          <DialogHeader>
+            <DialogTitle className="text-white">{filePreviewModal}</DialogTitle>
+          </DialogHeader>
+          <div className="py-8 text-center">
+            <p className="text-white/70">Placeholder for PDF preview</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

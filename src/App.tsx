@@ -9,6 +9,7 @@ import { ObjectivesActionsPhase } from './components/phases/ObjectivesActionsPha
 import { IncidentRosterPhase } from './components/phases/IncidentRosterPhase';
 import { SafetyAnalysisPhase } from './components/phases/SafetyAnalysisPhase';
 import { ResourcesPhase } from './components/phases/ResourcesPhase';
+import { LayersPhase } from './components/phases/LayersPhase';
 import { GenericPhase } from './components/phases/GenericPhase';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
@@ -360,6 +361,8 @@ export default function App() {
         />;
       case 'resources':
         return <ResourcesPhase {...commonProps} />;
+      case 'layers':
+        return <LayersPhase {...commonProps} />;
       case 'safety-analysis':
         return <SafetyAnalysisPhase {...commonProps} />;
       default:
@@ -699,6 +702,20 @@ export default function App() {
             />
           </div>
           
+          {/* Pulse Animation CSS */}
+          <style>{`
+            @keyframes pulse {
+              0%, 100% {
+                opacity: 0.6;
+                transform: scale(1);
+              }
+              50% {
+                opacity: 0.9;
+                transform: scale(1.1);
+              }
+            }
+          `}</style>
+          
           {/* Map Markers Overlay */}
           {mapMarkers.map(marker => {
             // Convert lat/lon to screen position
@@ -738,6 +755,7 @@ export default function App() {
                     backgroundColor: marker.color,
                     opacity: 0.6,
                     boxShadow: `0 0 20px ${marker.color}, 0 0 40px ${marker.color}`,
+                    animation: marker.id.startsWith('nexrad-location-') ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none',
                   }}
                 />
               </div>
@@ -791,6 +809,49 @@ export default function App() {
                   setRegionFilter={setDataLayerRegionFilter}
                   incidentFilter={dataLayerIncidentFilter}
                   setIncidentFilter={setDataLayerIncidentFilter}
+                  onStartDraftingRadarPrecipitation={() => {
+                    // Update layers phase to start drafting
+                    const updatedPhases = displayedPeriod.phases.map(p => 
+                      p.id === 'layers' 
+                        ? { 
+                            ...p, 
+                            data: { 
+                              ...p.data, 
+                              isDraftingNewVersion: true, 
+                              draftingLayerName: 'Radar Precipitation' 
+                            } 
+                          }
+                        : p
+                    );
+                    if (viewingPastPeriod) {
+                      // Read-only mode, do nothing
+                      return;
+                    }
+                    setCurrentOperationalPeriod(prev => ({ ...prev, phases: updatedPhases }));
+                    // Switch to Layers tab
+                    setCurrentPhaseId('layers');
+                  }}
+                  onStartDraftingNewDataLayer={() => {
+                    // Update layers phase to start drafting new data layer
+                    const updatedPhases = displayedPeriod.phases.map(p => 
+                      p.id === 'layers' 
+                        ? { 
+                            ...p, 
+                            data: { 
+                              ...p.data, 
+                              isDraftingNewDataLayer: true
+                            } 
+                          }
+                        : p
+                    );
+                    if (viewingPastPeriod) {
+                      // Read-only mode, do nothing
+                      return;
+                    }
+                    setCurrentOperationalPeriod(prev => ({ ...prev, phases: updatedPhases }));
+                    // Switch to Layers tab
+                    setCurrentPhaseId('layers');
+                  }}
                 />
               </div>
             </div>
@@ -1003,6 +1064,58 @@ export default function App() {
               title="Click on the map to select a polygon or point"
             />
           )}
+          
+          {/* Click-capture overlay for drawing NEXRAD location */}
+          {(() => {
+            const layersPhase = displayedPeriod.phases.find(p => p.id === 'layers');
+            if (layersPhase?.data?.drawingNexradLocation) {
+              return (
+                <div
+                  className="absolute cursor-crosshair z-20"
+                  style={
+                    mapPanelDock === 'left'
+                      ? (leftPanelCollapsed ? { top: 0, left: '5vw', right: 0, bottom: 0 } : { top: 0, right: 0, bottom: 0, left: '33.33vw' })
+                      : { top: 0, left: 0, right: 0, height: '50vh' }
+                  }
+                  onClick={(e) => {
+                    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // Calculate approximate lat/lon from screen position (simplified)
+                    const [centerLon, centerLat] = mapCenter.split(',').map(Number);
+                    const scale = parseFloat(mapScale);
+                    const metersPerPixel = scale / 96 / 39.37;
+                    const mapWidth = rect.width;
+                    const mapHeight = rect.height;
+                    
+                    const offsetX = x - mapWidth / 2;
+                    const offsetY = mapHeight / 2 - y;
+                    
+                    const lat = centerLat + (offsetY * metersPerPixel / 111320);
+                    const lon = centerLon + (offsetX * metersPerPixel / (111320 * Math.cos(centerLat * Math.PI / 180)));
+                    
+                    // Add pulsing blue marker
+                    const markerId = `nexrad-location-${Date.now()}`;
+                    setMapMarkers(prev => [
+                      ...prev.filter(m => !m.id.startsWith('nexrad-location-')),
+                      { id: markerId, lat, lon, color: '#3b82f6' }
+                    ]);
+                    
+                    // Update the layers phase data with coordinates
+                    const updatedPhases = displayedPeriod.phases.map(p => 
+                      p.id === 'layers' 
+                        ? { ...p, data: { ...p.data, drawingNexradLocation: false, nexradLat: lat.toFixed(4), nexradLon: lon.toFixed(4) } }
+                        : p
+                    );
+                    setCurrentOperationalPeriod(prev => ({ ...prev, phases: updatedPhases }));
+                  }}
+                  title="Click on the map to place NEXRAD station"
+                />
+              );
+            }
+            return null;
+          })()}
           {/* Panel overlay: Stepper + content over the map (dock: left or bottom) */}
           {mapPanelDock === 'left' ? (
             <>
@@ -1023,7 +1136,7 @@ export default function App() {
                         }
                       `}</style>
                       <div className="flex items-center justify-between planning-stepper-map-view">
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: 1, marginRight: '8px' }}>
                           <PlanningPStepper
                             phases={displayedPeriod.phases}
                             currentPhaseId={currentPhaseId}

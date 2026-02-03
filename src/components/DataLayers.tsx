@@ -22,6 +22,8 @@ type DataLayersProps = {
   setRegionFilter?: (filter: string[]) => void;
   incidentFilter?: string[];
   setIncidentFilter?: (filter: string[]) => void;
+  onStartDraftingRadarPrecipitation?: () => void;
+  onStartDraftingNewDataLayer?: () => void;
 };
 
 export function DataLayers({ 
@@ -33,7 +35,9 @@ export function DataLayers({
   regionFilter: externalRegionFilter,
   setRegionFilter: externalSetRegionFilter,
   incidentFilter: externalIncidentFilter,
-  setIncidentFilter: externalSetIncidentFilter
+  setIncidentFilter: externalSetIncidentFilter,
+  onStartDraftingRadarPrecipitation,
+  onStartDraftingNewDataLayer
 }: DataLayersProps) {
   const [myDraftsExpanded, setMyDraftsExpanded] = React.useState(false);
   const [myArcGISExpanded, setMyArcGISExpanded] = React.useState(false);
@@ -67,7 +71,9 @@ export function DataLayers({
   const [layerModalCategory, setLayerModalCategory] = React.useState<string | null>(null);
   const [individualLayerModalOpen, setIndividualLayerModalOpen] = React.useState(false);
   const [selectedIndividualLayer, setSelectedIndividualLayer] = React.useState<string | null>(null);
-  const [fieldsExpanded, setFieldsExpanded] = React.useState(false);
+  const [layerVersion, setLayerVersion] = React.useState('v3');
+  const [layerIncidents, setLayerIncidents] = React.useState<string[]>([]);
+  const [layerAORs, setLayerAORs] = React.useState<string[]>([]);
   const [localRegionFilter, setLocalRegionFilter] = React.useState<string[]>([]);
   const [localIncidentFilter, setLocalIncidentFilter] = React.useState<string[]>([]);
   const [addLayerSearchOpen, setAddLayerSearchOpen] = React.useState(false);
@@ -153,7 +159,6 @@ export function DataLayers({
 
   const openIndividualLayerModal = (layerName: string) => {
     setSelectedIndividualLayer(layerName);
-    setFieldsExpanded(false);
     setIndividualLayerModalOpen(true);
   };
 
@@ -489,86 +494,6 @@ export function DataLayers({
         return [
           { name: 'Object 1', lastUpdated: '2025-11-15 12:00' },
           { name: 'Object 2', lastUpdated: '2025-11-15 12:00' }
-        ];
-    }
-  };
-
-  const getLayerFields = (layerName: string): Array<{ name: string; source: string }> => {
-    switch (layerName) {
-      case 'Radar Precipitation':
-        return [
-          { name: 'Reflectivity', source: 'CART' },
-          { name: 'Velocity', source: 'CART' },
-          { name: 'Storm Total Precipitation', source: 'PRATUS' },
-          { name: 'Echo Tops', source: 'PRATUS' }
-        ];
-      case 'Active Weather Warnings':
-        return [
-          { name: 'Warning Type', source: 'CART' },
-          { name: 'Severity Level', source: 'CART' },
-          { name: 'Issue Time', source: 'CART' },
-          { name: 'Expiration Time', source: 'CART' }
-        ];
-      case 'Staging Areas':
-        return [
-          { name: 'Location Name', source: 'CART' },
-          { name: 'Capacity', source: 'PRATUS' },
-          { name: 'Current Occupancy', source: 'PRATUS' },
-          { name: 'Operational Status', source: 'CART' }
-        ];
-      case 'Critical Facilities':
-        return [
-          { name: 'Facility Name', source: 'PRATUS' },
-          { name: 'Facility Type', source: 'PRATUS' },
-          { name: 'Priority Level', source: 'PRATUS' },
-          { name: 'Contact Information', source: 'PRATUS' }
-        ];
-      case 'Boom Deployment Lines':
-        return [
-          { name: 'Deployment ID', source: 'CART' },
-          { name: 'Length (meters)', source: 'CART' },
-          { name: 'Boom Type', source: 'CART' },
-          { name: 'Deployment Date', source: 'CART' }
-        ];
-      case 'Skimmer Operations':
-        return [
-          { name: 'Vessel ID', source: 'CART' },
-          { name: 'Operator', source: 'CART' },
-          { name: 'Recovery Rate', source: 'CART' },
-          { name: 'Operational Hours', source: 'CART' }
-        ];
-      case 'Priority Protection Areas':
-        return [
-          { name: 'Area Name', source: 'PRATUS' },
-          { name: 'Ecological Value', source: 'PRATUS' },
-          { name: 'Protection Strategy', source: 'PRATUS' },
-          { name: 'Access Restrictions', source: 'PRATUS' }
-        ];
-      case 'Boom Anchor Points':
-        return [
-          { name: 'Anchor ID', source: 'PRATUS' },
-          { name: 'Coordinates', source: 'PRATUS' },
-          { name: 'Anchor Type', source: 'PRATUS' },
-          { name: 'Installation Date', source: 'PRATUS' }
-        ];
-      case 'AIS Vessel Tracks':
-        return [
-          { name: 'Vessel Name', source: 'CART' },
-          { name: 'MMSI Number', source: 'CART' },
-          { name: 'Speed (knots)', source: 'PRATUS' },
-          { name: 'Heading', source: 'PRATUS' }
-        ];
-      case 'Patrol Sectors':
-        return [
-          { name: 'Sector ID', source: 'CART' },
-          { name: 'Patrol Unit', source: 'CART' },
-          { name: 'Shift Schedule', source: 'PRATUS' },
-          { name: 'Coverage Area', source: 'PRATUS' }
-        ];
-      default:
-        return [
-          { name: 'Field 1', source: 'CART' },
-          { name: 'Field 2', source: 'PRATUS' }
         ];
     }
   };
@@ -976,7 +901,11 @@ export function DataLayers({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setAddLayerModalOpen(true)}
+            onClick={() => {
+              if (onStartDraftingNewDataLayer) {
+                onStartDraftingNewDataLayer();
+              }
+            }}
             className="h-[26px] px-3 bg-transparent border-border text-white hover:bg-muted/50"
           >
             + Add Layer
@@ -1405,6 +1334,27 @@ export function DataLayers({
                 </div>
                 {expandedLayers.has('weather-radar') && (
                   <div className="px-4 py-4">
+                    <button
+                      onClick={() => {
+                        if (onStartDraftingRadarPrecipitation) {
+                          onStartDraftingRadarPrecipitation();
+                        }
+                      }}
+                      className="bg-[#01669f] h-[22.75px] rounded-[4px] hover:bg-[#01669f]/90 transition-colors flex items-center gap-2 px-4 mb-4"
+                    >
+                      <div className="size-[13px] flex-shrink-0">
+                        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 13 13">
+                          <g>
+                            <path d="M2.70833 6.5H10.2917" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.08333" />
+                            <path d="M6.5 2.70833V10.2917" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.08333" />
+                          </g>
+                        </svg>
+                      </div>
+                      <p className="caption text-nowrap text-white">
+                        Draft New Version
+                      </p>
+                    </button>
+                    
                     <div className="text-sm leading-none text-white">
                       Last Updated: 2025-11-15 14:05 UTC
                     </div>
@@ -2440,9 +2390,43 @@ export function DataLayers({
       <Dialog open={individualLayerModalOpen} onOpenChange={setIndividualLayerModalOpen}>
         <DialogContent className="bg-[#222529] border-[#6e757c] text-white overflow-hidden flex flex-col" style={{ maxWidth: '1008px', maxHeight: '90vh' }}>
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="text-white">
-              {selectedIndividualLayer || 'Layer Details'}
-            </DialogTitle>
+            <div className="flex items-center gap-3">
+              <DialogTitle className="text-white">
+                {selectedIndividualLayer || 'Layer Details'}
+              </DialogTitle>
+              <Select value={layerVersion} onValueChange={setLayerVersion}>
+                <SelectTrigger className="bg-[#1a1d21] border-border text-white h-8 w-[225px] text-xs">
+                  <SelectValue placeholder="Select version" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#222529] border-[#6e757c] w-[350px]">
+                  <SelectItem value="v3" className="text-white text-xs">
+                    <div className="flex items-center justify-between w-full gap-3">
+                      <span>v3 (Latest)</span>
+                      <span className="text-white/50">2025-11-15 14:05</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="v2" className="text-white text-xs">
+                    <div className="flex items-center justify-between w-full gap-3">
+                      <span>v2</span>
+                      <span className="text-white/50">2025-10-20 09:30</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="v1" className="text-white text-xs">
+                    <div className="flex items-center justify-between w-full gap-3">
+                      <span>v1</span>
+                      <span className="text-white/50">2025-09-10 16:45</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                className="bg-transparent border-border text-white hover:bg-muted/50 px-3 text-xs whitespace-nowrap"
+                style={{ height: '32px' }}
+              >
+                + New Version
+              </Button>
+            </div>
             <DialogDescription className="text-white/70">
               Layer Details
             </DialogDescription>
@@ -2614,6 +2598,178 @@ export function DataLayers({
                     </TableRow>
                   </TableBody>
                 </Table>
+                
+                {/* Incidents Section */}
+                <div className="mt-4">
+                  <Label className="text-xs text-white/70 mb-2 block">Incidents</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between bg-[#1a1d21] border-border text-white text-sm hover:bg-muted/50"
+                      >
+                        <span className="truncate">
+                          {layerIncidents.length === 0
+                            ? 'Select incidents...'
+                            : layerIncidents.length === 1
+                            ? layerIncidents[0] === 'gulf-coast-pipeline'
+                              ? 'Gulf Coast Pipeline Spill'
+                              : layerIncidents[0] === 'bayou-dularge'
+                              ? 'Bayou Dularge Contamination'
+                              : layerIncidents[0] === 'estuarine-wildlife'
+                              ? 'Estuarine Wildlife Area Response'
+                              : layerIncidents[0] === 'delaware-river-tanker'
+                              ? 'Delaware River Tanker Spill'
+                              : layerIncidents[0] === 'port-terminal'
+                              ? 'Port Terminal Contamination'
+                              : 'Delaware Estuary Shoreline Protection'
+                            : `${layerIncidents.length} selected`}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+                      <Command className="bg-[#222529]">
+                        <CommandInput placeholder="Search incidents..." className="h-9 text-white text-sm" />
+                        <CommandEmpty className="text-white/70 p-2 text-sm">No incident found.</CommandEmpty>
+                        <CommandGroup className="max-h-[200px] overflow-auto">
+                          <CommandItem
+                            onSelect={() => {
+                              if (layerIncidents.length === 6) {
+                                setLayerIncidents([]);
+                              } else {
+                                setLayerIncidents(['gulf-coast-pipeline', 'bayou-dularge', 'estuarine-wildlife', 'delaware-river-tanker', 'port-terminal', 'delaware-estuary']);
+                              }
+                            }}
+                            className="text-white cursor-pointer text-sm font-semibold border-b border-border/30 mb-1"
+                          >
+                            <div className="flex items-center gap-2 flex-1">
+                              <Checkbox
+                                checked={layerIncidents.length === 6}
+                                className="pointer-events-none"
+                              />
+                              <span>Select All</span>
+                            </div>
+                          </CommandItem>
+                          {[
+                            { value: 'gulf-coast-pipeline', label: 'Gulf Coast Pipeline Spill' },
+                            { value: 'bayou-dularge', label: 'Bayou Dularge Contamination' },
+                            { value: 'estuarine-wildlife', label: 'Estuarine Wildlife Area Response' },
+                            { value: 'delaware-river-tanker', label: 'Delaware River Tanker Spill' },
+                            { value: 'port-terminal', label: 'Port Terminal Contamination' },
+                            { value: 'delaware-estuary', label: 'Delaware Estuary Shoreline Protection' }
+                          ].map((incident) => (
+                            <CommandItem
+                              key={incident.value}
+                              onSelect={() => {
+                                setLayerIncidents(prev =>
+                                  prev.includes(incident.value)
+                                    ? prev.filter(v => v !== incident.value)
+                                    : [...prev, incident.value]
+                                );
+                              }}
+                              className="text-white cursor-pointer text-sm"
+                            >
+                              <div className="flex items-center gap-2 flex-1">
+                                <Checkbox
+                                  checked={layerIncidents.includes(incident.value)}
+                                  className="pointer-events-none"
+                                />
+                                <span>{incident.label}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                {/* AORs Section */}
+                <div className="mt-4">
+                  <Label className="text-xs text-white/70 mb-2 block">AORs</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between bg-[#1a1d21] border-border text-white text-sm hover:bg-muted/50"
+                      >
+                        <span className="truncate">
+                          {layerAORs.length === 0
+                            ? 'Select AORs...'
+                            : layerAORs.length === 1
+                            ? layerAORs[0] === 'sector-houston-galveston'
+                              ? 'Sector Houston-Galveston'
+                              : layerAORs[0] === 'sector-new-orleans'
+                              ? 'Sector New Orleans'
+                              : layerAORs[0] === 'sector-mobile'
+                              ? 'Sector Mobile'
+                              : layerAORs[0] === 'sector-corpus-christi'
+                              ? 'Sector Corpus Christi'
+                              : layerAORs[0] === 'district-8'
+                              ? 'District 8'
+                              : 'Fifth District'
+                            : `${layerAORs.length} selected`}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0 bg-[#222529] border-[#6e757c]" align="start">
+                      <Command className="bg-[#222529]">
+                        <CommandInput placeholder="Search AORs..." className="h-9 text-white text-sm" />
+                        <CommandEmpty className="text-white/70 p-2 text-sm">No AOR found.</CommandEmpty>
+                        <CommandGroup className="max-h-[200px] overflow-auto">
+                          <CommandItem
+                            onSelect={() => {
+                              if (layerAORs.length === 6) {
+                                setLayerAORs([]);
+                              } else {
+                                setLayerAORs(['sector-houston-galveston', 'sector-new-orleans', 'sector-mobile', 'sector-corpus-christi', 'district-8', 'fifth-district']);
+                              }
+                            }}
+                            className="text-white cursor-pointer text-sm font-semibold border-b border-border/30 mb-1"
+                          >
+                            <div className="flex items-center gap-2 flex-1">
+                              <Checkbox
+                                checked={layerAORs.length === 6}
+                                className="pointer-events-none"
+                              />
+                              <span>Select All</span>
+                            </div>
+                          </CommandItem>
+                          {[
+                            { value: 'sector-houston-galveston', label: 'Sector Houston-Galveston' },
+                            { value: 'sector-new-orleans', label: 'Sector New Orleans' },
+                            { value: 'sector-mobile', label: 'Sector Mobile' },
+                            { value: 'sector-corpus-christi', label: 'Sector Corpus Christi' },
+                            { value: 'district-8', label: 'District 8' },
+                            { value: 'fifth-district', label: 'Fifth District' }
+                          ].map((aor) => (
+                            <CommandItem
+                              key={aor.value}
+                              onSelect={() => {
+                                setLayerAORs(prev =>
+                                  prev.includes(aor.value)
+                                    ? prev.filter(v => v !== aor.value)
+                                    : [...prev, aor.value]
+                                );
+                              }}
+                              className="text-white cursor-pointer text-sm"
+                            >
+                              <div className="flex items-center gap-2 flex-1">
+                                <Checkbox
+                                  checked={layerAORs.includes(aor.value)}
+                                  className="pointer-events-none"
+                                />
+                                <span>{aor.label}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
                 
                 {/* Objects Section */}
                 <div className="mt-4">
@@ -2863,39 +3019,6 @@ export function DataLayers({
                     );
                   })}
                   </div>
-                </div>
-                
-                {/* Fields Section */}
-                <div className="border border-border/30 rounded-md overflow-hidden mt-3">
-                  <div 
-                    className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/10"
-                    onClick={() => setFieldsExpanded(!fieldsExpanded)}
-                  >
-                    <span className="text-sm font-medium text-white">Fields</span>
-                    {fieldsExpanded ? (
-                      <ChevronDown className="w-4 h-4 text-white" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-white" />
-                    )}
-                  </div>
-                  {fieldsExpanded && (
-                    <div className="border-t border-border/30">
-                      <Table>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell className="text-sm font-medium text-white/70 p-2">Field</TableCell>
-                            <TableCell className="text-sm font-medium text-white/70 p-2 text-right">Source</TableCell>
-                          </TableRow>
-                          {getLayerFields(selectedIndividualLayer).map((field, idx) => (
-                            <TableRow key={idx}>
-                              <TableCell className="text-sm text-white p-2">{field.name}</TableCell>
-                              <TableCell className="text-sm text-white p-2 text-right">{field.source}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )}
                 </div>
               </div>
             );
